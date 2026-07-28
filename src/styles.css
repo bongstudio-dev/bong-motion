@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  font-family: "Satoshi", system-ui, sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(32, 198, 131, 0.14), transparent 30%),
+    linear-gradient(180deg, #0f1714 0%, #0a0f0d 100%);
+  color: white;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at top, rgba(32, 198, 131, 0.14), transparent 30%),
+    linear-gradient(180deg, #0f1714 0%, #0a0f0d 100%);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.stage-grid {
+  background-image:
+    linear-gradient(rgba(149, 181, 169, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(149, 181, 169, 0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
