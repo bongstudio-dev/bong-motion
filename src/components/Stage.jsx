@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { ASPECT_RATIOS, resolveAspect } from "../aspectRatios";
 import { useStageScale } from "../hooks/useStageScale";
 import ParticleCanvas from "./ParticleCanvas";
 
 function pad(value) {
   return String(value).padStart(2, "0");
+}
+
+function clamp01(value) {
+  return Math.min(1, Math.max(0, value));
 }
 
 function Stage({
@@ -22,6 +26,38 @@ function Stage({
     dims.height,
   );
   const [isDragging, setIsDragging] = useState(false);
+  const [draggingEmitter, setDraggingEmitter] = useState(false);
+  const emitterSurfaceRef = useRef(null);
+
+  const updateEmitterFromEvent = (event) => {
+    const surface = emitterSurfaceRef.current;
+    if (!surface) return;
+    const rect = surface.getBoundingClientRect();
+    const x = clamp01((event.clientX - rect.left) / rect.width);
+    const y = clamp01((event.clientY - rect.top) / rect.height);
+    onConfigChange?.("emitterX", Math.round(x * 100) / 100);
+    onConfigChange?.("emitterY", Math.round(y * 100) / 100);
+  };
+
+  const handleEmitterPointerDown = (event) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setDraggingEmitter(true);
+    updateEmitterFromEvent(event);
+  };
+
+  const handleEmitterPointerMove = (event) => {
+    if (!draggingEmitter) return;
+    updateEmitterFromEvent(event);
+  };
+
+  const handleEmitterPointerUp = (event) => {
+    setDraggingEmitter(false);
+    try {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    } catch {
+      // el pointer ya se soltó
+    }
+  };
 
   const handleDrop = (event) => {
     event.preventDefault();
@@ -121,7 +157,7 @@ function Stage({
         ) : null}
 
         <div
-          className="origin-center overflow-hidden rounded-[28px] border border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.45)]"
+          className="relative origin-center overflow-hidden rounded-[28px] border border-white/10 shadow-[0_30px_80px_rgba(0,0,0,0.45)]"
           style={{
             backgroundColor: config.backgroundColor,
             width: `${width * scale}px`,
@@ -136,6 +172,37 @@ function Stage({
             config={config}
             canvasRef={canvasRef}
           />
+
+          {/* Superficie de arrastre + handle del emitter. Es DOM (no canvas),
+              así que se ve en pantalla pero NO aparece en la grabación. */}
+          <div
+            ref={emitterSurfaceRef}
+            onPointerDown={handleEmitterPointerDown}
+            onPointerMove={handleEmitterPointerMove}
+            onPointerUp={handleEmitterPointerUp}
+            className={`absolute inset-0 z-[5] ${
+              draggingEmitter ? "cursor-grabbing" : "cursor-grab"
+            }`}
+          >
+            <div
+              className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
+              style={{
+                left: `${clamp01(config.emitterX) * 100}%`,
+                top: `${clamp01(config.emitterY) * 100}%`,
+              }}
+            >
+              <div
+                className={`flex h-6 w-6 items-center justify-center rounded-full border-2 border-accent bg-accent/20 shadow-[0_0_0_2px_rgba(0,0,0,0.45)] transition-transform ${
+                  draggingEmitter ? "scale-125" : ""
+                }`}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+              </div>
+              <span className="absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap rounded-full bg-app/80 px-2 py-0.5 font-mono text-[9px] uppercase tracking-[0.2em] text-accent backdrop-blur">
+                Emitter
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </section>
