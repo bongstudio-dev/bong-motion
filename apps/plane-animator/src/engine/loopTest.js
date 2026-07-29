@@ -158,7 +158,12 @@ export function minCyclesFor(state) {
   // al frente sólo con un número par de medias vueltas.
   const unit = Math.max(1, Math.round(tpl.cycleUnit?.(p, N) ?? 1));
 
-  const byAssets = slots === 0 || M === 0 ? 1 : M / gcd(M, slots);
+  // Sin assets cargados se dibujan N placeholders numerados, y el número rota
+  // entre posiciones igual que rotaría un asset. Para el contrato del loop
+  // cuentan como N assets: si no, el badge diría "no cierra" sin ofrecer los
+  // ciclos que sí cierran, que es justo cuando más se está componiendo a ciegas.
+  const effective = M > 0 ? M : N;
+  const byAssets = slots === 0 ? 1 : effective / gcd(effective, slots);
   return Math.max(1, lcm(byAssets, unit) || 1);
 }
 

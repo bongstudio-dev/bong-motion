@@ -85,9 +85,14 @@ console.log("\n== 4. Contrato del loop §7 — carousel ==");
   s3.template.id = "carousel";
   ok(minCyclesFor(s3) === 4, `4 assets → minCycles 4 (dio ${minCyclesFor(s3)})`);
 
-  // Sin assets no hay nada que rotar.
+  // Sin assets, los N placeholders numerados cuentan como N assets: el número
+  // rota entre posiciones igual que rotaría una imagen.
   const s4 = defaultState();
-  ok(minCyclesFor(s4) === 1, "sin assets → minCycles 1");
+  ok(minCyclesFor(s4) === 6, `sin assets → los 6 placeholders piden 6 ciclos (dio ${minCyclesFor(s4)})`);
+  const c4 = loopClosure(s4);
+  ok(c4.status === "cycles" && c4.suggested === 6, `y el badge ofrece 6 en vez de "no cierra" (status '${c4.status}')`);
+  s4.timing.cycles = 6;
+  ok(loopClosure(s4).status === "ok", "con 6 ciclos el estado inicial de la app cierra");
 }
 
 console.log("\n== 5. Parallax cierra en 1 ciclo (cada capa vuelve a su lugar) ==");
