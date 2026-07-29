@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bong Motion — Bong Studio</title>
+    <link rel="preconnect" href="https://api.fontshare.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap"
+    />
+    <style>
+      :root {
+        --bg: #0b0b0c;
+        --panel: #141416;
+        --panel-2: #191a1d;
+        --stroke: #26272c;
+        --stroke-strong: #34353c;
+        --text: #ededf0;
+        --muted: #8b8c93;
+        --muted-2: #63646b;
+        --font: "Satoshi", ui-sans-serif, system-ui, -apple-system, sans-serif;
+        --mono: ui-monospace, "SF Mono", Menlo, monospace;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font-family: var(--font);
+        -webkit-font-smoothing: antialiased;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 24px;
+      }
+      main { width: 100%; max-width: 940px; }
+      h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.01em; margin: 0; }
+      h1 span { color: var(--muted-2); font-weight: 500; }
+      .sub { margin: 6px 0 34px; font-size: 13px; color: var(--muted); line-height: 1.6; max-width: 60ch; }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+      a.card {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 20px;
+        border: 1px solid var(--stroke);
+        border-radius: 14px;
+        background: var(--panel);
+        text-decoration: none;
+        color: inherit;
+        transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+      }
+      a.card:hover { border-color: var(--stroke-strong); background: var(--panel-2); transform: translateY(-2px); }
+      .name { font-size: 15px; font-weight: 700; }
+      .desc { font-size: 12.5px; color: var(--muted); line-height: 1.55; flex: 1; }
+      .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+      .tag {
+        font-family: var(--mono); font-size: 10px; letter-spacing: 0.04em;
+        text-transform: uppercase; color: var(--muted-2);
+        border: 1px solid var(--stroke); border-radius: 5px; padding: 3px 6px;
+      }
+      svg { display: block; border-radius: 8px; background: #0e0e10; border: 1px solid var(--stroke); }
+      footer { margin-top: 34px; font-size: 11.5px; color: var(--muted-2); line-height: 1.6; }
+      footer code { font-family: var(--mono); color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Bong Motion <span>· Bong Studio</span></h1>
+      <p class="sub">
+        Herramientas internas para generar piezas animadas en loop. Todas componen
+        sobre un canvas de lado menor 1080 y exportan a los formatos de feed y
+        stories desde el mismo render que muestra el preview.
+      </p>
+
+      <div class="grid">
+        <a class="card" href="./plane-animator/">
+          <svg width="100%" height="76" viewBox="0 0 240 76" fill="none">
+            <rect x="16" y="18" width="30" height="40" rx="3" fill="#2f3037" />
+            <rect x="54" y="12" width="42" height="52" rx="3" fill="#4a4b53" />
+            <rect x="104" y="6" width="56" height="64" rx="4" fill="#8b8c93" />
+            <rect x="168" y="12" width="42" height="52" rx="3" fill="#4a4b53" />
+            <rect x="218" y="18" width="30" height="40" rx="3" fill="#2f3037" />
+          </svg>
+          <div class="name">Plane Animator</div>
+          <div class="desc">
+            Posts animados a partir de varias imágenes dispuestas en el espacio 3D.
+            Cinco templates, loop verificado en vivo y export determinístico.
+          </div>
+          <div class="tags"><span class="tag">WebGL</span><span class="tag">imágenes</span><span class="tag">3D</span></div>
+        </a>
+
+        <a class="card" href="./palette-animator/">
+          <svg width="100%" height="76" viewBox="0 0 240 76" fill="none">
+            <rect x="16" y="14" width="38" height="48" rx="3" fill="#004831" />
+            <rect x="60" y="14" width="38" height="48" rx="3" fill="#0C6347" />
+            <rect x="104" y="8" width="52" height="60" rx="3" fill="#20C683" />
+            <rect x="162" y="14" width="38" height="48" rx="3" fill="#7BE3B0" />
+            <rect x="206" y="14" width="26" height="48" rx="3" fill="#E7F6EE" />
+          </svg>
+          <div class="name">Palette Animator</div>
+          <div class="desc">
+            Loops de paleta de color. Presets de movimiento sobre layouts
+            independientes, editor de easing y export en los cuatro ratios.
+          </div>
+          <div class="tags"><span class="tag">Canvas 2D</span><span class="tag">color</span></div>
+        </a>
+
+        <a class="card" href="./particle-visualizer/">
+          <svg width="100%" height="76" viewBox="0 0 240 76" fill="none">
+            <circle cx="40" cy="38" r="3" fill="#8b8c93" />
+            <circle cx="72" cy="22" r="2" fill="#63646b" />
+            <circle cx="96" cy="52" r="4" fill="#ededf0" />
+            <circle cx="124" cy="30" r="2.5" fill="#8b8c93" />
+            <circle cx="150" cy="46" r="3.5" fill="#4a4b53" />
+            <circle cx="178" cy="26" r="2" fill="#63646b" />
+            <circle cx="200" cy="44" r="3" fill="#8b8c93" />
+            <circle cx="58" cy="56" r="2" fill="#4a4b53" />
+            <circle cx="216" cy="24" r="2.5" fill="#ededf0" />
+          </svg>
+          <div class="name">Particle Visualizer</div>
+          <div class="desc">
+            Sistema de partículas con fuerzas y ruido sobre canvas 2D, para
+            fondos y texturas en movimiento a partir de un logo o una forma.
+          </div>
+          <div class="tags"><span class="tag">Canvas 2D</span><span class="tag">simulación</span></div>
+        </a>
+      </div>
+
+      <footer>
+        Monorepo <code>bong-motion</code>. Cada tool es un workspace en
+        <code>apps/</code> y se despliega en su subpath.
+      </footer>
+    </main>
+  </body>
+</html>

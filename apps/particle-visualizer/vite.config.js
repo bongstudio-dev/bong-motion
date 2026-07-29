@@ -6,4 +6,8 @@ export default defineConfig({
   // (https://usuario.github.io/repo/) sin acoplar el nombre del repo.
   base: "./",
   plugins: [react()],
+  server: {
+    port: 5173,
+    strictPort: true,
+  },
 });

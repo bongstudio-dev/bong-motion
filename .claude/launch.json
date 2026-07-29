@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "plane-animator",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:plane"],
+      "port": 5175
+    },
+    {
+      "name": "palette-animator",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:palette"],
+      "port": 5174
+    },
+    {
+      "name": "particle-visualizer",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:particle"],
+      "port": 5173
+    }
+  ]
+}

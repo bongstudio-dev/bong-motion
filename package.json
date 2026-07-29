@@ -1,0 +1,20 @@
+{
+  "name": "bong-motion",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Bong Studio — familia de herramientas internas para generar piezas animadas en loop.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w plane-animator",
+    "dev:plane": "npm run dev -w plane-animator",
+    "dev:palette": "npm run dev -w palette-animator",
+    "dev:particle": "npm run dev -w particle-visualizer",
+    "build": "npm run build --workspaces --if-present",
+    "build:site": "node scripts/build-site.mjs",
+    "test": "node apps/plane-animator/scripts/engine-test.mjs"
+  }
+}
