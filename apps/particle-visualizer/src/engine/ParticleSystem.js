@@ -1,4 +1,4 @@
-import { applyDrag, applyGravity, applyTurbulence } from "./forces";
+import { applyDrag, applyGravity, applyTurbulence } from "./forces.js";
 
 function toRadians(value) {
   return (value * Math.PI) / 180;
@@ -16,6 +16,16 @@ export class ParticleSystem {
     this.spawnAccumulator = 0;
     this.nextAssetIndex = 0;
     this.elapsed = 0;
+    // Posición del emisor que pisa a la de config, o null. Vive APARTE del
+    // config a propósito: `updateConfig` mergea el config entero de React en
+    // cada cambio, así que escribir acá la posición de la mano haría que tocar
+    // cualquier slider la pisara con el emitterX viejo.
+    this.emitterOverride = null;
+  }
+
+  // point = { x, y } normalizado 0..1, o null para volver al emisor de config.
+  setEmitterOverride(point) {
+    this.emitterOverride = point;
   }
 
   setAssets(assets) {
@@ -40,8 +50,9 @@ export class ParticleSystem {
     const asset = this.assets[this.nextAssetIndex];
     this.nextAssetIndex = (this.nextAssetIndex + 1) % this.assets.length;
 
-    const emitterX = stageWidth * this.config.emitterX;
-    const emitterY = stageHeight * this.config.emitterY;
+    const origin = this.emitterOverride ?? this.config;
+    const emitterX = stageWidth * (origin.x ?? origin.emitterX);
+    const emitterY = stageHeight * (origin.y ?? origin.emitterY);
     const direction = toRadians(this.config.direction);
     const spread = toRadians(this.config.spread);
     const angle = direction + (Math.random() - 0.5) * spread;
@@ -147,10 +158,17 @@ export class ParticleSystem {
     return 1;
   }
 
-  render(ctx, stageWidth, stageHeight) {
+  // `drawBackdrop` opcional reemplaza al fondo sólido. Tiene que ser un
+  // parámetro y no algo dibujado antes de llamar a render(): el clearRect y el
+  // fillRect de acá taparían cualquier cosa pintada previamente.
+  render(ctx, stageWidth, stageHeight, drawBackdrop) {
     ctx.clearRect(0, 0, stageWidth, stageHeight);
-    ctx.fillStyle = this.config.backgroundColor;
-    ctx.fillRect(0, 0, stageWidth, stageHeight);
+    if (drawBackdrop) {
+      drawBackdrop(ctx, stageWidth, stageHeight);
+    } else {
+      ctx.fillStyle = this.config.backgroundColor;
+      ctx.fillRect(0, 0, stageWidth, stageHeight);
+    }
 
     for (const particle of this.particles) {
       const image = particle.asset.image;

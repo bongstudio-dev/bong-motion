@@ -1,4 +1,4 @@
-import { sampleNoise } from "./noise";
+import { sampleNoise } from "./noise.js";
 
 export function applyGravity(particle, gravity = 0, deltaSeconds = 0) {
   particle.vy += gravity * 220 * deltaSeconds;

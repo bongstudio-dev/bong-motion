@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ToolSidebar } from "@bong/ui";
 import AssetsPanel from "./components/AssetsPanel";
+import { CameraNotice, CameraStatus } from "./components/CameraStatus";
 import ControlsPanel from "./components/ControlsPanel";
 import PresetsPanel from "./components/PresetsPanel";
 import Stage from "./components/Stage";
 import Transport from "./components/Transport";
 import { normalizeFiles } from "./files";
 import { getInitialConfig, RUNTIME_KEYS } from "./presetStore";
+import { useHandTracking } from "./hooks/useHandTracking";
 import { useRecorder } from "./hooks/useRecorder";
 
 const defaultConfig = {
@@ -29,6 +31,14 @@ const defaultConfig = {
   turbulence: 5,
   turbulenceFrequency: 0.004,
   drag: 0.016,
+  // Cámara. Los dos interruptores que la encienden arrancan apagados y NO se
+  // persisten (ver presetStore): abrir la tool nunca puede pedir permiso de
+  // cámara por su cuenta. Lo estético sí se guarda.
+  handTracking: false,
+  cameraBackdrop: false,
+  handSmoothing: 0.25,
+  cameraMirror: true,
+  cameraOpacity: 1,
   isPlaying: true,
   clearSignal: 0,
 };
@@ -68,8 +78,21 @@ export default function App() {
     };
   }, []);
 
-  const onConfigChange = (key, value) =>
-    setConfig((current) => ({ ...current, [key]: value }));
+  const onConfigChange = useCallback(
+    (key, value) => setConfig((current) => ({ ...current, [key]: value })),
+    [],
+  );
+
+  // La cámara se abre si hace falta para cualquiera de las dos cosas; el modelo
+  // sólo si se va a trackear. Así usar el video de fondo no descarga 40MB.
+  const camera = useHandTracking({
+    enabled: config.handTracking || config.cameraBackdrop,
+    needsLandmarker: config.handTracking,
+    onFail: useCallback(
+      () => setConfig((c) => ({ ...c, handTracking: false, cameraBackdrop: false })),
+      [],
+    ),
+  });
 
   const handleApplyPreset = (values) =>
     setConfig((current) => {
@@ -107,6 +130,7 @@ export default function App() {
           canvasRef={canvasRef}
           onConfigChange={onConfigChange}
           onDropFiles={replaceItems}
+          tracker={camera.tracker}
         />
         <aside className="sidebar">
           <div className="sidebar-head">
@@ -124,7 +148,22 @@ export default function App() {
             config={config}
             onConfigChange={onConfigChange}
           />
-          <ControlsPanel config={config} onConfigChange={onConfigChange} />
+          <ControlsPanel
+            config={config}
+            onConfigChange={onConfigChange}
+            slots={{
+              cameraStatus: (
+                <CameraStatus status={camera.status} tracker={camera.tracker} />
+              ),
+              cameraNotice: (
+                <CameraNotice
+                  status={camera.status}
+                  error={camera.error}
+                  onRetry={camera.retry}
+                />
+              ),
+            }}
+          />
           <PresetsPanel
             config={config}
             onApplyPreset={handleApplyPreset}

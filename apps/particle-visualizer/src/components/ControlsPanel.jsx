@@ -1,4 +1,4 @@
-import { Section, Group, ScrubField } from "@bong/ui";
+import { Section, Group, ScrubField, Toggle } from "@bong/ui";
 
 // Mismo patrón que las otras dos tools: la UI se dibuja sola desde el schema.
 // El orden sigue cómo se ajusta un sistema de partículas: primero de dónde
@@ -71,26 +71,85 @@ const SCHEMA = [
       },
     ],
   },
+  {
+    title: "Cámara",
+    // El indicador va en el header (es lo que se mira de reojo) y el detalle
+    // del error arriba del cuerpo, donde hay lugar para leerlo.
+    slot: "cameraStatus",
+    notice: "cameraNotice",
+    groups: [
+      {
+        name: "Origen",
+        fields: [
+          {
+            key: "handTracking",
+            label: "La mano mueve el emisor",
+            type: "toggle",
+            hint: "Sigue la punta del índice. Mientras esté activo, Emisor X/Y quedan como posición de reserva.",
+          },
+          { key: "handSmoothing", label: "Suavizado", min: 0.05, max: 0.6, step: 0.01 },
+        ],
+      },
+      {
+        name: "Fondo",
+        fields: [
+          {
+            key: "cameraBackdrop",
+            label: "Video de fondo",
+            type: "toggle",
+            hint: "Se dibuja dentro del canvas, así que también sale en la grabación.",
+          },
+          { key: "cameraMirror", label: "Espejar", type: "toggle" },
+          { key: "cameraOpacity", label: "Opacidad", min: 0, max: 1, step: 0.01 },
+        ],
+      },
+    ],
+  },
 ];
 
-export default function ControlsPanel({ config, onConfigChange }) {
+function Control({ field, config, onConfigChange }) {
+  if (field.type === "toggle") {
+    return (
+      <Toggle
+        label={field.label}
+        value={!!config[field.key]}
+        hint={field.hint}
+        onChange={(v) => onConfigChange(field.key, v)}
+      />
+    );
+  }
+  return (
+    <ScrubField
+      label={field.label}
+      value={config[field.key]}
+      min={field.min}
+      max={field.max}
+      step={field.step}
+      unit={field.unit ?? ""}
+      format={field.pct ? (v) => `${Math.round(v * 100)}%` : undefined}
+      onChange={(v) => onConfigChange(field.key, v)}
+    />
+  );
+}
+
+export default function ControlsPanel({ config, onConfigChange, slots = {} }) {
   return (
     <>
       {SCHEMA.map((section) => (
-        <Section key={section.title} title={section.title}>
+        <Section
+          key={section.title}
+          title={section.title}
+          right={section.slot ? slots[section.slot] : null}
+        >
+          {section.notice ? slots[section.notice] : null}
           {section.groups.map((group, i) => (
             <Group key={group.name || i} title={group.name}>
-              {group.fields.map((f) => (
-                <ScrubField
-                  key={f.key}
-                  label={f.label}
-                  value={config[f.key]}
-                  min={f.min}
-                  max={f.max}
-                  step={f.step}
-                  unit={f.unit ?? ""}
-                  format={f.pct ? (v) => `${Math.round(v * 100)}%` : undefined}
-                  onChange={(v) => onConfigChange(f.key, v)}
+              {group.fields.map((field) => (
+                <Control
+                  key={field.key}
+                  field={field}
+                  config={config}
+                  onConfigChange={onConfigChange}
                 />
               ))}
             </Group>

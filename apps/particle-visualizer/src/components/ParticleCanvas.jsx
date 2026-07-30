@@ -1,10 +1,11 @@
 import { useEffect, useRef } from "react";
 import { ParticleSystem } from "../engine/ParticleSystem";
+import { drawVideoCover, videoPointToStage } from "../engine/videoFit";
 
-function drawPlaceholder(ctx, width, height, backgroundColor) {
-  ctx.fillStyle = backgroundColor;
-  ctx.fillRect(0, 0, width, height);
-
+// El fondo lo pinta `backdrop`; acá quedan sólo el marco y el texto, para que
+// prender la cámara sin sprites cargados muestre el video y no un rectángulo
+// opaco. Ése es, además, el primer estado en el que se prueba la feature.
+function drawPlaceholderOverlay(ctx, width, height) {
   ctx.strokeStyle = "rgba(149, 181, 169, 0.18)";
   ctx.lineWidth = 2;
   ctx.strokeRect(24, 24, width - 48, height - 48);
@@ -16,16 +17,23 @@ function drawPlaceholder(ctx, width, height, backgroundColor) {
 
   ctx.fillStyle = "rgba(149, 181, 169, 0.92)";
   ctx.font = "400 24px 'Space Mono', monospace";
-  ctx.fillText("Canvas 1080 x 1350 ready", width / 2, height / 2 + 36);
+  ctx.fillText(`Canvas ${width} x ${height} ready`, width / 2, height / 2 + 36);
 }
 
-function ParticleCanvas({ width, height, items, config, canvasRef: externalRef }) {
+const clamp = (v, min, max) => (v < min ? min : v > max ? max : v);
+
+// Si se perdió la mano un rato largo, al recuperarla conviene saltar en vez de
+// que el emisor "viaje" interpolando desde donde había quedado.
+const RESYNC_MS = 700;
+
+function ParticleCanvas({ width, height, items, config, canvasRef: externalRef, tracker, handleRef }) {
   const internalRef = useRef(null);
   const canvasRef = externalRef || internalRef;
   const systemRef = useRef(null);
   const imagesRef = useRef([]);
   const frameRef = useRef(0);
   const previousTimeRef = useRef(0);
+  const emaRef = useRef(null);
 
   useEffect(() => {
     systemRef.current = new ParticleSystem(config);
@@ -86,17 +94,88 @@ function ParticleCanvas({ width, height, items, config, canvasRef: externalRef }
       return undefined;
     }
 
+    // Fondo sólido y, encima, el video si corresponde. El fill va SIEMPRE
+    // primero: así `cameraOpacity` funciona como un dimmer contra el color
+    // elegido en vez de acumular sobre el frame anterior.
+    const backdrop = (c, w, h) => {
+      const cfg = systemRef.current.config;
+      c.fillStyle = cfg.backgroundColor;
+      c.fillRect(0, 0, w, h);
+      if (cfg.cameraBackdrop && tracker?.ready && tracker.video) {
+        drawVideoCover(c, tracker.video, w, h, {
+          mirror: cfg.cameraMirror !== false,
+          opacity: cfg.cameraOpacity ?? 1,
+        });
+      }
+    };
+
+    // La EMA corre acá (60Hz) y no en el callback de detección (30Hz): así el
+    // emisor interpola entre muestras de cámara y α queda anclado a una tasa
+    // constante, no a la de la webcam — que baja a 15fps con poca luz.
+    const followHand = (now) => {
+      const system = systemRef.current;
+      const cfg = system.config;
+
+      if (!cfg.handTracking || !tracker?.ready || !tracker.video) {
+        system.setEmitterOverride(null);
+        emaRef.current = null;
+        return;
+      }
+
+      const target = videoPointToStage(
+        tracker.x,
+        tracker.y,
+        tracker.video.videoWidth,
+        tracker.video.videoHeight,
+        width,
+        height,
+        cfg.cameraMirror !== false,
+      );
+
+      const stale = now - tracker.lastAt > RESYNC_MS;
+      if (!emaRef.current || stale) {
+        emaRef.current = { x: target.x, y: target.y };
+      } else {
+        const a = clamp(cfg.handSmoothing ?? 0.25, 0.01, 1);
+        emaRef.current.x += (target.x - emaRef.current.x) * a;
+        emaRef.current.y += (target.y - emaRef.current.y) * a;
+      }
+
+      system.setEmitterOverride(emaRef.current);
+
+      // El handle es DOM: con tracking activo este rAF es su único dueño (React
+      // deja de rendir su `style`, ver Stage.jsx).
+      if (handleRef?.current) {
+        handleRef.current.style.left = `${emaRef.current.x * 100}%`;
+        handleRef.current.style.top = `${emaRef.current.y * 100}%`;
+      }
+    };
+
     const render = (time) => {
-      const deltaMs = previousTimeRef.current ? time - previousTimeRef.current : 16.67;
+      // Clamp del dt: al volver de una pestaña en background el delta es de
+      // segundos y las partículas se teletransportan de golpe.
+      const raw = previousTimeRef.current ? time - previousTimeRef.current : 16.67;
+      const deltaMs = Math.min(raw, 50);
       previousTimeRef.current = time;
 
-      if (!imagesRef.current.length) {
-        drawPlaceholder(ctx, width, height, config.backgroundColor);
-      } else if (systemRef.current) {
-        if (config.isPlaying) {
-          systemRef.current.update(deltaMs / 1000, width, height);
+      const system = systemRef.current;
+      if (system) {
+        // La config se lee de `system.config`, no del closure: si dependiera
+        // del closure habría que meterla en las deps del efecto y el rAF se
+        // destruiría y recrearía en cada tick de un slider.
+        const cfg = system.config;
+        followHand(time);
+
+        if (!imagesRef.current.length) {
+          ctx.clearRect(0, 0, width, height);
+          backdrop(ctx, width, height);
+          drawPlaceholderOverlay(ctx, width, height);
+        } else {
+          if (cfg.isPlaying) {
+            system.update(deltaMs / 1000, width, height);
+          }
+          system.render(ctx, width, height, backdrop);
         }
-        systemRef.current.render(ctx, width, height);
       }
 
       frameRef.current = window.requestAnimationFrame(render);
@@ -108,7 +187,7 @@ function ParticleCanvas({ width, height, items, config, canvasRef: externalRef }
       window.cancelAnimationFrame(frameRef.current);
       previousTimeRef.current = 0;
     };
-  }, [config.backgroundColor, config.isPlaying, height, width]);
+  }, [height, width, tracker, handleRef, canvasRef]);
 
   useEffect(() => {
     if (!items.length && systemRef.current) {
@@ -126,11 +205,16 @@ function ParticleCanvas({ width, height, items, config, canvasRef: externalRef }
   }, [config.clearSignal]);
 
   return (
+    // El backing store va a resolución lógica completa (1080×1350) porque
+    // `captureStream` graba exactamente eso: acá el canvas ES la resolución de
+    // export, no un preview. Por eso tampoco entra devicePixelRatio, aunque las
+    // otras dos tools sí lo usen. En pantalla se muestra downscaleado por CSS.
     <canvas
       ref={canvasRef}
       width={width}
       height={height}
-      className="block h-full w-full"
+      className="stage-canvas"
+      style={{ width: "100%", height: "100%" }}
     />
   );
 }

@@ -8,7 +8,7 @@ GitHub Pages.
 |---|---|---|
 | [`plane-animator`](apps/plane-animator) | Posts a partir de varias imágenes en el espacio 3D | WebGL · función pura del tiempo |
 | [`palette-animator`](apps/palette-animator) | Loops de paleta de color | Canvas 2D · función pura del tiempo |
-| [`particle-visualizer`](apps/particle-visualizer) | Partículas con fuerzas y ruido | Canvas 2D · simulación con estado |
+| [`particle-visualizer`](apps/particle-visualizer) | Partículas con fuerzas y ruido, con emisor dirigible por webcam | Canvas 2D · simulación con estado |
 
 ```bash
 npm install          # instala los tres workspaces (un solo lockfile)
@@ -73,6 +73,38 @@ incluso al arrastrar: dos señales verdes a la vez ensucian el micro-highlight.
 **`ToolSidebar`** es la barra de la izquierda. Los motores son apps distintas, así
 que cambiar de tool recarga la página; la barra es lo que las hace sentir una
 sola plataforma igual. En dev apunta a los puertos, en producción a los subpaths.
+
+---
+
+## Hand-tracking en `particle-visualizer`
+
+El emisor de partículas se puede manejar con la punta del índice por webcam, y
+el video de la cámara puede ir de fondo. Dos interruptores separados en el panel
+**Cámara**: se puede trackear la mano sobre fondo negro, sin que salga tu cara
+en el render.
+
+Decisiones que no son obvias:
+
+- **El video se dibuja DENTRO del canvas**, no como un `<video>` detrás. La
+  grabación sale de `canvas.captureStream()`, así que un elemento DOM no
+  entraría al MP4 y el archivo no se parecería al preview.
+- **La posición de la mano no pasa por el state de React** ni por `config`. Va a
+  `ParticleSystem.setEmitterOverride()`, que vive aparte: `updateConfig` mergea
+  el config entero en cada cambio, así que si la mano viviera ahí, mover
+  cualquier slider la pisaría con la posición vieja.
+- **Ningún interruptor que encienda la cámara se persiste** (están en
+  `RUNTIME_KEYS`). Abrir la tool nunca puede disparar el prompt de permisos por
+  su cuenta, ni siquiera cargando un preset marcado como default.
+- **La cámara se suelta al ocultar la pestaña** y se reconecta al volver.
+- **El WASM y el modelo se sirven locales**, no por CDN: el WASM se copia desde
+  `node_modules` en `predev`/`prebuild` (no está en git) y el modelo `.task` sí
+  está versionado. La feature anda sin internet.
+- Se pide la cámara en **4:3** a propósito: con 16:9 en un stage 9:16 sólo
+  sobrevive el 32% del encuadre al recortar, y hay que sacar la mano casi de
+  cuadro para llegar al borde. Con 4:3 sube a 42%.
+
+Se usa `@mediapipe/tasks-vision` con versión **pineada exacta**: publican
+nightlies a diario y el JS del paquete tiene que parear con el WASM.
 
 ---
 

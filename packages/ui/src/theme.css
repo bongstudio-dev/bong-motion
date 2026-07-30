@@ -853,6 +853,45 @@ select.text-input { appearance: none; cursor: pointer; }
 
 .emitter-handle[data-dragging] { transform: scale(1.25); }
 
+/* Con la mano al mando el handle deja de ser arrastrable: el anillo punteado
+   avisa que ahora lo maneja otra cosa. */
+.emitter-handle[data-tracked] {
+  border-style: dashed;
+  animation: emitter-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes emitter-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45); }
+  50% { box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.45), 0 0 10px 2px var(--accent-line); }
+}
+
+/* ---------- Estado de la cámara ---------- */
+
+.cam-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-family: var(--mono);
+  letter-spacing: 0.02em;
+  color: var(--muted-2);
+  text-transform: none;
+}
+
+.cam-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.cam-status.ok { color: var(--accent); }
+.cam-status.wait { color: #d8c58a; }
+.cam-status.error { color: var(--danger); }
+.cam-status.wait .cam-dot { animation: rec-pulse 1.1s ease-in-out infinite; }
+
+
 .emitter-handle span {
   width: 5px;
   height: 5px;

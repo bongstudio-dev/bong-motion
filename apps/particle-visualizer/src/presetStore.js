@@ -1,7 +1,17 @@
 // Almacenamiento de presets + preset marcado como default (localStorage).
 
 // Claves de config que NO se guardan en un preset (estado de runtime).
-export const RUNTIME_KEYS = ["isPlaying", "clearSignal"];
+// Los dos interruptores que ENCIENDEN la cámara van acá. El store es blacklist
+// y `getInitialConfig` aplica el preset marcado con ★ AL MONTAR la app: si se
+// persistieran, abrir la tool dispararía el prompt de permiso de cámara sin que
+// nadie lo pidiera. Prender la cámara tiene que ser siempre un acto explícito.
+// Lo estético (espejo, opacidad, suavizado) sí se guarda: no toca el hardware.
+export const RUNTIME_KEYS = [
+  "isPlaying",
+  "clearSignal",
+  "handTracking",
+  "cameraBackdrop",
+];
 
 const PRESETS_KEY = "amt-presets";
 const DEFAULT_KEY = "amt-default-preset";

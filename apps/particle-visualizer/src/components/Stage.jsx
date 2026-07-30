@@ -5,13 +5,17 @@ import ParticleCanvas from "./ParticleCanvas";
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 
-export default function Stage({ items, config, canvasRef, onConfigChange, onDropFiles }) {
+export default function Stage({ items, config, canvasRef, onConfigChange, onDropFiles, tracker }) {
   const aspect = resolveAspect(config.aspect);
   const dims = ASPECT_RATIOS[aspect];
   const { containerRef, scale, width, height } = useStageScale(dims.width, dims.height);
   const [isDragging, setIsDragging] = useState(false);
   const [draggingEmitter, setDraggingEmitter] = useState(false);
   const surfaceRef = useRef(null);
+  const handleRef = useRef(null);
+
+  // Con la mano al mando, el rAF es dueño único de la posición del handle.
+  const tracking = !!config.handTracking;
 
   const updateEmitter = (event) => {
     const surface = surfaceRef.current;
@@ -53,10 +57,11 @@ export default function Stage({ items, config, canvasRef, onConfigChange, onDrop
           <ParticleCanvas
             width={width}
             height={height}
-            scale={scale}
             items={items}
             config={config}
             canvasRef={canvasRef}
+            tracker={tracker}
+            handleRef={handleRef}
           />
 
           {/* Superficie de arrastre + handle del emitter. Es DOM, no canvas:
@@ -65,6 +70,10 @@ export default function Stage({ items, config, canvasRef, onConfigChange, onDrop
             ref={surfaceRef}
             className="emitter-surface"
             data-dragging={draggingEmitter || undefined}
+            // Con tracking activo el drag no puede ganarle a la mano: dejarlo
+            // vivo dispararía dos setConfig por movimiento sin mover nada, que
+            // es exactamente lo que se siente como "roto".
+            style={tracking ? { pointerEvents: "none" } : undefined}
             onPointerDown={(e) => {
               e.currentTarget.setPointerCapture(e.pointerId);
               setDraggingEmitter(true);
@@ -79,14 +88,23 @@ export default function Stage({ items, config, canvasRef, onConfigChange, onDrop
                 /* ya se soltó */
               }
             }}
+            onPointerCancel={() => setDraggingEmitter(false)}
           >
             <div
+              ref={handleRef}
               className="emitter-handle"
               data-dragging={draggingEmitter || undefined}
-              style={{
-                left: `${clamp01(config.emitterX) * 100}%`,
-                top: `${clamp01(config.emitterY) * 100}%`,
-              }}
+              data-tracked={tracking || undefined}
+              // Con tracking, el style lo escribe el rAF: si React siguiera
+              // rindiendo left/top se los pisaría en cada render.
+              style={
+                tracking
+                  ? undefined
+                  : {
+                      left: `${clamp01(config.emitterX) * 100}%`,
+                      top: `${clamp01(config.emitterY) * 100}%`,
+                    }
+              }
             >
               <span />
             </div>
