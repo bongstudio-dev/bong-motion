@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Section, Field, Slider, Segmented } from "../ui/controls.jsx";
+import { Section, Field, ScrubField, Segmented } from "@bong/ui";
 import { EASE_PRESETS, sameBezier } from "../../engine/ease.js";
 import { clamp } from "../../utils/math.js";
 
@@ -163,7 +163,7 @@ export default function EasePanel({ state, onPatch }) {
           onChange={(v) => onPatch("stitch", { enabled: v === "on" })}
         />
       </Field>
-      <Slider
+      <ScrubField
         label="Duración stitch"
         value={state.stitch.duration}
         min={0.1}

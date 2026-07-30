@@ -6,6 +6,7 @@ import MotionPanel from "./components/panels/MotionPanel.jsx";
 import EasePanel from "./components/panels/EasePanel.jsx";
 import TextPanel from "./components/panels/TextPanel.jsx";
 import ExportPanel from "./components/panels/ExportPanel.jsx";
+import { ToolSidebar } from "@bong/ui";
 import { createClock } from "./clock.js";
 import { PRESETS } from "./engine/presets.js";
 import { defaultState } from "./state/defaults.js";
@@ -81,6 +82,7 @@ export default function App() {
 
   return (
     <div className="app">
+      <ToolSidebar current="palette-animator" isDev={import.meta.env.DEV} />
       <div className="workspace">
         <Stage state={state} clock={clock} />
         <aside className="sidebar">

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Section, Field, Segmented, Button, Icon, IconButton, ColorInput } from "../ui/controls.jsx";
+import { Section, Field, Segmented, Button, Icon, IconButton, ColorInput } from "@bong/ui";
 import { ingestFile, getThumb, release, releaseAll, MAX_SIDE } from "../../assets/assetStore.js";
 import { MAX_ASSETS } from "../../state/defaults.js";
 import { resolveTemplate } from "../../engine/getScene.js";

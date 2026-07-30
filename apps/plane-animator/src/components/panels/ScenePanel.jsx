@@ -2,14 +2,15 @@ import { useState } from "react";
 import {
   Section,
   Field,
-  Slider,
+  ScrubField,
   Segmented,
   Select,
   Toggle,
   Button,
   IconButton,
   Icon,
-} from "../ui/controls.jsx";
+  Group,
+} from "@bong/ui";
 import { TEMPLATE_LIST } from "../../engine/templates.js";
 import { resolveTemplate, resolveParams } from "../../engine/getScene.js";
 import { presetFromState, applyPreset } from "../../state/defaults.js";
@@ -34,18 +35,37 @@ function ParamControl({ item, value, onChange }) {
     );
   }
   return (
-    <Slider
+    <ScrubField
       label={item.label}
       value={value}
       min={item.min}
       max={item.max}
       step={item.step}
+      unit={item.unit ?? ""}
       onChange={onChange}
-      format={(v) =>
-        item.step >= 1 ? `${Math.round(v)}${item.unit ?? ""}` : v.toFixed(2)
-      }
     />
   );
+}
+
+// Los params vienen ordenados y etiquetados desde el schema: composición
+// primero, después movimiento, después el look y al final el encuadre fino.
+// Es el orden en que se compone, no el orden en que se programó el template.
+function byGroup(schema, params) {
+  // Consolida por nombre respetando el orden de primera aparición: si un
+  // template declara el mismo grupo en dos tramos, los controles terminan
+  // juntos igual.
+  const order = [];
+  const bucket = new Map();
+  for (const item of schema) {
+    if (item.when && !item.when(params)) continue;
+    const name = item.group ?? "";
+    if (!bucket.has(name)) {
+      bucket.set(name, []);
+      order.push(name);
+    }
+    bucket.get(name).push(item);
+  }
+  return order.map((name) => [name, bucket.get(name)]);
 }
 
 export default function ScenePanel({ state, setState, onTemplate }) {
@@ -108,16 +128,18 @@ export default function ScenePanel({ state, setState, onTemplate }) {
 
       <div className="divider" />
 
-      {tpl.schema
-        .filter((item) => !item.when || item.when(params))
-        .map((item) => (
-          <ParamControl
-            key={item.key}
-            item={item}
-            value={params[item.key]}
-            onChange={(v) => onParam(item.key, v)}
-          />
-        ))}
+      {byGroup(tpl.schema, params).map(([group, items]) => (
+        <Group key={group} title={group}>
+          {items.map((item) => (
+            <ParamControl
+              key={item.key}
+              item={item}
+              value={params[item.key]}
+              onChange={(v) => onParam(item.key, v)}
+            />
+          ))}
+        </Group>
+      ))}
 
       <Button variant="ghost" block onClick={resetParams}>
         Reset params de {tpl.name}

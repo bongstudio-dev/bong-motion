@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Section, Button, IconButton, Icon } from "../ui/controls.jsx";
+import { Section, Button, IconButton, Icon } from "@bong/ui";
 import { normalizeHex, isValidHex, parsePalette } from "../../utils/color.js";
 import { uid } from "../../utils/math.js";
 import { MIN_COLORS, MAX_COLORS, NEW_COLOR_POOL } from "../../state/defaults.js";

@@ -1,4 +1,4 @@
-import { Section, Field, Slider, Segmented, Toggle, ColorInput, NumberInput } from "../ui/controls.jsx";
+import { Section, Field, ScrubField, Segmented, Toggle, ColorInput, NumberInput } from "@bong/ui";
 import { RATIOS, stageOf } from "../../engine/camera.js";
 
 export default function CanvasPanel({ state, onPatch }) {
@@ -48,7 +48,7 @@ export default function CanvasPanel({ state, onPatch }) {
         onChange={(v) => onPatch("stage", { background: v })}
       />
 
-      <Slider
+      <ScrubField
         label="Field of view"
         value={st.fov}
         min={15}

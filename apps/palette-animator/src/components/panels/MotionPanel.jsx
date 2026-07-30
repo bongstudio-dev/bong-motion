@@ -1,4 +1,4 @@
-import { Section, Field, Slider, Segmented, Select } from "../ui/controls.jsx";
+import { Section, Field, ScrubField, Segmented, Select } from "@bong/ui";
 import { resolveParams, currentLayoutMode } from "../../engine/getFrame.js";
 import { PRESET_LIST, PRESETS } from "../../engine/presets.js";
 import { LAYOUT_MODES } from "../../engine/layout.js";
@@ -21,7 +21,7 @@ function ParamControl({ item, value, onChange }) {
     );
   }
   return (
-    <Slider
+    <ScrubField
       label={item.label}
       value={value}
       min={item.min}
@@ -87,7 +87,7 @@ export default function MotionPanel({ state, onPatch, onParam, onPreset }) {
           onChange={(m) => onPatch("containers", { mode: m })}
         />
       </Field>
-      <Slider
+      <ScrubField
         label="Gap"
         value={bleed ? 0 : state.containers.gap}
         min={0}
@@ -96,7 +96,7 @@ export default function MotionPanel({ state, onPatch, onParam, onPreset }) {
         onChange={(v) => onPatch("containers", { gap: v })}
         format={(v) => (bleed ? "0 (bleed)" : v.toFixed(3))}
       />
-      <Slider
+      <ScrubField
         label="Radius"
         value={bleed ? 0 : state.containers.radius}
         min={0}
@@ -108,7 +108,7 @@ export default function MotionPanel({ state, onPatch, onParam, onPreset }) {
 
       <div className="divider" />
 
-      <Slider
+      <ScrubField
         label="Padding del stage"
         value={state.stage.padding}
         min={0}

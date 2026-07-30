@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { Icon } from "./ui/controls.jsx";
+import { Icon } from "@bong/ui";
 import { resolveParams } from "../engine/getFrame.js";
 import { mod1 } from "../utils/math.js";
 
@@ -44,7 +44,7 @@ export default function Transport({ state, clock, onDuration, onRatio }) {
         {playing ? <Icon.Pause /> : <Icon.Play />}
       </button>
 
-      <div className="scrub">
+      <div className="scrub-bar">
         <div className="scrub-track">
           <input
             className="slider"

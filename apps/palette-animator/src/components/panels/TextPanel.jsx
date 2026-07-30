@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Section, Field, Slider, Segmented, Select, Button } from "../ui/controls.jsx";
+import { Section, Field, ScrubField, Segmented, Select, Button } from "@bong/ui";
 
 // Fuentes del sistema comunes + Satoshi. El campo custom permite tipear
 // cualquier familia instalada en la máquina (el canvas la usa si existe).
@@ -95,7 +95,7 @@ export default function TextPanel({ state, onPatch }) {
         />
       </Field>
 
-      <Slider
+      <ScrubField
         label="Tamaño"
         value={labels.size}
         min={14}

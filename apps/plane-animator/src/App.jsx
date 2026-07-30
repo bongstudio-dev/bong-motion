@@ -7,6 +7,7 @@ import TimingPanel from "./components/panels/TimingPanel.jsx";
 import EasePanel from "./components/panels/EasePanel.jsx";
 import CanvasPanel from "./components/panels/CanvasPanel.jsx";
 import ExportPanel from "./components/panels/ExportPanel.jsx";
+import { ToolSidebar } from "@bong/ui";
 import { createClock } from "./clock.js";
 import { defaultState } from "./state/defaults.js";
 import { loadState, saveState } from "./state/storage.js";
@@ -74,6 +75,7 @@ export default function App() {
 
   return (
     <div className="app">
+      <ToolSidebar current="plane-animator" isDev={import.meta.env.DEV} />
       <div className="workspace">
         <Stage state={state} clock={clock} engineRef={engineRef} />
         <aside className="sidebar">

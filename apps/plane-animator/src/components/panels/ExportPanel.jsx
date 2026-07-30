@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import { Section, Field, Segmented, Slider, Button, Icon } from "../ui/controls.jsx";
+import { Section, Field, Segmented, ScrubField, Button, Icon } from "@bong/ui";
 import { exportVideo, exportGIF, exportPNG, downloadBlob } from "../../export/exporters.js";
 import { exportStateFile, importStateFile } from "../../state/storage.js";
 import { RATIOS, stageDims, stageOf } from "../../engine/camera.js";
@@ -218,7 +218,7 @@ export default function ExportPanel({ state, setState, clock, engineRef, onReset
         </p>
       )}
 
-      <Slider
+      <ScrubField
         label="Ciclos a grabar"
         value={state.timing.cycles}
         min={1}

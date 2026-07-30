@@ -1,4 +1,4 @@
-import { Section, Field, Slider, Segmented } from "../ui/controls.jsx";
+import { Section, Field, ScrubField, Segmented } from "@bong/ui";
 import { minCyclesFor } from "../../engine/loopTest.js";
 
 // Timing GLOBAL, separado de los params del template (BRIEF §3). Cambiar el
@@ -10,7 +10,7 @@ export default function TimingPanel({ state, onPatch }) {
 
   return (
     <Section title="Timing">
-      <Slider
+      <ScrubField
         label="Duración del ciclo"
         value={t.duration}
         min={0.5}
@@ -20,7 +20,7 @@ export default function TimingPanel({ state, onPatch }) {
         format={(v) => `${v.toFixed(1)}s`}
       />
 
-      <Slider
+      <ScrubField
         label="Ciclos por pieza"
         value={t.cycles}
         min={1}
@@ -35,7 +35,7 @@ export default function TimingPanel({ state, onPatch }) {
           : "El loop cierra en 1 ciclo."}
       </p>
 
-      <Slider
+      <ScrubField
         label="Stagger"
         value={t.stagger}
         min={-0.5}
@@ -44,7 +44,7 @@ export default function TimingPanel({ state, onPatch }) {
         onChange={(v) => onPatch("timing", { stagger: v })}
         format={(v) => `${v.toFixed(3)} ciclo`}
       />
-      <Slider
+      <ScrubField
         label="Delay"
         value={t.delay}
         min={-1}

@@ -1,5 +1,5 @@
-// Controles de UI reutilizables. CSS puro, sin librerías.
-import { useState } from "react";
+// Controles compartidos por las tres tools. CSS puro, sin librerías de UI.
+import { useEffect, useState } from "react";
 
 /* ---------- Iconos (SVG inline) ---------- */
 export const Icon = {
@@ -49,6 +49,27 @@ export const Icon = {
       <circle cx="7" cy="11" r="1" fill="currentColor" />
     </svg>
   ),
+  Eye: (p) => (
+    <svg width="14" height="14" viewBox="0 0 14 14" {...p}>
+      <path
+        d="M1 7s2.2-3.5 6-3.5S13 7 13 7s-2.2 3.5-6 3.5S1 7 1 7z"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.1"
+      />
+      <circle cx="7" cy="7" r="1.7" fill="currentColor" />
+    </svg>
+  ),
+  EyeOff: (p) => (
+    <svg width="14" height="14" viewBox="0 0 14 14" {...p}>
+      <path
+        d="M2.4 4.2C1.6 5.2 1 7 1 7s2.2 3.5 6 3.5c1 0 1.9-.25 2.7-.62M11.9 9C12.6 8.2 13 7 13 7s-2.2-3.5-6-3.5c-.5 0-1 .06-1.4.17M2 2l10 10"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.1"
+      />
+    </svg>
+  ),
   Download: (p) => (
     <svg width="13" height="13" viewBox="0 0 14 14" {...p}>
       <path
@@ -78,6 +99,16 @@ export function Section({ title, defaultOpen = true, right = null, children }) {
   );
 }
 
+/* ---------- Agrupador dentro de una Section ---------- */
+export function Group({ title, children }) {
+  return (
+    <div className="group">
+      {title && <div className="group-title">{title}</div>}
+      {children}
+    </div>
+  );
+}
+
 /* ---------- Field ---------- */
 export function Field({ label, value, children }) {
   return (
@@ -90,24 +121,6 @@ export function Field({ label, value, children }) {
       )}
       {children}
     </div>
-  );
-}
-
-/* ---------- Slider ---------- */
-export function Slider({ label, value, min, max, step = 0.01, onChange, format }) {
-  const display = format ? format(value) : Number(value).toFixed(step < 1 ? 2 : 0);
-  return (
-    <Field label={label} value={display}>
-      <input
-        className="slider"
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-      />
-    </Field>
   );
 }
 
@@ -173,8 +186,16 @@ export function NumberInput({ value, min, max, step = 1, onChange, suffix }) {
 /* ---------- Buttons ---------- */
 export function Button({ children, variant = "", block, ...rest }) {
   return (
+    <button className={`btn ${variant} ${block ? "block" : ""}`.trim()} {...rest}>
+      {children}
+    </button>
+  );
+}
+
+export function IconButton({ children, danger, active, ...rest }) {
+  return (
     <button
-      className={`btn ${variant} ${block ? "block" : ""}`.trim()}
+      className={`icon-btn ${danger ? "danger" : ""} ${active ? "active" : ""}`.trim()}
       {...rest}
     >
       {children}
@@ -182,10 +203,54 @@ export function Button({ children, variant = "", block, ...rest }) {
   );
 }
 
-export function IconButton({ children, danger, ...rest }) {
+/* ---------- Toggle ---------- */
+export function Toggle({ label, value, onChange, hint }) {
   return (
-    <button className={`icon-btn ${danger ? "danger" : ""}`.trim()} {...rest}>
-      {children}
-    </button>
+    <div className="field">
+      <div className="field-row">
+        <span className="field-label">{label}</span>
+        <button
+          className={`toggle ${value ? "on" : ""}`}
+          onClick={() => onChange(!value)}
+          role="switch"
+          aria-checked={!!value}
+        >
+          <span />
+        </button>
+      </div>
+      {hint && <p className="hint">{hint}</p>}
+    </div>
+  );
+}
+
+/* ---------- Color ---------- */
+export function ColorInput({ label, value, onChange }) {
+  // El texto se edita en un draft local: validar en cada tecla contra el value
+  // controlado haría imposible borrar un dígito.
+  const [draft, setDraft] = useState(value);
+  useEffect(() => setDraft(value), [value]);
+
+  return (
+    <Field label={label}>
+      <div className="color-input">
+        <span className="swatch" style={{ background: value }}>
+          <input
+            type="color"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+          />
+        </span>
+        <input
+          className="text-input hex"
+          value={draft}
+          onChange={(e) => {
+            const v = e.target.value;
+            setDraft(v);
+            if (/^#[0-9a-fA-F]{6}$/.test(v.trim())) onChange(v.trim());
+          }}
+          onBlur={() => setDraft(value)}
+        />
+      </div>
+    </Field>
   );
 }
