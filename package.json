@@ -15,6 +15,6 @@
     "dev:particle": "npm run dev -w particle-visualizer",
     "build": "npm run build --workspaces --if-present",
     "build:site": "node scripts/build-site.mjs",
-    "test": "node apps/plane-animator/scripts/engine-test.mjs && node apps/particle-visualizer/scripts/videofit-test.mjs"
+    "test": "node apps/plane-animator/scripts/engine-test.mjs && node apps/plane-animator/scripts/library-test.mjs && node apps/particle-visualizer/scripts/videofit-test.mjs"
   }
 }

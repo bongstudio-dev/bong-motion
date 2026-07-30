@@ -11,7 +11,8 @@ import {
   Icon,
   Group,
 } from "@bong/ui";
-import { TEMPLATE_LIST } from "../../engine/templates.js";
+import { variantState } from "../../engine/library.js";
+import TemplateBrowser from "../TemplateBrowser.jsx";
 import { resolveTemplate, resolveParams } from "../../engine/getScene.js";
 import { presetFromState, applyPreset } from "../../state/defaults.js";
 import { loadPresets, savePresets } from "../../state/storage.js";
@@ -112,19 +113,14 @@ export default function ScenePanel({ state, setState, onTemplate }) {
 
   return (
     <Section title="Escena">
-      <Field label="Template">
-        <div className="template-grid">
-          {TEMPLATE_LIST.map((t) => (
-            <button
-              key={t.id}
-              className={`btn ${state.template.id === t.id ? "primary" : ""}`}
-              onClick={() => onTemplate(t.id)}
-            >
-              {t.name}
-            </button>
-          ))}
-        </div>
-      </Field>
+      <TemplateBrowser
+        state={state}
+        params={params}
+        onTemplate={onTemplate}
+        onPick={(variant, template) =>
+          setState((s) => variantState(s, variant, template))
+        }
+      />
 
       <div className="divider" />
 

@@ -76,6 +76,31 @@ sola plataforma igual. En dev apunta a los puertos, en producción a los subpath
 
 ---
 
+## Librería de presets en `plane-animator`
+
+El panel **Escena** es un navegador de dos niveles: las familias (los cinco
+templates) abren sus variantes, cada una con una miniatura que muestra el
+movimiento real.
+
+Las miniaturas salen del **mismo `getScene()`** que el stage, así que no hay una
+animación de ejemplo que pueda quedar desincronizada del engine. Lo único que se
+simplifica es el dibujo: rectángulos planos en vez de texturas, y el giro se
+sugiere con escorzo (`cos` del ángulo) en lugar de proyectar los cuatro
+vértices. Todas comparten **un solo `requestAnimationFrame`** a 24fps — con
+cinco familias abiertas serían veinte loops peleando con el render del stage.
+
+Un preset guarda la receta de movimiento: template + params + timing + fov +
+encuadre. **No** guarda ratio, fondo ni las guías: el formato de salida y las
+ayudas de trabajo son del usuario. El `fov` sí entra porque cambia el look de
+forma dramática — un orbit de radio grande con fov 45 deja todo fuera de cuadro
+y con fov 90 se convierte en un túnel.
+
+`npm test` verifica los 18 presets: que no haya params inventados (un typo se
+tragaría el valor en silencio y el preset se vería como el default), que quede
+algún plano en cuadro, y que exista un número de ciclos que cierre el loop.
+
+---
+
 ## Hand-tracking en `particle-visualizer`
 
 El emisor de partículas se puede manejar con la punta del índice por webcam, y

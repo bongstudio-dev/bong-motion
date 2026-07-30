@@ -1031,6 +1031,96 @@ textarea.text-input {
 .template-grid,
 .ratio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 
+/* ================================================================
+   Navegador de presets — familias y variantes
+   ================================================================ */
+
+.browser { display: flex; flex-direction: column; gap: 4px; }
+
+.browser-row,
+.browser-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 11px;
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: left;
+  transition: background 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+}
+
+.browser-row:hover,
+.browser-head:hover {
+  background: var(--panel-3);
+  border-color: var(--stroke-strong);
+  color: var(--text);
+}
+
+.browser-row.active { color: var(--text); }
+
+/* La familia en uso se marca con la barra verde, igual que la tool activa del
+   rail: misma señal para "acá estás". */
+.browser-row.active::before {
+  content: "";
+  width: 2.5px;
+  height: 14px;
+  border-radius: 2px;
+  background: var(--accent);
+  margin-left: -4px;
+}
+
+.browser-name { flex: 1; }
+.browser-row .tag,
+.browser-head .tag { margin-left: auto; }
+.browser-row > svg:last-child { color: var(--muted-2); flex-shrink: 0; }
+.browser-head { margin-bottom: 4px; }
+.browser-head span:first-of-type { flex: 1; }
+
+.preset-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.preset-thumb {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 0;
+  width: 100%;
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  overflow: hidden;
+  transition: border-color 0.12s ease;
+}
+
+.preset-thumb canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #0e0e10;
+}
+
+.preset-thumb span {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 0 6px 6px;
+  text-align: left;
+}
+
+.preset-thumb:hover { border-color: var(--stroke-strong); }
+.preset-thumb:hover span { color: var(--text); }
+
+.preset-thumb.active { border-color: var(--accent-line); }
+.preset-thumb.active span { color: var(--accent); }
+
 .template-grid .btn,
 .ratio-grid .btn { padding: 9px 4px; font-size: 11.5px; }
 
