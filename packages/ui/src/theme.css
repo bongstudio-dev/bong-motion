@@ -288,14 +288,14 @@ input { font-family: inherit; }
 
 .scrub.disabled { opacity: 0.45; cursor: not-allowed; }
 
-/* El nivel: un bloque redondeado con margen propio, no un relleno a sangre.
-   Así en valores bajos se lee como una pastilla y no como un borde pegado. */
+/* El nivel llena el control de lado a lado: sin margen propio. Las esquinas se
+   las da el overflow del contenedor, así sigue el redondeo del control en vez
+   de dibujar una segunda caja adentro. */
 .scrub-fill {
   position: absolute;
-  left: 4px;
-  top: 4px;
-  bottom: 4px;
-  border-radius: 6px;
+  left: 0;
+  top: 0;
+  bottom: 0;
   background: rgba(255, 255, 255, 0.07);
   pointer-events: none;
   transition: background 0.12s ease;

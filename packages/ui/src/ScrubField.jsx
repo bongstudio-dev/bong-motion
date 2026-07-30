@@ -22,11 +22,13 @@ const clamp = (v, min, max) => (v < min ? min : v > max ? max : v);
 // el mismo aire a los dos lados, y ese aire es constante en todo el recorrido.
 // Montarla en el borde la hace ver cortada por la mitad.
 //
-//   pct = 0        [ gap|▮|gap ]
-//   pct = 50       [ ▔▔▔▔▔▔ gap|▮|gap ]
-//   pct = 100      [ ▔▔▔▔▔▔▔▔▔▔▔▔▔ gap|▮|gap ]
-//                  ↑ INSET                    ↑ INSET
-const INSET = 4; // aire entre el nivel y el borde del control
+//   pct = 0        [gap|▮|gap                    ]
+//   pct = 50       [▔▔▔▔▔▔▔▔▔▔▔▔gap|▮|gap        ]
+//   pct = 100      [▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔▔gap|▮|gap]
+//
+// El nivel llena el control de lado a lado: el único aire es el de adentro,
+// entre la perilla y el borde del nivel.
+const INSET = 0; // aire entre el nivel y el borde del control
 const GAP = 3; // aire entre la perilla y el borde del nivel
 const KNOB = 3; // ancho de la perilla
 
