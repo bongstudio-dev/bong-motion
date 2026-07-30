@@ -16,10 +16,25 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const clamp = (v, min, max) => (v < min ? min : v > max ? max : v);
 
-// Margen del nivel respecto de los bordes del control. El nivel y la perilla
-// comparten este recorrido: la perilla marca SIEMPRE el borde del nivel, que es
-// lo que la hace leer como perilla y no como un adorno aparte.
-const INSET = 4;
+// Geometría del nivel y la perilla.
+//
+// La perilla va DENTRO del nivel, no sobre su filo: el nivel la abraza dejando
+// el mismo aire a los dos lados, y ese aire es constante en todo el recorrido.
+// Montarla en el borde la hace ver cortada por la mitad.
+//
+//   pct = 0        [ gap|▮|gap ]
+//   pct = 50       [ ▔▔▔▔▔▔ gap|▮|gap ]
+//   pct = 100      [ ▔▔▔▔▔▔▔▔▔▔▔▔▔ gap|▮|gap ]
+//                  ↑ INSET                    ↑ INSET
+const INSET = 4; // aire entre el nivel y el borde del control
+const GAP = 3; // aire entre la perilla y el borde del nivel
+const KNOB = 3; // ancho de la perilla
+
+// Centro de la perilla cuando el valor está en el mínimo. El recorrido va de
+// acá hasta el espejo del otro lado, así los dos extremos quedan simétricos.
+const EDGE = INSET + GAP + KNOB / 2;
+// Ancho del nivel en el mínimo: justo lo necesario para abrazar la perilla.
+const FILL_MIN = EDGE + KNOB / 2 + GAP - INSET;
 
 const decimalsOf = (step) => {
   const s = String(step);
@@ -48,6 +63,9 @@ export function ScrubField({
   const span = max - min || 1;
   const pct = clamp(((value - min) / span) * 100, 0, 100);
   const shown = format ? format(value) : `${value.toFixed(decimals)}${unit}`;
+  // Nivel y perilla comparten este desplazamiento, así el aire entre los dos
+  // no puede desincronizarse.
+  const travel = `(100% - ${EDGE * 2}px) * ${pct / 100}`;
 
   const commit = useCallback(
     (raw) => {
@@ -163,12 +181,9 @@ export function ScrubField({
     >
       <span
         className="scrub-fill"
-        style={{ width: `calc((100% - ${INSET * 2}px) * ${pct / 100})` }}
+        style={{ width: `calc(${FILL_MIN}px + ${travel})` }}
       />
-      <span
-        className="scrub-knob"
-        style={{ left: `calc(${INSET}px + (100% - ${INSET * 2}px) * ${pct / 100})` }}
-      />
+      <span className="scrub-knob" style={{ left: `calc(${EDGE}px + ${travel})` }} />
       <span className="scrub-label">{label}</span>
       <span className="scrub-value">{shown}</span>
     </div>
