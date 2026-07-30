@@ -288,27 +288,29 @@ input { font-family: inherit; }
 
 .scrub.disabled { opacity: 0.45; cursor: not-allowed; }
 
-/* El nivel. Muy sutil: informa sin competir con el texto que tiene encima. */
+/* El nivel: un bloque redondeado con margen propio, no un relleno a sangre.
+   Así en valores bajos se lee como una pastilla y no como un borde pegado. */
 .scrub-fill {
   position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.055);
+  left: 4px;
+  top: 4px;
+  bottom: 4px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.07);
   pointer-events: none;
   transition: background 0.12s ease;
 }
 
 .scrub:hover .scrub-fill,
-.scrub.dragging .scrub-fill { background: rgba(255, 255, 255, 0.075); }
+.scrub.dragging .scrub-fill { background: rgba(255, 255, 255, 0.095); }
 
-/* La perilla: se prende en hover y se pinta con el verde de marca. No llega a
-   los bordes — una marca flotante lee como perilla; una que toca arriba y abajo
-   lee como el borde de una barra de progreso. */
+/* La perilla: se prende en hover y se pinta con el verde de marca. Va justo en
+   el borde del nivel y sin tocar los bordes del control — una marca flotante
+   lee como perilla; una que toca arriba y abajo lee como filo de una barra. */
 .scrub-knob {
   position: absolute;
-  top: 7px;
-  bottom: 7px;
+  top: 6px;
+  bottom: 6px;
   width: 3px;
   margin-left: -1.5px;
   border-radius: 2px;

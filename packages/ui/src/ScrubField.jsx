@@ -16,8 +16,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 const clamp = (v, min, max) => (v < min ? min : v > max ? max : v);
 
-// Cuánto se mete la perilla respecto de los bordes del control.
-const KNOB_INSET = 7;
+// Margen del nivel respecto de los bordes del control. El nivel y la perilla
+// comparten este recorrido: la perilla marca SIEMPRE el borde del nivel, que es
+// lo que la hace leer como perilla y no como un adorno aparte.
+const INSET = 4;
 
 const decimalsOf = (step) => {
   const s = String(step);
@@ -159,12 +161,13 @@ export function ScrubField({
       onDoubleClick={startEditing}
       onKeyDown={onKeyDown}
     >
-      <span className="scrub-fill" style={{ width: `${pct}%` }} />
-      {/* El recorrido de la perilla se acota KNOB_INSET a cada lado: pegada al
-          borde deja de leerse como perilla y parece el filo del control. */}
+      <span
+        className="scrub-fill"
+        style={{ width: `calc((100% - ${INSET * 2}px) * ${pct / 100})` }}
+      />
       <span
         className="scrub-knob"
-        style={{ left: `calc(${KNOB_INSET}px + (100% - ${KNOB_INSET * 2}px) * ${pct / 100})` }}
+        style={{ left: `calc(${INSET}px + (100% - ${INSET * 2}px) * ${pct / 100})` }}
       />
       <span className="scrub-label">{label}</span>
       <span className="scrub-value">{shown}</span>
