@@ -46,21 +46,49 @@ Conclusión práctica: **se comparte el chasis, no el motor.**
 
 ---
 
+## `packages/ui` — el chasis
+
+Primer paquete compartido: tema, controles y navegación. Las tres tools lo
+consumen, así que un arreglo en un control las arregla a las tres.
+
+**`ScrubField`** es el campo numérico de la plataforma. Label y valor van adentro
+de la misma píldora, el fondo se llena como un nivel y una perilla marca el
+valor. Se arrastra desde **cualquier punto** del control:
+
+| Gesto | Qué hace |
+|---|---|
+| Arrastrar | Recorrer el ancho del control = el rango entero |
+| `Shift` + arrastrar | 5× más fino |
+| Doble click | Escribir el número a mano |
+| `←` `→` | Un step (`Shift` = 10) |
+
+El arrastre es **relativo**, no absoluto: agarrar en un costado no debe pegar un
+salto al valor de ese punto, y así se afina sin tener que apuntarle a un thumb de
+13px. Es el gesto de los campos numéricos de After Effects o Figma, y es lo que
+justifica el cursor `ew-resize` en toda la superficie.
+
+La perilla es el único verde de marca del control. El borde se queda en gris
+incluso al arrastrar: dos señales verdes a la vez ensucian el micro-highlight.
+
+**`ToolSidebar`** es la barra de la izquierda. Los motores son apps distintas, así
+que cambiar de tool recarga la página; la barra es lo que las hace sentir una
+sola plataforma igual. En dev apunta a los puertos, en producción a los subpaths.
+
+---
+
 ## Hacia dónde va
 
-El plan es extraer a `packages/` sólo lo que es genuinamente común, en este
-orden, y sin tocar los motores:
+Queda por extraer, en este orden y sin tocar los motores:
 
 1. **`core/export`** — el exporter con WebCodecs de `plane-animator`, que fija el
    timestamp de cada frame y garantiza 30 o 60 fps exactos. Es el que más rinde:
-   `particle` hoy graba en tiempo real y hereda todos los problemas de framerate
-   que eso trae. La interfaz ya es agnóstica del renderer (recibe `draw(t01)`).
+   `particle` todavía graba en tiempo real y hereda todos los problemas de
+   framerate que eso trae. La interfaz ya es agnóstica del renderer (recibe
+   `draw(t01)`).
 2. **`core/canvas`** — tabla de ratios, dims del stage, safe areas, safe frames.
    Una sola definición de "lado menor 1080".
 3. **`core/storage`** — persistencia de state, presets con nombre, import/export
    JSON, con un esquema de claves consistente.
-4. **`core/ui`** — controles, secciones, tema oscuro y Satoshi. Va último porque
-   `particle` usa Tailwind y las otras dos CSS puro; puede no valer la pena.
 
 Cada paso se puede parar sin dejar nada a medias. Lo que **no** conviene unificar
 es `engine/`: los motores son distintos por naturaleza y forzarlos a una
