@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Stage from "./components/Stage.jsx";
 import Transport from "./components/Transport.jsx";
+import LibraryPanel from "./components/LibraryPanel.jsx";
 import AssetsPanel from "./components/panels/AssetsPanel.jsx";
 import ScenePanel from "./components/panels/ScenePanel.jsx";
 import TimingPanel from "./components/panels/TimingPanel.jsx";
@@ -10,6 +11,7 @@ import ExportPanel from "./components/panels/ExportPanel.jsx";
 import { ToolSidebar } from "@bong/ui";
 import { createClock } from "./clock.js";
 import { defaultState } from "./state/defaults.js";
+import { resolveParams } from "./engine/getScene.js";
 import { loadState, saveState } from "./state/storage.js";
 import { releaseAll } from "./assets/assetStore.js";
 
@@ -74,8 +76,14 @@ export default function App() {
   };
 
   return (
-    <div className="app">
+    <div className="app with-library">
       <ToolSidebar current="plane-animator" isDev={import.meta.env.DEV} />
+      <LibraryPanel
+        state={state}
+        params={resolveParams(state)}
+        onTemplate={onTemplate}
+        setState={setState}
+      />
       <div className="workspace">
         <Stage state={state} clock={clock} engineRef={engineRef} />
         <aside className="sidebar">
@@ -88,7 +96,7 @@ export default function App() {
             </div>
           </div>
           <AssetsPanel state={state} setState={setState} onPatch={onPatch} />
-          <ScenePanel state={state} setState={setState} onTemplate={onTemplate} />
+          <ScenePanel state={state} setState={setState} />
           <TimingPanel state={state} onPatch={onPatch} />
           <EasePanel state={state} onPatch={onPatch} />
           <CanvasPanel state={state} onPatch={onPatch} />

@@ -120,7 +120,10 @@ export default function PresetThumb({ base, variant, template, active }) {
       title={variant.name}
       type="button"
     >
-      <canvas ref={canvasRef} style={{ width: THUMB_W, height: h }} />
+      {/* El backing store es fijo (THUMB_W) para que el dibujo sea siempre el
+          mismo, pero en pantalla se estira al ancho de la celda: el panel puede
+          cambiar de ancho sin que las miniaturas se corten. */}
+      <canvas ref={canvasRef} style={{ aspectRatio: `${stage.w} / ${stage.h}` }} />
       <span>{variant.name}</span>
     </button>
   );

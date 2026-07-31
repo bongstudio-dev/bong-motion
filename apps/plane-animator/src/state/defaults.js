@@ -138,10 +138,17 @@ export function mergeState(loaded) {
 }
 
 // Lo que se serializa en "Guardar como custom": la receta, no los archivos.
+// El `fov` entra al preset por la misma razón que en la librería de fábrica:
+// cambia el look de forma dramática (un orbit de radio grande con fov 45 deja
+// todo fuera de cuadro y con fov 90 es un túnel). Sin él, volver a un preset
+// propio heredaría la perspectiva del que estuviera aplicado antes.
+// Ratio, fondo y guías NO entran: el formato de salida y las ayudas de trabajo
+// son del usuario, no de la receta.
 export const presetFromState = (state) => ({
   template: { id: state.template.id, params: state.template.params },
   timing: state.timing,
   fit: state.fit,
+  fov: state.stage.fov,
 });
 
 export const applyPreset = (state, preset) => ({
@@ -149,6 +156,9 @@ export const applyPreset = (state, preset) => ({
   template: { ...state.template, ...preset.template },
   timing: { ...state.timing, ...preset.timing },
   fit: { ...state.fit, ...preset.fit },
+  // Los presets guardados antes de que el fov entrara no lo traen: se conserva
+  // el actual en vez de saltar a un default.
+  stage: { ...state.stage, fov: preset.fov ?? state.stage.fov },
 });
 
 export const MAX_ASSETS = 40;

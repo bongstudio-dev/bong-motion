@@ -78,9 +78,15 @@ sola plataforma igual. En dev apunta a los puertos, en producción a los subpath
 
 ## Librería de presets en `plane-animator`
 
-El panel **Escena** es un navegador de dos niveles: las familias (los cinco
-templates) abren sus variantes, cada una con una miniatura que muestra el
-movimiento real.
+La biblioteca es **su propia columna**, entre el rail y el stage. El orden de la
+interfaz sigue el orden de las decisiones: el rail elige la herramienta, la
+biblioteca elige qué animación, y el sidebar de la derecha la ajusta. Tenerla
+adentro del panel de params mezclaba el segundo paso con el tercero y los hacía
+competir por el mismo espacio.
+
+Adentro: tabs **Templates / Custom**, buscador, y un navegador de dos niveles —
+las familias (los cinco templates) abren sus variantes, cada una con una
+miniatura que muestra el movimiento real.
 
 Las miniaturas salen del **mismo `getScene()`** que el stage, así que no hay una
 animación de ejemplo que pueda quedar desincronizada del engine. Lo único que se

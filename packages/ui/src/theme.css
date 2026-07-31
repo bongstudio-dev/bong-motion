@@ -30,6 +30,7 @@
   --mono: ui-monospace, "SF Mono", "Roboto Mono", Menlo, monospace;
 
   --rail-w: 62px;
+  --library-w: 288px;
 }
 
 * { box-sizing: border-box; }
@@ -63,7 +64,18 @@ input { font-family: inherit; }
     "rail transport";
 }
 
+/* Con biblioteca, la columna va entre el rail y el workspace: el orden de la
+   interfaz sigue el orden de las decisiones — herramienta, qué animación,
+   ajustes. */
+.app.with-library {
+  grid-template-columns: var(--rail-w) var(--library-w) 1fr;
+  grid-template-areas:
+    "rail library workspace"
+    "rail library transport";
+}
+
 .app > .tool-rail { grid-area: rail; }
+.library { grid-area: library; }
 .workspace { grid-area: workspace; }
 .transport { grid-area: transport; }
 
@@ -1032,6 +1044,121 @@ textarea.text-input {
 .ratio-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 
 /* ================================================================
+   Biblioteca — la columna de presets
+   ================================================================ */
+
+.library {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--panel);
+  border-right: 1px solid var(--stroke);
+}
+
+.library-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 10px 10px 8px;
+  flex-shrink: 0;
+}
+
+.library-tabs button {
+  flex: 1;
+  border: none;
+  background: none;
+  color: var(--muted-2);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.library-tabs button:hover { color: var(--text); }
+
+.library-tabs button.active {
+  background: var(--panel-3);
+  color: var(--text);
+}
+
+.library-search {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 10px 8px;
+  padding: 0 9px;
+  height: 32px;
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-sm);
+  background: var(--panel-2);
+  color: var(--muted-2);
+  flex-shrink: 0;
+}
+
+.library-search:focus-within { border-color: var(--stroke-strong); }
+
+.library-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: none;
+  outline: none;
+  color: var(--text);
+  font-size: 12px;
+}
+
+.library-search input::placeholder { color: var(--muted-2); }
+
+.library-clear {
+  border: none;
+  background: none;
+  color: var(--muted-2);
+  font-size: 15px;
+  line-height: 1;
+  padding: 0 2px;
+}
+
+.library-clear:hover { color: var(--text); }
+
+.library-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.library-save { display: flex; gap: 6px; }
+.library-save .text-input { min-width: 0; }
+
+.library-empty {
+  font-size: 11.5px;
+  color: var(--muted-2);
+  text-align: center;
+  padding: 20px 8px;
+  margin: 0;
+}
+
+/* El borrar de un preset custom flota sobre la miniatura y sólo aparece al
+   pasar por encima: no compite con el thumbnail. */
+.custom-cell { position: relative; }
+
+.custom-cell .icon-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  background: rgba(11, 11, 12, 0.75);
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.custom-cell:hover .icon-btn { opacity: 1; }
+
+/* ================================================================
    Navegador de presets — familias y variantes
    ================================================================ */
 
@@ -1106,6 +1233,10 @@ textarea.text-input {
   height: auto;
   background: #0e0e10;
 }
+
+/* Miniaturas altas (9:16) desperdiciarían media columna: se acotan y el resto
+   del alto queda para el nombre. */
+.preset-thumb canvas { max-height: 190px; object-fit: contain; }
 
 .preset-thumb span {
   font-size: 11px;

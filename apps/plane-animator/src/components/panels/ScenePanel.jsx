@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   Section,
   Field,
@@ -7,19 +6,13 @@ import {
   Select,
   Toggle,
   Button,
-  IconButton,
-  Icon,
   Group,
 } from "@bong/ui";
-import { variantState } from "../../engine/library.js";
-import TemplateBrowser from "../TemplateBrowser.jsx";
 import { resolveTemplate, resolveParams } from "../../engine/getScene.js";
-import { presetFromState, applyPreset } from "../../state/defaults.js";
-import { loadPresets, savePresets } from "../../state/storage.js";
 
-// La UI se dibuja sola a partir del `schema` del template. Es lo mejor que
-// tenía el palette-animator y se conserva tal cual: agregar un template no
-// requiere tocar un solo componente.
+// Sólo los ajustes de la escena. Elegir QUÉ animación es un paso anterior y
+// vive en la biblioteca, a la izquierda: son dos decisiones distintas y tenerlas
+// en el mismo panel las hacía competir por el espacio.
 function ParamControl({ item, value, onChange }) {
   if (item.type === "toggle") {
     return <Toggle label={item.label} value={!!value} onChange={onChange} />;
@@ -52,9 +45,6 @@ function ParamControl({ item, value, onChange }) {
 // primero, después movimiento, después el look y al final el encuadre fino.
 // Es el orden en que se compone, no el orden en que se programó el template.
 function byGroup(schema, params) {
-  // Consolida por nombre respetando el orden de primera aparición: si un
-  // template declara el mismo grupo en dos tramos, los controles terminan
-  // juntos igual.
   const order = [];
   const bucket = new Map();
   for (const item of schema) {
@@ -69,11 +59,9 @@ function byGroup(schema, params) {
   return order.map((name) => [name, bucket.get(name)]);
 }
 
-export default function ScenePanel({ state, setState, onTemplate }) {
+export default function ScenePanel({ state, setState }) {
   const tpl = resolveTemplate(state);
   const params = resolveParams(state, tpl);
-  const [presets, setPresets] = useState(loadPresets);
-  const [name, setName] = useState("");
 
   const onParam = (key, value) =>
     setState((s) => ({
@@ -93,37 +81,8 @@ export default function ScenePanel({ state, setState, onTemplate }) {
       template: { ...s.template, params: { ...s.template.params, [tpl.id]: {} } },
     }));
 
-  const saveCurrent = () => {
-    const label = name.trim();
-    if (!label) return;
-    const next = [
-      ...presets.filter((p) => p.name !== label),
-      { name: label, ...presetFromState(state) },
-    ];
-    setPresets(next);
-    savePresets(next);
-    setName("");
-  };
-
-  const removePreset = (label) => {
-    const next = presets.filter((p) => p.name !== label);
-    setPresets(next);
-    savePresets(next);
-  };
-
   return (
-    <Section title="Escena">
-      <TemplateBrowser
-        state={state}
-        params={params}
-        onTemplate={onTemplate}
-        onPick={(variant, template) =>
-          setState((s) => variantState(s, variant, template))
-        }
-      />
-
-      <div className="divider" />
-
+    <Section title="Escena" right={<span className="tag">{tpl.name}</span>}>
       {byGroup(tpl.schema, params).map(([group, items]) => (
         <Group key={group} title={group}>
           {items.map((item) => (
@@ -140,48 +99,6 @@ export default function ScenePanel({ state, setState, onTemplate }) {
       <Button variant="ghost" block onClick={resetParams}>
         Reset params de {tpl.name}
       </Button>
-
-      <div className="divider" />
-
-      <Field label="Guardar como custom">
-        <div className="btn-row">
-          <input
-            className="text-input"
-            placeholder="Nombre del preset"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && saveCurrent()}
-          />
-          <Button onClick={saveCurrent} disabled={!name.trim()}>
-            Guardar
-          </Button>
-        </div>
-      </Field>
-
-      {presets.length > 0 && (
-        <div className="saved-list">
-          {presets.map((p) => (
-            <div className="saved-row" key={p.name}>
-              <span className="name">{p.name}</span>
-              <div style={{ display: "flex", gap: 2 }}>
-                <Button
-                  variant="ghost"
-                  onClick={() => setState((s) => applyPreset(s, p))}
-                >
-                  Cargar
-                </Button>
-                <IconButton danger onClick={() => removePreset(p.name)}>
-                  <Icon.Trash />
-                </IconButton>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      <p className="hint">
-        Un preset guarda template + params + timing + encuadre. Los assets no:
-        son de la sesión.
-      </p>
     </Section>
   );
 }

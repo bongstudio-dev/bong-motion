@@ -70,6 +70,12 @@ export const Icon = {
       />
     </svg>
   ),
+  Search: (p) => (
+    <svg width="13" height="13" viewBox="0 0 14 14" {...p}>
+      <circle cx="6" cy="6" r="4.2" fill="none" stroke="currentColor" strokeWidth="1.3" />
+      <path d="M9.2 9.2L12.5 12.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+    </svg>
+  ),
   Download: (p) => (
     <svg width="13" height="13" viewBox="0 0 14 14" {...p}>
       <path
