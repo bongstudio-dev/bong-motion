@@ -2,11 +2,17 @@
 // propósito: es lo que hace que layout y track sean independientes (cascade
 // sobre grid, scale sobre row) sin acoplar el preset a una posición final.
 
+import { mergeTextLayers } from "@bong/ui/text";
+
 export const STATE_VERSION = 1;
 
 export function defaultState() {
   return {
     version: STATE_VERSION,
+
+    // Capas de texto libres sobre la pieza. Son otra cosa que `labels`: esos
+    // están atados a una card y salen de la paleta; esto es texto de autor.
+    texts: [],
     palette: [
       { id: "c1", hex: "#004831", name: "Verde crítico" },
       { id: "c2", hex: "#0C6347", name: "Verde profundo" },
@@ -89,6 +95,9 @@ export function mergeState(loaded) {
       }));
     if (out.palette.length < 2) out.palette = base.palette;
   }
+  // Rellena las claves que un state viejo no tenga: la ventana flotante da por
+  // hecho que están todas.
+  out.texts = mergeTextLayers(loaded.texts);
   out.version = STATE_VERSION;
   return out;
 }

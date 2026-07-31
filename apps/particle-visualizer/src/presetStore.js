@@ -6,11 +6,15 @@
 // persistieran, abrir la tool dispararía el prompt de permiso de cámara sin que
 // nadie lo pidiera. Prender la cámara tiene que ser siempre un acto explícito.
 // Lo estético (espejo, opacidad, suavizado) sí se guarda: no toca el hardware.
+// `texts` entra por otro motivo: no es un ajuste del look sino contenido que
+// escribió el usuario. Un preset que arrastra el titular de otra pieza pisa el
+// trabajo de quien lo aplica.
 export const RUNTIME_KEYS = [
   "isPlaying",
   "clearSignal",
   "handTracking",
   "cameraBackdrop",
+  "texts",
 ];
 
 const PRESETS_KEY = "amt-presets";

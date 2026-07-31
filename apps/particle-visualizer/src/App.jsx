@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ToolSidebar } from "@bong/ui";
+import { ToolSidebar, TextSection, TextWindow } from "@bong/ui";
 import AssetsPanel from "./components/AssetsPanel";
 import { CameraNotice, CameraStatus } from "./components/CameraStatus";
 import ControlsPanel from "./components/ControlsPanel";
@@ -41,12 +41,17 @@ const defaultConfig = {
   cameraOpacity: 1,
   isPlaying: true,
   clearSignal: 0,
+  // Capas de texto sobre la pieza. Contenido de autor, no parte del "look":
+  // por eso están en RUNTIME_KEYS y no viajan dentro de un preset.
+  texts: [],
 };
 
 export default function App() {
   const [items, setItems] = useState([]);
   // Si hay un preset marcado como default, la tool arranca con esos valores.
   const [config, setConfig] = useState(() => getInitialConfig(defaultConfig));
+  // Qué capa de texto tiene abierta su ventana flotante — estado de interfaz.
+  const [openText, setOpenText] = useState(null);
   const canvasRef = useRef(null);
   const recorder = useRecorder(canvasRef);
 
@@ -109,6 +114,9 @@ export default function App() {
       const next = getInitialConfig(defaultConfig);
       next.isPlaying = current.isPlaying;
       next.clearSignal = current.clearSignal;
+      // Volver a los valores por defecto es volver al look, no tirar el texto
+      // que escribió el usuario.
+      next.texts = current.texts;
       return next;
     });
 
@@ -164,6 +172,12 @@ export default function App() {
               ),
             }}
           />
+          <TextSection
+            texts={config.texts}
+            onChange={(texts) => onConfigChange("texts", texts)}
+            openId={openText}
+            onOpen={setOpenText}
+          />
           <PresetsPanel
             config={config}
             onApplyPreset={handleApplyPreset}
@@ -176,6 +190,16 @@ export default function App() {
         recorder={recorder}
         onConfigChange={onConfigChange}
         onClear={() => onConfigChange("clearSignal", config.clearSignal + 1)}
+      />
+      <TextWindow
+        text={config.texts.find((t) => t.id === openText) ?? null}
+        onChange={(next) =>
+          onConfigChange(
+            "texts",
+            config.texts.map((t) => (t.id === next.id ? next : t)),
+          )
+        }
+        onClose={() => setOpenText(null)}
       />
     </div>
   );

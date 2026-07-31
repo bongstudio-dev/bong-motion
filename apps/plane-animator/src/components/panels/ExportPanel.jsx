@@ -1,5 +1,13 @@
 import { useMemo, useRef, useState } from "react";
-import { Section, Field, Segmented, ScrubField, Button, Icon } from "@bong/ui";
+import {
+  Section,
+  Field,
+  Segmented,
+  ScrubField,
+  Button,
+  Icon,
+  ensureFontsReady,
+} from "@bong/ui";
 import { exportVideo, exportGIF, exportPNG, downloadBlob } from "../../export/exporters.js";
 import { exportStateFile, importStateFile } from "../../state/storage.js";
 import { RATIOS, stageDims, stageOf } from "../../engine/camera.js";
@@ -50,6 +58,9 @@ export default function ExportPanel({ state, setState, clock, engineRef, onReset
     setBusy(true);
     setProgress(0);
     setMessage("");
+    // Si una fuente todavía se está cargando, los primeros frames saldrían con
+    // la fallback y el archivo mentiría respecto del preview.
+    await ensureFontsReady();
     engine.begin();
 
     try {
@@ -113,6 +124,7 @@ export default function ExportPanel({ state, setState, clock, engineRef, onReset
     const engine = engineRef.current;
     if (!engine || busy) return;
     setBusy(true);
+    await ensureFontsReady();
     engine.begin();
     try {
       const stage = stageOf(state);

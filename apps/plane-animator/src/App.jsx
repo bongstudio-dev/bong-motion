@@ -8,7 +8,7 @@ import TimingPanel from "./components/panels/TimingPanel.jsx";
 import EasePanel from "./components/panels/EasePanel.jsx";
 import CanvasPanel from "./components/panels/CanvasPanel.jsx";
 import ExportPanel from "./components/panels/ExportPanel.jsx";
-import { ToolSidebar } from "@bong/ui";
+import { ToolSidebar, TextSection, TextWindow } from "@bong/ui";
 import { createClock } from "./clock.js";
 import { defaultState } from "./state/defaults.js";
 import { resolveParams } from "./engine/getScene.js";
@@ -17,6 +17,9 @@ import { releaseAll } from "./assets/assetStore.js";
 
 export default function App() {
   const [state, setState] = useState(loadState);
+  // Qué capa de texto tiene abierta su ventana flotante. Es estado de la
+  // interfaz, no de la pieza: no se persiste ni entra al JSON exportado.
+  const [openText, setOpenText] = useState(null);
   const clockRef = useRef(null);
   if (!clockRef.current) clockRef.current = createClock();
   const clock = clockRef.current;
@@ -72,8 +75,12 @@ export default function App() {
 
   const onReset = () => {
     releaseAll();
+    setOpenText(null);
     setState(defaultState());
   };
+
+  const setTexts = (texts) => setState((s) => ({ ...s, texts }));
+  const openTextLayer = state.texts.find((t) => t.id === openText) ?? null;
 
   return (
     <div className="app with-library">
@@ -100,6 +107,12 @@ export default function App() {
           <TimingPanel state={state} onPatch={onPatch} />
           <EasePanel state={state} onPatch={onPatch} />
           <CanvasPanel state={state} onPatch={onPatch} />
+          <TextSection
+            texts={state.texts}
+            onChange={setTexts}
+            openId={openText}
+            onOpen={setOpenText}
+          />
           <ExportPanel
             state={state}
             setState={setState}
@@ -114,6 +127,13 @@ export default function App() {
         clock={clock}
         onDuration={(v) => onPatch("timing", { duration: v })}
         onRatio={(v) => onPatch("stage", { ratio: v })}
+      />
+      <TextWindow
+        text={openTextLayer}
+        onChange={(next) =>
+          setTexts(state.texts.map((t) => (t.id === next.id ? next : t)))
+        }
+        onClose={() => setOpenText(null)}
       />
     </div>
   );

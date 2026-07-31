@@ -6,6 +6,8 @@
 //
 // Se conserva el patrón `mergeState` defensivo tal cual.
 
+import { mergeTextLayers } from "@bong/ui/text";
+
 export const STATE_VERSION = 1;
 
 export function defaultState() {
@@ -15,6 +17,9 @@ export function defaultState() {
     // localStorage no aguanta imágenes: los assets NO se persisten, se recargan
     // por sesión. El resto del state sí. (IndexedDB queda para v2.)
     assets: [],
+
+    // Capas de texto sobre la pieza. Son texto plano: se persisten enteras.
+    texts: [],
 
     fit: {
       mode: "cover", // 'cover' | 'contain' | 'fitToAsset'
@@ -100,6 +105,10 @@ export function mergeState(loaded) {
   // asset es una referencia rota. Quien importe un JSON conserva los que ya
   // tenga cargados en la sesión (lo resuelve el ExportPanel).
   out.assets = [];
+
+  // Las capas de texto sí vuelven, pero rellenando las claves que un state
+  // viejo no tenga: la ventana flotante da por hecho que están todas.
+  out.texts = mergeTextLayers(loaded.texts);
 
   // Params por template: objeto de objetos.
   const params = loaded.template?.params;

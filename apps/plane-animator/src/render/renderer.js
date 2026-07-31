@@ -10,6 +10,7 @@ import * as THREE from "three";
 import { getScene } from "../engine/getScene.js";
 import { stageOf } from "../engine/camera.js";
 import { createPlaneMaterial } from "./planeMaterial.js";
+import { createTextOverlay } from "./textOverlay.js";
 import { getTexture, placeholderTexture } from "../assets/assetStore.js";
 
 export function createRenderer(canvas) {
@@ -21,6 +22,9 @@ export function createRenderer(canvas) {
     preserveDrawingBuffer: true,
   });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
+  // El frame se compone en varios pases (texto de fondo, escena, texto de
+  // frente): el limpiado lo hacemos a mano, una sola vez, al empezar.
+  renderer.autoClear = false;
 
   const maxAnisotropy = renderer.capabilities.getMaxAnisotropy();
   const anisoDone = new WeakSet();
@@ -29,6 +33,7 @@ export function createRenderer(canvas) {
   const camera = new THREE.PerspectiveCamera(45, 1, 10, 10000);
   const geometry = new THREE.PlaneGeometry(1, 1);
   const meshes = [];
+  const textOverlay = createTextOverlay();
 
   const clear = new THREE.Color();
   const bg = new THREE.Color();
@@ -72,7 +77,11 @@ export function createRenderer(canvas) {
 
     clear.set(state.stage.background || "#000000");
     renderer.setClearColor(clear, 1);
+    renderer.clear();
     bg.set(state.fit?.containBg || "#000000");
+
+    textOverlay.update(state.texts, stage, renderer.getPixelRatio());
+    textOverlay.render(renderer, "back");
 
     const planes = composed.planes;
     for (let i = 0; i < planes.length; i++) {
@@ -112,6 +121,7 @@ export function createRenderer(canvas) {
     for (let i = planes.length; i < meshes.length; i++) meshes[i].visible = false;
 
     renderer.render(scene, camera);
+    textOverlay.render(renderer, "over");
     return composed;
   }
 
@@ -128,6 +138,7 @@ export function createRenderer(canvas) {
     dispose() {
       for (const m of meshes) m.material.dispose();
       geometry.dispose();
+      textOverlay.dispose();
       renderer.dispose();
     },
   };

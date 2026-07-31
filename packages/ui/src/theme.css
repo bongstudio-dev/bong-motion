@@ -1255,6 +1255,147 @@ textarea.text-input {
 .template-grid .btn,
 .ratio-grid .btn { padding: 9px 4px; font-size: 11.5px; }
 
+/* ================================================================
+   Capas de texto — la lista del sidebar y su ventana flotante
+   ================================================================ */
+
+.text-list { display: flex; flex-direction: column; gap: 6px; margin-top: 2px; }
+
+.text-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 6px 5px 9px;
+  background: var(--panel-2);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-sm);
+}
+
+.text-row .name {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  font-size: 12px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-row:hover { border-color: var(--stroke-strong); }
+.text-row.active { border-color: var(--active-stroke); background: var(--active-bg); }
+.text-row.hidden .name { color: var(--muted-2); }
+
+/* La ventana flota sobre el workspace: `fixed` y no `absolute` para que
+   arrastrarla no dependa de en qué panel nació. */
+.float-panel {
+  position: fixed;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 140px);
+  background: var(--panel);
+  border: 1px solid var(--stroke-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 32px 90px -30px rgba(0, 0, 0, 0.92);
+  overflow: hidden;
+}
+
+.float-panel-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 8px 8px 12px;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.float-panel-head:active { cursor: grabbing; }
+
+/* Agarradera: la misma señal que usan las hojas modales del sistema. */
+.float-panel-grip {
+  position: absolute;
+  top: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 34px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--stroke-strong);
+}
+
+.float-panel-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.float-panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 4px 12px 14px;
+  overflow-y: auto;
+}
+
+/* Sin esto los controles se achican al desbordar en vez de hacer scroll: un
+   contenedor flex encoge a sus hijos antes que aceptar overflow, y los campos
+   de scrub —que sólo tienen alto por su padding— quedan en una línea. */
+.float-panel-body > * { flex-shrink: 0; }
+
+.float-panel-body textarea.text-input {
+  min-height: 46px;
+  font-family: var(--font);
+  font-size: 12px;
+}
+
+/* Grid de anclas 3×3. Los puntos marcan las nueve posiciones y el activo se
+   lee de un vistazo: es más rápido que nueve etiquetas. */
+.pos-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  padding: 5px;
+  background: var(--panel-2);
+  border: 1px solid var(--stroke);
+  border-radius: var(--radius-sm);
+}
+
+.pos-cell {
+  display: grid;
+  place-items: center;
+  height: 26px;
+  padding: 0;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
+}
+
+.pos-cell i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--muted-2);
+}
+
+.pos-cell:hover { background: var(--panel-3); }
+.pos-cell:hover i { background: var(--muted); }
+
+.pos-cell.active { background: var(--panel-3); border-color: var(--stroke-strong); }
+.pos-cell.active i { width: 7px; height: 7px; background: var(--text); }
+
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-thumb {
   background: var(--stroke-strong);

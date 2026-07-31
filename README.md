@@ -74,6 +74,22 @@ incluso al arrastrar: dos señales verdes a la vez ensucian el micro-highlight.
 que cambiar de tool recarga la página; la barra es lo que las hace sentir una
 sola plataforma igual. En dev apunta a los puertos, en producción a los subpaths.
 
+**Capas de texto** (`src/text/`) son la excepción a "se comparte el chasis, no el
+motor": acá se comparte también el dibujo. El modelo y el rasterizado viven en
+`@bong/ui/text` —un subpath sin JSX, para que los tests que corren en Node crudo
+lo puedan importar— y las tres tools lo llaman desde su único camino de dibujo,
+así el texto sale idéntico en las tres y entra en el export sin caminos aparte.
+El plane-animator, que renderiza en WebGL, rasteriza a un canvas 2D y lo sube
+como textura de un quad ortográfico: el archivo sigue saliendo del mismo canvas
+que se previsualiza.
+
+En el sidebar la sección **Texto** sólo crea, ordena y prende/apaga capas. Los
+once atributos tipográficos se desacoplan en una **ventana flotante**: no entran
+en una columna de 360px que ya tiene seis secciones, y flotando se pueden ajustar
+mirando la pieza en vez de la lista. Cada capa elige su ranura de profundidad
+—**Frente / Medio / Fondo**— y `Fondo` va debajo del contenido de la tool
+(los planos, las cards, las partículas) y encima del color de fondo.
+
 ---
 
 ## Librería de presets en `plane-animator`

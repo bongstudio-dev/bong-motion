@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { drawTexts } from "@bong/ui/text";
 import { ParticleSystem } from "../engine/ParticleSystem";
 import { drawVideoCover, videoPointToStage } from "../engine/videoFit";
 
@@ -107,6 +108,17 @@ function ParticleCanvas({ width, height, items, config, canvasRef: externalRef, 
           opacity: cfg.cameraOpacity ?? 1,
         });
       }
+      // Las capas `back` van acá y no antes de llamar a `render`: ese método
+      // arranca con un clearRect que borraría cualquier cosa pintada antes.
+      drawTexts(c, cfg.texts, { w, h }, "back");
+    };
+
+    // Texto encima de todo. Va sobre el canvas, no en un div: `captureStream`
+    // graba el canvas, así que un overlay DOM no entraría en la grabación.
+    const textOverlay = (c, w, h) => {
+      const texts = systemRef.current.config.texts;
+      drawTexts(c, texts, { w, h }, "middle");
+      drawTexts(c, texts, { w, h }, "front");
     };
 
     // La EMA corre acá (60Hz) y no en el callback de detección (30Hz): así el
@@ -176,6 +188,7 @@ function ParticleCanvas({ width, height, items, config, canvasRef: externalRef, 
           }
           system.render(ctx, width, height, backdrop);
         }
+        textOverlay(ctx, width, height);
       }
 
       frameRef.current = window.requestAnimationFrame(render);

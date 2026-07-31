@@ -86,6 +86,31 @@ export const Icon = {
       />
     </svg>
   ),
+  Copy: (p) => (
+    <svg width="13" height="13" viewBox="0 0 14 14" {...p}>
+      <rect
+        x="4.6"
+        y="1.9"
+        width="7.5"
+        height="7.5"
+        rx="1.4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.1"
+      />
+      <path
+        d="M9.4 11.1v.5a1.4 1.4 0 0 1-1.4 1.4H3.3a1.4 1.4 0 0 1-1.4-1.4V6.9a1.4 1.4 0 0 1 1.4-1.4h.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.1"
+      />
+    </svg>
+  ),
+  Close: (p) => (
+    <svg width="13" height="13" viewBox="0 0 14 14" {...p}>
+      <path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.2" />
+    </svg>
+  ),
 };
 
 /* ---------- Section (accordion) ---------- */

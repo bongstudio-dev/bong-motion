@@ -2,6 +2,7 @@
 // Dibuja en coordenadas lógicas del stage; el caller fija el transform (dpr o
 // multiplicador de resolución) antes de llamar.
 
+import { drawTexts } from "@bong/ui/text";
 import { contrastColor } from "../utils/color.js";
 import { clamp } from "../utils/math.js";
 
@@ -75,6 +76,11 @@ export function renderFrame(ctx, frame, stage, state) {
   ctx.fillStyle = state.stage?.background ?? "#0A0A0A";
   ctx.fillRect(0, 0, stage.w, stage.h);
 
+  // Las capas de texto se dibujan acá adentro, no en el caller, para que preview
+  // y export sigan compartiendo el único camino de dibujo. `back` va después del
+  // fondo y antes de las cards; el resto, al final.
+  drawTexts(ctx, state.texts, stage, "back");
+
   const bleed = state.containers?.mode === "bleed";
   const radius = bleed ? 0 : state.containers?.radius ?? 0;
   const labels = state.labels ?? { show: "never" };
@@ -128,6 +134,10 @@ export function renderFrame(ctx, frame, stage, state) {
       drawLabel(ctx, card, labels, alpha);
     }
   }
+
+  ctx.globalAlpha = 1;
+  drawTexts(ctx, state.texts, stage, "middle");
+  drawTexts(ctx, state.texts, stage, "front");
 
   ctx.restore();
 }

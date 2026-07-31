@@ -6,7 +6,7 @@ import MotionPanel from "./components/panels/MotionPanel.jsx";
 import EasePanel from "./components/panels/EasePanel.jsx";
 import TextPanel from "./components/panels/TextPanel.jsx";
 import ExportPanel from "./components/panels/ExportPanel.jsx";
-import { ToolSidebar } from "@bong/ui";
+import { ToolSidebar, TextSection, TextWindow } from "@bong/ui";
 import { createClock } from "./clock.js";
 import { PRESETS } from "./engine/presets.js";
 import { defaultState } from "./state/defaults.js";
@@ -14,6 +14,9 @@ import { loadState, saveState } from "./state/storage.js";
 
 export default function App() {
   const [state, setState] = useState(loadState);
+  // Qué capa de texto tiene abierta su ventana flotante. Es estado de la
+  // interfaz, no de la pieza: no se persiste ni entra al JSON exportado.
+  const [openText, setOpenText] = useState(null);
   const clockRef = useRef(null);
   if (!clockRef.current) clockRef.current = createClock();
   const clock = clockRef.current;
@@ -78,7 +81,13 @@ export default function App() {
       palette: typeof updater === "function" ? updater(s.palette) : updater,
     }));
 
-  const onReset = () => setState(defaultState());
+  const onReset = () => {
+    setOpenText(null);
+    setState(defaultState());
+  };
+
+  const setTexts = (texts) => setState((s) => ({ ...s, texts }));
+  const openTextLayer = state.texts.find((t) => t.id === openText) ?? null;
 
   return (
     <div className="app">
@@ -101,6 +110,12 @@ export default function App() {
           />
           <EasePanel state={state} onPatch={onPatch} />
           <TextPanel state={state} onPatch={onPatch} />
+          <TextSection
+            texts={state.texts}
+            onChange={setTexts}
+            openId={openText}
+            onOpen={setOpenText}
+          />
           <ExportPanel
             state={state}
             clock={clock}
@@ -114,6 +129,13 @@ export default function App() {
         clock={clock}
         onDuration={(v) => onPatch("motion", { duration: v })}
         onRatio={(v) => onPatch("stage", { ratio: v })}
+      />
+      <TextWindow
+        text={openTextLayer}
+        onChange={(next) =>
+          setTexts(state.texts.map((t) => (t.id === next.id ? next : t)))
+        }
+        onClose={() => setOpenText(null)}
       />
     </div>
   );
