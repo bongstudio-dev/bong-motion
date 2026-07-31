@@ -139,6 +139,8 @@ export default function App() {
           onConfigChange={onConfigChange}
           onDropFiles={replaceItems}
           tracker={camera.tracker}
+          selectedText={openText}
+          onSelectText={setOpenText}
         />
         <aside className="sidebar">
           <div className="sidebar-head">

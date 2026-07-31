@@ -20,5 +20,6 @@ export {
    arrastra JSX y por eso funciona en los tests que corren en Node crudo. */
 export { TextSection } from "./text/TextSection.jsx";
 export { TextWindow } from "./text/TextWindow.jsx";
+export { TextStageOverlay } from "./text/TextStageOverlay.jsx";
 export { ensureFontsReady } from "./text/fonts.js";
 export * from "./text/core.js";

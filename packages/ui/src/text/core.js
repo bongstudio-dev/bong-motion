@@ -22,4 +22,4 @@ export {
   textLabel,
 } from "./model.js";
 
-export { drawTexts, hasTexts } from "./drawTexts.js";
+export { drawTexts, hasTexts, textBounds } from "./drawTexts.js";

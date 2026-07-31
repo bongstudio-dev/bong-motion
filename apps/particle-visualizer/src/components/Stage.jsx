@@ -1,11 +1,21 @@
 import { useRef, useState } from "react";
+import { TextStageOverlay } from "@bong/ui";
 import { ASPECT_RATIOS, resolveAspect } from "../aspectRatios";
 import { useStageScale } from "../hooks/useStageScale";
 import ParticleCanvas from "./ParticleCanvas";
 
 const clamp01 = (v) => Math.min(1, Math.max(0, v));
 
-export default function Stage({ items, config, canvasRef, onConfigChange, onDropFiles, tracker }) {
+export default function Stage({
+  items,
+  config,
+  canvasRef,
+  onConfigChange,
+  onDropFiles,
+  tracker,
+  selectedText,
+  onSelectText,
+}) {
   const aspect = resolveAspect(config.aspect);
   const dims = ASPECT_RATIOS[aspect];
   const { containerRef, scale, width, height } = useStageScale(dims.width, dims.height);
@@ -62,6 +72,23 @@ export default function Stage({ items, config, canvasRef, onConfigChange, onDrop
             canvasRef={canvasRef}
             tracker={tracker}
             handleRef={handleRef}
+          />
+
+          {/* Va por encima de la superficie del emisor: si el emisor se la
+              comiera, no habría forma de agarrar un texto. Sólo capturan los
+              recuadros de los textos, el resto del área sigue siendo del
+              emisor. */}
+          <TextStageOverlay
+            texts={config.texts}
+            stage={{ w: width, h: height }}
+            onChange={(next) =>
+              onConfigChange(
+                "texts",
+                config.texts.map((t) => (t.id === next.id ? next : t)),
+              )
+            }
+            selectedId={selectedText}
+            onSelect={onSelectText}
           />
 
           {/* Superficie de arrastre + handle del emitter. Es DOM, no canvas:

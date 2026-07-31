@@ -93,7 +93,13 @@ export default function App() {
     <div className="app">
       <ToolSidebar current="palette-animator" isDev={import.meta.env.DEV} />
       <div className="workspace">
-        <Stage state={state} clock={clock} />
+        <Stage
+          state={state}
+          clock={clock}
+          onTexts={setTexts}
+          selectedText={openText}
+          onSelectText={setOpenText}
+        />
         <aside className="sidebar">
           <div className="sidebar-head">
             <div className="brand">

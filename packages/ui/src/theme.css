@@ -1289,6 +1289,28 @@ textarea.text-input {
 .text-row.active { border-color: var(--active-stroke); background: var(--active-bg); }
 .text-row.hidden .name { color: var(--muted-2); }
 
+/* Arrastre sobre el stage. La capa entera es transparente a los eventos: sólo
+   los recuadros de cada texto los capturan, así lo que haya debajo (el handle
+   del emisor en particle, el drop de assets) sigue funcionando. */
+.text-stage-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 6; }
+
+.text-handle {
+  position: absolute;
+  pointer-events: auto;
+  cursor: move;
+  touch-action: none;
+  border-radius: 2px;
+  /* `outline` y no `border`: el recuadro no puede alterar la caja que se está
+     midiendo contra el texto dibujado en el canvas. */
+  outline: 1px dashed transparent;
+  outline-offset: 0;
+  transition: outline-color 0.12s ease;
+}
+
+.text-handle:hover { outline-color: var(--active-stroke); }
+.text-handle.selected { outline: 1px solid var(--accent-line); }
+.text-handle:active { outline: 1px solid var(--accent); }
+
 /* La ventana flota sobre el workspace: `fixed` y no `absolute` para que
    arrastrarla no dependa de en qué panel nació. */
 .float-panel {

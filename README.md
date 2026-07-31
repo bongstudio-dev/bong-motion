@@ -90,6 +90,12 @@ mirando la pieza en vez de la lista. Cada capa elige su ranura de profundidad
 —**Frente / Medio / Fondo**— y `Fondo` va debajo del contenido de la tool
 (los planos, las cards, las partículas) y encima del color de fondo.
 
+El texto también se **arrastra sobre el stage** (`Shift` fija el eje), y agarrarlo
+lo selecciona. Lo que mueve el arrastre es el offset, no el ancla: el ancla sigue
+decidiendo de dónde cuelga el bloque al cambiar de ratio. El recuadro que se
+agarra sale del mismo `layout()` que dibuja el texto — con dos cuentas separadas,
+la caja y las letras se despegan.
+
 ---
 
 ## Librería de presets en `plane-animator`

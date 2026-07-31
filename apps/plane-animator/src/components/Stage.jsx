@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { TextStageOverlay } from "@bong/ui";
 import { createRenderer } from "../render/renderer.js";
 import { stageDims, stageOf, RATIOS } from "../engine/camera.js";
 import { makeEase } from "../engine/ease.js";
@@ -14,7 +15,14 @@ const SAFE = {
 
 const dimsRefInit = (state) => stageOf(state);
 
-export default function Stage({ state, clock, engineRef }) {
+export default function Stage({
+  state,
+  clock,
+  engineRef,
+  onTexts,
+  selectedText,
+  onSelectText,
+}) {
   const areaRef = useRef(null);
   const canvasRef = useRef(null);
   const rendererRef = useRef(null);
@@ -181,6 +189,16 @@ export default function Stage({ state, clock, engineRef }) {
             />
           )}
         </div>
+
+        <TextStageOverlay
+          texts={state.texts}
+          stage={dims}
+          onChange={(next) =>
+            onTexts?.(state.texts.map((t) => (t.id === next.id ? next : t)))
+          }
+          selectedId={selectedText}
+          onSelect={onSelectText}
+        />
 
         {busy && <div className="stage-recording">Exportando…</div>}
 

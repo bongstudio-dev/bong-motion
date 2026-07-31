@@ -31,10 +31,16 @@ function lineWidth(ctx, line, spacing) {
   return spacing > 0 ? Math.max(0, w - spacing) : w;
 }
 
-function drawOne(ctx, text, stage) {
+// Resuelve dónde cae el bloque y cada una de sus líneas. Lo usan el dibujo y el
+// hit-testing del arrastre sobre el stage: si cada uno hiciera su cuenta, el
+// recuadro que se agarra y el texto que se ve podrían separarse.
+//
+// Deja el ctx con la fuente y el tracking ya seteados — el que dibuja los
+// necesita, y el que mide los acaba de usar.
+function layout(ctx, text, stage) {
   const size = Math.max(1, text.size);
   const lines = applyTextCase(text.content ?? "", text.textCase).split("\n");
-  if (!lines.some((l) => l.trim())) return;
+  if (!lines.some((l) => l.trim())) return null;
 
   const family = text.fontFamily || "Satoshi";
   ctx.font = `${text.fontWeight} ${size}px "${family}", ui-sans-serif, system-ui, sans-serif`;
@@ -62,23 +68,42 @@ function drawOne(ctx, text, stage) {
   const col = text.anchor[1];
   const row = text.anchor[0];
 
-  let blockX =
+  let x =
     col === "l" ? margin : col === "r" ? stage.w - margin - blockW : (stage.w - blockW) / 2;
-  let blockY =
+  let y =
     row === "t" ? margin : row === "b" ? stage.h - margin - blockH : (stage.h - blockH) / 2;
 
-  blockX += (stage.w * (text.offsetX || 0)) / 100;
-  blockY += (stage.h * (text.offsetY || 0)) / 100;
+  x += (stage.w * (text.offsetX || 0)) / 100;
+  y += (stage.h * (text.offsetY || 0)) / 100;
+
+  return { lines, widths, x, y, w: blockW, h: blockH, lineH, halfLeading, ascent };
+}
+
+function drawOne(ctx, text, stage) {
+  const box = layout(ctx, text, stage);
+  if (!box) return;
 
   ctx.fillStyle = text.color || "#FFFFFF";
   ctx.globalAlpha = clamp01((text.opacity ?? 100) / 100);
 
-  for (let i = 0; i < lines.length; i++) {
-    const free = blockW - widths[i];
+  for (let i = 0; i < box.lines.length; i++) {
+    const free = box.w - box.widths[i];
     const x =
-      blockX + (text.align === "center" ? free / 2 : text.align === "right" ? free : 0);
-    ctx.fillText(lines[i], x, blockY + i * lineH + halfLeading + ascent);
+      box.x + (text.align === "center" ? free / 2 : text.align === "right" ? free : 0);
+    ctx.fillText(box.lines[i], x, box.y + i * box.lineH + box.halfLeading + box.ascent);
   }
+}
+
+// Canvas de medición, perezoso: este módulo lo importa `state/defaults.js` y esa
+// cadena corre también en los tests de Node, donde no hay `document`.
+let measureCtx = null;
+
+// Caja del bloque en coordenadas lógicas del stage, o null si el texto está
+// vacío. Es lo que se agarra al arrastrar sobre el stage.
+export function textBounds(text, stage) {
+  if (typeof document === "undefined") return null;
+  if (!measureCtx) measureCtx = document.createElement("canvas").getContext("2d");
+  return layout(measureCtx, text, stage);
 }
 
 export function hasTexts(texts, slot) {

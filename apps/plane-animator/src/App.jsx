@@ -92,7 +92,14 @@ export default function App() {
         setState={setState}
       />
       <div className="workspace">
-        <Stage state={state} clock={clock} engineRef={engineRef} />
+        <Stage
+          state={state}
+          clock={clock}
+          engineRef={engineRef}
+          onTexts={setTexts}
+          selectedText={openText}
+          onSelectText={setOpenText}
+        />
         <aside className="sidebar">
           <div className="sidebar-head">
             <div className="brand">

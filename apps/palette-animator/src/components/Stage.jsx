@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from "react";
+import { TextStageOverlay } from "@bong/ui";
 import { getFrame } from "../engine/getFrame.js";
 import { renderFrame } from "../render/renderFrame.js";
 import { stageDims } from "../engine/layout.js";
@@ -6,7 +7,7 @@ import { makeEase } from "../engine/ease.js";
 import { loopClosure } from "../engine/loopTest.js";
 import { lerp } from "../utils/math.js";
 
-export default function Stage({ state, clock }) {
+export default function Stage({ state, clock, onTexts, selectedText, onSelectText }) {
   const areaRef = useRef(null);
   const canvasRef = useRef(null);
   const stateRef = useRef(state);
@@ -114,6 +115,15 @@ export default function Stage({ state, clock }) {
     <div className="stage-area" ref={areaRef}>
       <div className="stage-wrap">
         <canvas ref={canvasRef} className="stage-canvas" />
+        <TextStageOverlay
+          texts={state.texts}
+          stage={dims}
+          onChange={(next) =>
+            onTexts?.(state.texts.map((t) => (t.id === next.id ? next : t)))
+          }
+          selectedId={selectedText}
+          onSelect={onSelectText}
+        />
         <div className="stage-badge">
           <span>
             loop{" "}
