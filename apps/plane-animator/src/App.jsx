@@ -8,7 +8,8 @@ import TimingPanel from "./components/panels/TimingPanel.jsx";
 import EasePanel from "./components/panels/EasePanel.jsx";
 import CanvasPanel from "./components/panels/CanvasPanel.jsx";
 import CameraPanel from "./components/panels/CameraPanel.jsx";
-import ExportPanel from "./components/panels/ExportPanel.jsx";
+import ProjectPanel from "./components/panels/ProjectPanel.jsx";
+import ExportModal from "./components/ExportModal.jsx";
 import { ToolSidebar, TextSection, TextWindow } from "@bong/ui";
 import { createClock } from "./clock.js";
 import { defaultState } from "./state/defaults.js";
@@ -21,6 +22,9 @@ export default function App() {
   // Qué capa de texto tiene abierta su ventana flotante. Es estado de la
   // interfaz, no de la pieza: no se persiste ni entra al JSON exportado.
   const [openText, setOpenText] = useState(null);
+  // Exportar es un momento, no un ajuste: vive en un modal y no en la columna
+  // que se recorre mientras se compone.
+  const [exporting, setExporting] = useState(false);
   const clockRef = useRef(null);
   if (!clockRef.current) clockRef.current = createClock();
   const clock = clockRef.current;
@@ -122,13 +126,7 @@ export default function App() {
             openId={openText}
             onOpen={setOpenText}
           />
-          <ExportPanel
-            state={state}
-            setState={setState}
-            clock={clock}
-            engineRef={engineRef}
-            onReset={onReset}
-          />
+          <ProjectPanel state={state} setState={setState} onReset={onReset} />
         </aside>
       </div>
       <Transport
@@ -136,6 +134,15 @@ export default function App() {
         clock={clock}
         onDuration={(v) => onPatch("timing", { duration: v })}
         onRatio={(v) => onPatch("stage", { ratio: v })}
+        onExport={() => setExporting(true)}
+      />
+      <ExportModal
+        open={exporting}
+        onClose={() => setExporting(false)}
+        state={state}
+        setState={setState}
+        clock={clock}
+        engineRef={engineRef}
       />
       <TextWindow
         text={openTextLayer}
