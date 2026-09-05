@@ -3,7 +3,7 @@ import { getScene } from "../src/engine/getScene.js";
 import { loopClosure, minCyclesFor } from "../src/engine/loopTest.js";
 import { defaultState } from "../src/state/defaults.js";
 import { TEMPLATE_LIST } from "../src/engine/templates.js";
-import { VARIANTS_BY_TEMPLATE } from "../src/engine/library.js";
+import { VARIANTS_BY_TEMPLATE, findVariant, variantState } from "../src/engine/library.js";
 import { closureParts, MAX_CYCLES } from "../src/engine/loopTest.js";
 import { applyCameraMove, cameraPeriod, CAMERA_MOVES } from "../src/engine/cameraMove.js";
 import { shuffleParams, framingScore } from "../src/engine/shuffle.js";
@@ -730,6 +730,51 @@ console.log("\n== 14. Shuffle del template activo ==");
         JSON.stringify(getScene(0, { ...s, template: { ...s.template, params: {} } })),
       `${tpl.id}: el reset vuelve exactamente a los defaults`,
     );
+  }
+}
+
+console.log("\n== 15. Un preset puede traer su propia cámara ==");
+{
+  const base = withAssets(8);
+  // Cámara puesta a mano por el usuario, distinta de cualquier default.
+  base.camera = { move: "orbit", amplitude: 0.4, phase: 0.1, period: 2, ease: [0, 0, 1, 1] };
+
+  // Un preset que NO declara cámara no la pisa: la capa sobrevive al cambio de
+  // preset, que es lo que la hace una capa y no parte del template.
+  {
+    const st = variantState(base, findVariant("wall-ladrillo"), "wall");
+    ok(st.camera.move === "orbit" && st.camera.period === 2, "sin cámara declarada, queda la del usuario");
+  }
+
+  // Uno que sí la declara, la aplica entera.
+  {
+    const v = findVariant("wall-ladrillo-zoom");
+    const st = variantState(base, v, "wall");
+    ok(st.camera.move === "dolly", "con cámara declarada, la aplica");
+    ok(st.camera.phase === 0.5, "incluida la fase, que es la que la arranca lejos");
+    ok(loopClosure(st).status === "ok", `y el preset cierra el loop en sus ${st.timing.cycles} ciclos`);
+
+    // El zoom está sincronizado con el paso de la grilla: un viaje de cámara
+    // por ciclo y un tile por ciclo es la misma cuenta.
+    const camBase = getScene(0, { ...st, camera: null }).camera.position[2];
+    const dist = (t) => getScene(t / st.timing.cycles, st).camera.position[2] / camBase;
+    ok(dist(0) > 1.3, `arranca lejos (${dist(0).toFixed(2)}×)`);
+    ok(Math.abs(dist(0.5) - 1) < 0.01, `y llega al frente a mitad del ciclo (${dist(0.5).toFixed(2)}×)`);
+    ok(Math.abs(dist(1) - dist(0)) < 0.01, "y vuelve al mismo punto al cerrar el ciclo");
+  }
+
+  // Los 27 presets viejos siguen sin tocar la cámara.
+  {
+    let pisan = 0;
+    for (const g of VARIANTS_BY_TEMPLATE ? Object.entries(VARIANTS_BY_TEMPLATE) : []) {
+      const [tpl, variantes] = g;
+      for (const v of variantes) {
+        if (v.id.startsWith("wall-ladrillo-zoom")) continue;
+        const st = variantState(base, v, tpl);
+        if (st.camera.move !== "orbit") pisan++;
+      }
+    }
+    ok(pisan === 0, `los presets que no declaran cámara no la tocan (${pisan} la pisan)`);
   }
 }
 

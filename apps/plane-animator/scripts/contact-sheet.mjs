@@ -12,7 +12,7 @@
 // camino de dibujo: si la hoja miente, el preview miente igual.
 
 import { spawn } from "node:child_process";
-import { mkdir, rm } from "node:fs/promises";
+import { mkdir, readdir, rm } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -21,7 +21,13 @@ const repo = resolve(app, "../..");
 const salida = resolve(repo, "docs/preview");
 
 const PUERTO = 5199;
-const FAMILIAS = ["tunnel", "wall", "hero"];
+// Una hoja por entrada. `variant` es opcional: sin él va la primera de fábrica.
+const HOJAS = [
+  { tpl: "tunnel" },
+  { tpl: "wall" },
+  { tpl: "hero" },
+  { tpl: "wall", variant: "wall-ladrillo-zoom", nombre: "ladrillo-zoom" },
+];
 const RATIOS = ["4:5", "9:16"];
 
 // Mismo tamaño que declara el <body> del harness.
@@ -89,14 +95,21 @@ try {
     throw new Error(`El dev server no levantó.\n${viteErr.slice(-800)}`);
   }
 
-  await rm(salida, { recursive: true, force: true });
+  // Se borran los PNG, NO el directorio: acá vive también el README, y un
+  // `rm -rf` del directorio se lo llevaba puesto sin decir nada.
   await mkdir(salida, { recursive: true });
+  for (const f of await readdir(salida)) {
+    if (f.endsWith(".png")) await rm(resolve(salida, f), { force: true });
+  }
 
-  for (const tpl of FAMILIAS) {
+  for (const hoja of HOJAS) {
     for (const ratio of RATIOS) {
-      const nombre = `${tpl}-${ratio.replace(":", "x")}.png`;
+      const nombre = `${hoja.nombre ?? hoja.tpl}-${ratio.replace(":", "x")}.png`;
       const destino = resolve(salida, nombre);
-      const url = `http://localhost:${PUERTO}/contact-sheet.html?tpl=${tpl}&ratio=${encodeURIComponent(ratio)}`;
+      const url =
+        `http://localhost:${PUERTO}/contact-sheet.html?tpl=${hoja.tpl}` +
+        `&ratio=${encodeURIComponent(ratio)}` +
+        (hoja.variant ? `&variant=${hoja.variant}` : "");
 
       await correr(chrome, [
         "--headless",
@@ -114,7 +127,7 @@ try {
       console.log(`  ✓ docs/preview/${nombre}`);
     }
   }
-  console.log(`\n${FAMILIAS.length * RATIOS.length} hojas en docs/preview/\n`);
+  console.log(`\n${HOJAS.length * RATIOS.length} hojas en docs/preview/\n`);
 } finally {
   vite.kill("SIGTERM");
 }

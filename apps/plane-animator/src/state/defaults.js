@@ -171,6 +171,9 @@ export const presetFromState = (state) => ({
   timing: state.timing,
   fit: state.fit,
   fov: state.stage.fov,
+  // La cámara entra por la misma razón que el fov: cambia el look de forma
+  // dramática y sin ella un preset propio heredaría el movimiento del anterior.
+  camera: state.camera,
 });
 
 export const applyPreset = (state, preset) => ({
@@ -179,8 +182,9 @@ export const applyPreset = (state, preset) => ({
   timing: { ...state.timing, ...preset.timing },
   fit: { ...state.fit, ...preset.fit },
   // Los presets guardados antes de que el fov entrara no lo traen: se conserva
-  // el actual en vez de saltar a un default.
+  // el actual en vez de saltar a un default. Con la cámara, igual.
   stage: { ...state.stage, fov: preset.fov ?? state.stage.fov },
+  camera: preset.camera ? { ...state.camera, ...preset.camera } : state.camera,
 });
 
 export const MAX_ASSETS = 40;
