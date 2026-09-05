@@ -73,7 +73,11 @@ export default function TextPanel({ state, onPatch }) {
     // "Etiquetas" y no "Texto": esto rotula las cards de la paleta y sale de la
     // paleta misma. El texto de autor vive en la sección Texto, que es la misma
     // en las tres tools.
-    <Section title="Etiquetas" defaultOpen={false}>
+    <Section
+      title="Etiquetas"
+      defaultOpen={false}
+      value={{ always: "Siempre", active: "Activa", never: "Nunca" }[labels.show] ?? labels.show}
+    >
       <Field label="Visibilidad">
         <Segmented
           value={labels.show}

@@ -9,7 +9,10 @@ export default function TimingPanel({ state, onPatch }) {
   const total = (t.duration * t.cycles).toFixed(1);
 
   return (
-    <Section title="Timing">
+    <Section
+      title="Timing"
+      value={t.cycles > 1 ? `${t.duration.toFixed(1)}s × ${t.cycles}` : `${t.duration.toFixed(1)}s`}
+    >
       <ScrubField
         label="Duración del ciclo"
         value={t.duration}

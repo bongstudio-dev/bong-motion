@@ -6,7 +6,7 @@ export default function CanvasPanel({ state, onPatch }) {
   const dims = stageOf(state);
 
   return (
-    <Section title="Canvas">
+    <Section title="Canvas" value={st.ratio === "custom" ? `${dims.w}×${dims.h}` : st.ratio}>
       <Field label="Aspect ratio" value={`${dims.w}×${dims.h}`}>
         <div className="ratio-grid">
           {[...RATIOS, { value: "custom", label: "Custom" }].map((r) => (

@@ -6,6 +6,10 @@ import { Section, Group, ScrubField, Toggle } from "@bong/ui";
 const SCHEMA = [
   {
     title: "Emisión",
+    // Cerrada, cada sección muestra su ajuste más representativo. Sale del
+    // mismo schema que dibuja los controles: agregar una sección nueva sin
+    // valor se nota acá y no en pantalla.
+    value: (c) => `${Math.round(c.maxParticles)} máx`,
     groups: [
       {
         name: "Caudal",
@@ -33,6 +37,7 @@ const SCHEMA = [
   },
   {
     title: "Partícula",
+    value: (c) => `${Number(c.lifespan).toFixed(1)}s`,
     groups: [
       {
         name: "Tamaño",
@@ -59,6 +64,7 @@ const SCHEMA = [
   },
   {
     title: "Fuerzas",
+    value: (c) => `g ${Number(c.gravity).toFixed(2)}`,
     groups: [
       {
         name: "",
@@ -76,6 +82,7 @@ const SCHEMA = [
     // El indicador va en el header (es lo que se mira de reojo) y el detalle
     // del error arriba del cuerpo, donde hay lugar para leerlo.
     slot: "cameraStatus",
+    value: (c) => (c.handTracking ? "mano" : c.cameraBackdrop ? "fondo" : "off"),
     notice: "cameraNotice",
     groups: [
       {
@@ -139,6 +146,7 @@ export default function ControlsPanel({ config, onConfigChange, slots = {} }) {
         <Section
           key={section.title}
           title={section.title}
+          value={section.value ? section.value(config) : null}
           right={section.slot ? slots[section.slot] : null}
         >
           {section.notice ? slots[section.notice] : null}

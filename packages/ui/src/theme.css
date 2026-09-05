@@ -992,6 +992,21 @@ select.text-input { appearance: none; cursor: pointer; }
   letter-spacing: 0.05em;
 }
 
+/* El valor activo del acordeón cerrado. Mismo peso que .tag pero sin
+   uppercase: acá van números y unidades ("1080×1350", "4.0s × 6"), y
+   mayusculizarlos los vuelve ilegibles. */
+.section-value {
+  font-size: 10px;
+  color: var(--muted-2);
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  /* El header entero está en mayúsculas; el valor no. "2.6S × 6" y
+     "EXPO INOUT" se leen peor que en su capitalización propia. */
+  text-transform: none;
+}
+
 .saved-list { display: flex; flex-direction: column; gap: 6px; }
 
 .saved-row {

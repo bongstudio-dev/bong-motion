@@ -12,7 +12,11 @@ export default function CameraPanel({ state, onPatch }) {
   const excede = partes.total > MAX_CYCLES;
 
   return (
-    <Section title="Cámara" defaultOpen={false}>
+    <Section
+      title="Cámara"
+      defaultOpen={false}
+      value={CAMERA_MOVES.find((m) => m.value === cam.move)?.label ?? cam.move}
+    >
       <Field label="Movimiento">
         <Segmented
           value={cam.move}

@@ -114,13 +114,23 @@ export const Icon = {
 };
 
 /* ---------- Section (accordion) ---------- */
-export function Section({ title, defaultOpen = true, right = null, children }) {
+// `value` es el ajuste más representativo de la sección y se muestra SÓLO
+// cerrada: con el panel plegado es lo único que dice en qué quedó, y abierta
+// sobraría porque el control que lo fija está tres píxeles más abajo.
+//
+// Es distinto de `right`, que se muestra siempre: eso es para indicadores que
+// importan aunque estés adentro de la sección (el estado de la cámara, cuántos
+// assets hay).
+export function Section({ title, defaultOpen = true, value = null, right = null, children }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div className={`section ${open ? "open" : ""}`}>
       <button className="section-head" onClick={() => setOpen((o) => !o)}>
         <span>{title}</span>
         <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {!open && value != null && value !== "" && (
+            <span className="section-value">{value}</span>
+          )}
           {right}
           <Icon.Chevron className="chev" />
         </span>

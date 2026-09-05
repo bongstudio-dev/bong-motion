@@ -159,7 +159,11 @@ export default function ExportPanel({ state, setState, clock, engineRef, onReset
   };
 
   return (
-    <Section title="Export" defaultOpen={false}>
+    <Section
+      title="Export"
+      defaultOpen={false}
+      value={`${cfg.format} · ${cfg.resolution}×`}
+    >
       <Field label="Nombre del archivo">
         <input
           className="text-input"

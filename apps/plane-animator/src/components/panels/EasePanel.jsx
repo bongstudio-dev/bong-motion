@@ -157,12 +157,16 @@ export function EaseControl({ value, onChange, presetsLabel = "Presets" }) {
 // El ease es global y vive en `timing` (BRIEF §3): moldea cada ciclo por
 // separado, no la pieza entera. Con `linear` el movimiento es continuo; con una
 // curva inOut el template "pisa" un slot por ciclo.
+// El nombre del preset activo, o "Bézier" si la curva se editó a mano.
+export const easeLabel = (ease) =>
+  EASE_PRESETS.find((p) => sameBezier(ease, p.value))?.label ?? "Bézier";
+
 export default function EasePanel({ state, onPatch }) {
   const ease = state.timing.ease;
   const setEase = (val) => onPatch("timing", { ease: val });
 
   return (
-    <Section title="Easing" defaultOpen={false}>
+    <Section title="Easing" defaultOpen={false} value={easeLabel(ease)}>
       <EaseControl value={ease} onChange={setEase} />
 
       <div className="divider" />
