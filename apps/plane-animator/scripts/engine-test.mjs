@@ -7,6 +7,7 @@ import { VARIANTS_BY_TEMPLATE, findVariant, variantState } from "../src/engine/l
 import { closureParts, MAX_CYCLES } from "../src/engine/loopTest.js";
 import { applyCameraMove, cameraPeriod, CAMERA_MOVES } from "../src/engine/cameraMove.js";
 import { shuffleParams, framingScore } from "../src/engine/shuffle.js";
+import { exportSummary, summaryLine, formatBytes, exportRatios, ratioDims } from "../src/export/summary.js";
 
 let fails = 0;
 const ok = (cond, msg) => {
@@ -775,6 +776,95 @@ console.log("\n== 15. Un preset puede traer su propia cámara ==");
       }
     }
     ok(pisan === 0, `los presets que no declaran cámara no la tocan (${pisan} la pisan)`);
+  }
+}
+
+// El resumen del modal de export: es lo único que el modal agrega al motor, y
+// lo que promete es que el número que muestra es el que va a salir.
+console.log("\n== 16. Resumen del export ==");
+{
+  const base = () => {
+    const s = withAssets(6);
+    s.timing.duration = 1.4;
+    s.timing.cycles = 5;
+    s.stage.fps = 30;
+    s.export = { ...s.export, format: "webm", resolution: 1, ratios: ["4:5"], quality: 0.14 };
+    return s;
+  };
+
+  {
+    const s = base();
+    const r = exportSummary(s);
+    ok(r.files === 1, `un ratio → 1 archivo (dio ${r.files})`);
+    ok(Math.abs(r.seconds - 7) < 1e-9, `7.0s de pieza (dio ${r.seconds})`);
+    ok(r.frames === 210, `210 frames a 30 fps (dio ${r.frames})`);
+
+    // El peso tiene que ser exactamente el bitrate que encodeWebCodecs le pide
+    // al VideoEncoder: ancho × alto × fps × calidad, por los segundos, entre 8.
+    const esperado = Math.round((1080 * 1350 * 30 * 0.14 * 7) / 8);
+    ok(r.bytes === esperado, `el peso usa el bitrate del encoder (${r.bytes} vs ${esperado})`);
+  }
+
+  // Los ratios se acumulan y cada archivo tiene su propio peso.
+  {
+    const s = base();
+    s.export.ratios = ["4:5", "9:16"];
+    const r = exportSummary(s);
+    ok(r.files === 2, "dos ratios → 2 archivos");
+    ok(r.perFile[1].w === 1080 && r.perFile[1].h === 1920, "el segundo sale en 1080×1920");
+    ok(
+      r.bytes === r.perFile[0].bytes + r.perFile[1].bytes,
+      "el total es la suma de los dos",
+    );
+    ok(r.perFile[1].bytes > r.perFile[0].bytes, "y el 9:16 pesa más que el 4:5");
+  }
+
+  // La resolución multiplica los píxeles, y el peso va con el cuadrado.
+  {
+    const uno = exportSummary(base());
+    const s2 = base();
+    s2.export.resolution = 2;
+    const dos = exportSummary(s2);
+    ok(dos.perFile[0].w === 2160 && dos.perFile[0].h === 2700, "2× → 2160×2700");
+    ok(Math.abs(dos.bytes / uno.bytes - 4) < 1e-6, `2× pesa 4 veces más (dio ${(dos.bytes / uno.bytes).toFixed(2)}×)`);
+  }
+
+  // GIF y PNG no van por bitrate: no se inventa un número.
+  for (const kind of ["gif", "png"]) {
+    const s = base();
+    s.export.format = kind;
+    const r = exportSummary(s);
+    ok(r.bytes === null, `${kind}: no estima peso`);
+    ok(formatBytes(r.bytes) === "peso variable", `${kind}: y lo dice`);
+  }
+
+  // PNG es un frame, no la pieza entera.
+  {
+    const s = base();
+    s.export.format = "png";
+    const r = exportSummary(s);
+    ok(r.frames === 1 && r.seconds === 0, "png: 1 frame, 0 segundos");
+    ok(summaryLine(r).includes("1 frame"), `y la línea lo dice ("${summaryLine(r)}")`);
+  }
+
+  // Sin ratios tildados usa el del canvas, que es lo que se está mirando.
+  {
+    const s = base();
+    s.export.ratios = [];
+    s.stage.ratio = "16:9";
+    ok(exportRatios(s).join() === "16:9", "sin ratios tildados cae en el del canvas");
+    const d = ratioDims(s, "16:9");
+    ok(d.w === 1920 && d.h === 1080, "y sus dimensiones son las del stage");
+  }
+
+  // La línea del pie: cuántos, cuánto duran, cuánto pesan.
+  {
+    const s = base();
+    s.export.ratios = ["4:5", "9:16"];
+    const linea = summaryLine(exportSummary(s));
+    ok(linea.startsWith("2 archivos"), `arranca por la cantidad ("${linea}")`);
+    ok(linea.includes("7.0s"), "dice cuánto dura");
+    ok(/MB|kB/.test(linea), "y cuánto pesa");
   }
 }
 

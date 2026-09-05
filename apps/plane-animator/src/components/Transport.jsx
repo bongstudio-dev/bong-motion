@@ -1,11 +1,11 @@
 import { useSyncExternalStore } from "react";
-import { Icon } from "@bong/ui";
+import { Button, Icon } from "@bong/ui";
 import { mod1 } from "../utils/math.js";
 import { RATIOS, stageDims } from "../engine/camera.js";
 
 // El scrub recorre la PIEZA entera (duration × cycles), no un ciclo: es lo que
 // se va a exportar. La barra de fase marca dónde termina cada ciclo.
-export default function Transport({ state, clock, onDuration, onRatio }) {
+export default function Transport({ state, clock, onDuration, onRatio, onExport }) {
   const t = useSyncExternalStore(clock.subscribe, clock.getT);
   const playing = useSyncExternalStore(clock.subscribe, clock.isPlaying);
 
@@ -102,6 +102,11 @@ export default function Transport({ state, clock, onDuration, onRatio }) {
           <span className="ratio-dims">{dimsOf("custom")}</span>
         </button>
       </div>
+
+      {/* Último en la barra porque es lo último que se toca. */}
+      <Button variant="primary" onClick={onExport}>
+        Exportar
+      </Button>
     </div>
   );
 }

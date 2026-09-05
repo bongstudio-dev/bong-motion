@@ -718,9 +718,21 @@ select.text-input { appearance: none; cursor: pointer; }
   font-variant-numeric: tabular-nums;
 }
 
-.stage-badge .ok { color: var(--accent); }
-.stage-badge .warn { color: var(--danger); }
-.stage-badge .warn-soft { color: #d8c58a; }
+/* El estado del loop es la respuesta a "¿esto va a empalmar?", que es la
+   pregunta que la tool existe para contestar. Con el mismo peso que el resto
+   de la fila se leía como un dato más, así que va en píldora. Las otras dos
+   tools comparten la clase: particle no tiene loop y simplemente no la usa. */
+.stage-badge .ok,
+.stage-badge .warn,
+.stage-badge .warn-soft {
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+.stage-badge .ok { color: var(--accent); background: var(--accent-soft); border-color: var(--accent-line); }
+.stage-badge .warn { color: var(--danger); background: rgba(217, 138, 138, 0.14); border-color: rgba(217, 138, 138, 0.45); }
+.stage-badge .warn-soft { color: #d8c58a; background: rgba(216, 197, 138, 0.14); border-color: rgba(216, 197, 138, 0.45); }
 
 .stage-overlays { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 
@@ -1456,3 +1468,153 @@ textarea.text-input {
   border: 3px solid var(--panel);
 }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* ================================================================
+   Modal
+   ================================================================ */
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(6, 6, 7, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.modal {
+  width: 100%;
+  max-height: calc(100vh - 48px);
+  background: var(--panel);
+  border: 1px solid var(--stroke-strong);
+  border-radius: var(--radius);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  min-height: 0;
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--stroke);
+}
+.modal-head b { font-size: 14px; font-weight: 700; }
+.modal-head .icon-btn { margin-left: auto; }
+
+.modal-body { min-height: 0; overflow: auto; }
+
+.modal-foot {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--stroke);
+}
+.modal-foot .btn { margin-left: auto; flex-shrink: 0; }
+
+/* ---------- Export ---------- */
+
+.export-layout { display: grid; grid-template-columns: 226px 1fr; min-height: 0; }
+
+.export-preview {
+  border-right: 1px solid var(--stroke);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.export-preview canvas { width: 100%; border-radius: 3px; display: block; }
+
+.export-facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 3px 10px;
+  font-size: 11.5px;
+}
+.export-facts dt { color: var(--muted-2); }
+.export-facts dd { margin: 0; text-align: right; font-family: var(--mono); font-size: 11px; }
+
+.export-controls {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  overflow-y: auto;
+}
+
+.export-summary {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.export-step { color: var(--muted-2); }
+
+/* Tarjetas de formato y de ratio: además del nombre dicen para qué sirve o
+   cuántos píxeles salen, que es lo que hay que saber para elegir. */
+.pick-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.pick-grid.four { grid-template-columns: repeat(3, 1fr); }
+
+.pick {
+  text-align: left;
+  border: 1px solid var(--stroke);
+  background: var(--panel-2);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  font-family: inherit;
+}
+.pick:hover { background: var(--panel-3); }
+.pick b { font-size: 12.5px; font-weight: 600; color: var(--text); }
+.pick em {
+  font-style: normal;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  color: var(--muted-2);
+  font-variant-numeric: tabular-nums;
+}
+.pick.on { background: var(--active-bg); border-color: var(--active-stroke); }
+.pick.on em { color: var(--muted); }
+
+/* El estado del loop dentro del modal, con el arreglo al lado. */
+.loop-state {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--stroke);
+  background: var(--panel-2);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+}
+.loop-state .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--muted-2); flex: 0 0 auto;
+}
+.loop-state > div { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.loop-state b { font-size: 12.5px; font-weight: 600; }
+.loop-state span:not(.dot) { font-size: 11.5px; color: var(--muted); line-height: 1.45; }
+.loop-state .btn { margin-left: auto; flex-shrink: 0; }
+
+.loop-state.ok { border-color: var(--accent-line); background: var(--accent-soft); }
+.loop-state.ok .dot { background: var(--accent); }
+.loop-state.warn { border-color: rgba(216, 197, 138, 0.5); background: rgba(216, 197, 138, 0.12); }
+.loop-state.warn .dot { background: #d8c58a; }
+
+@media (max-width: 720px) {
+  .export-layout { grid-template-columns: 1fr; }
+  .export-preview { border-right: none; border-bottom: 1px solid var(--stroke); }
+}
