@@ -209,6 +209,9 @@ export default function Stage({
             {closure.status === "cycles" && (
               <span className="warn-soft">✓ (× {closure.suggested} ciclos)</span>
             )}
+            {closure.status === "over" && (
+              <span className="warn">✗ pide {closure.minCycles} ciclos</span>
+            )}
             {closure.status === "broken" && (
               <span className="warn">✗ Δ{(closure.maxDelta * 100).toFixed(1)}%</span>
             )}

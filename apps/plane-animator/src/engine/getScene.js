@@ -12,6 +12,7 @@
 import { clamp, lerp, mod, triangle } from "../utils/math.js";
 import { makeEase } from "./ease.js";
 import { makeCamera, stageOf, visibleAt, SHORT } from "./camera.js";
+import { applyCameraMove } from "./cameraMove.js";
 import { TEMPLATES, TEMPLATE_LIST, templateParams, ratioWH } from "./templates.js";
 
 export { SHORT };
@@ -183,6 +184,11 @@ function makeGeom({ stage, camera, tpl, p, N, assets, fit }) {
 
 export function getScene(t01, state, opts = {}) {
   const stage = opts.stage ?? stageOf(state);
+  // La cámara BASE es la de siempre. Los templates componen contra ella y no
+  // contra la que se mueve: si el túnel se anclara en la cámara movida, viajaría
+  // con ella y el dolly no se vería; si la salida del hero se midiera contra
+  // ella, el recorrido cambiaría en cada frame y el loop dejaría de cerrar.
+  // El movimiento es una capa ENCIMA de la composición, no parte de ella.
   const camera = makeCamera(stage, state.stage.fov ?? 45);
 
   const tpl = resolveTemplate(state);
@@ -274,7 +280,7 @@ export function getScene(t01, state, opts = {}) {
   }
 
   planes.sort((a, b) => a.renderOrder - b.renderOrder);
-  return { camera, planes, stage };
+  return { camera: applyCameraMove(camera, state.camera, tc), planes, stage };
 }
 
 export default getScene;

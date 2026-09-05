@@ -7,6 +7,7 @@
 // Se conserva el patrón `mergeState` defensivo tal cual.
 
 import { mergeTextLayers } from "@bong/ui/text";
+import { defaultCamera } from "../engine/cameraMove.js";
 
 export const STATE_VERSION = 1;
 
@@ -43,6 +44,11 @@ export function defaultState() {
       direction: "forward", // 'forward' | 'reverse' | 'pingpong'
       ease: [0.65, 0, 0.35, 1],
     },
+
+    // Capa de cámara: se aplica sobre cualquier familia. Vive aparte del
+    // template por la misma razón que el timing — cambiar de template no tiene
+    // por qué tirar el movimiento de cámara que ya estaba puesto.
+    camera: defaultCamera(),
 
     stage: {
       ratio: "4:5", // '1:1' | '4:5' | '9:16' | '16:9' | 'custom'
@@ -128,6 +134,13 @@ export function mergeState(loaded) {
     ease: bezier(out.timing.ease, base.timing.ease),
   };
   out.stitch = { ...out.stitch, ease: bezier(out.stitch.ease, base.stitch.ease) };
+  out.camera = {
+    ...out.camera,
+    amplitude: clampNum(out.camera.amplitude, -1, 1, base.camera.amplitude),
+    phase: clampNum(out.camera.phase, 0, 1, 0),
+    period: Math.round(clampNum(out.camera.period, 1, 8, 1)),
+    ease: bezier(out.camera.ease, base.camera.ease),
+  };
   out.stage = {
     ...out.stage,
     fov: clampNum(out.stage.fov, 10, 110, base.stage.fov),

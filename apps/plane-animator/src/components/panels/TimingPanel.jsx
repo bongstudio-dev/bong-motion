@@ -20,11 +20,13 @@ export default function TimingPanel({ state, onPatch }) {
         format={(v) => `${v.toFixed(1)}s`}
       />
 
+      {/* Hasta 32, que es el tope del modelo. Con 16 el badge podía ofrecer un
+          cierre —deck-baraja pide 24— que el slider no dejaba alcanzar. */}
       <ScrubField
         label="Ciclos por pieza"
         value={t.cycles}
         min={1}
-        max={16}
+        max={32}
         step={1}
         onChange={(v) => onPatch("timing", { cycles: Math.round(v) })}
         format={(v) => `${Math.round(v)}×`}

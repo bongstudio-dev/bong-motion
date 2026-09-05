@@ -29,7 +29,7 @@ export function EaseCurve({ value }) {
 const round2 = (v) => Math.round(v * 100) / 100;
 
 // Editor bézier: dos handles arrastrables sobre un canvas cuadrado.
-function BezierEditor({ value, onChange }) {
+export function BezierEditor({ value, onChange }) {
   const svgRef = useRef(null);
   const [active, setActive] = useState(null);
   const [x1, y1, x2, y2] = value;
@@ -100,29 +100,26 @@ function BezierEditor({ value, onChange }) {
   );
 }
 
-// El ease es global y vive en `timing` (BRIEF §3): moldea cada ciclo por
-// separado, no la pieza entera. Con `linear` el movimiento es continuo; con una
-// curva inOut el template "pisa" un slot por ciclo.
-export default function EasePanel({ state, onPatch }) {
-  const ease = state.timing.ease;
-
-  const setEase = (val) => onPatch("timing", { ease: val });
-  const setEaseComponent = (i, v) => {
-    const next = [...ease];
+// El editor de ease completo: grid de presets, bézier arrastrable y los cuatro
+// números. Se extrajo del panel para que la capa de cámara lo use TAL CUAL en
+// vez de escribir otro — es el mismo control, sobre otra curva.
+export function EaseControl({ value, onChange, presetsLabel = "Presets" }) {
+  const setComponent = (i, v) => {
+    const next = [...value];
     next[i] = v;
-    setEase(next);
+    onChange(next);
   };
 
   return (
-    <Section title="Easing" defaultOpen={false}>
-      <Field label="Presets">
+    <>
+      <Field label={presetsLabel}>
         <div className="ease-grid">
           {EASE_PRESETS.map((p) => (
             <button
               key={p.id}
-              className={`ease-cell ${sameBezier(ease, p.value) ? "active" : ""}`}
+              className={`ease-cell ${sameBezier(value, p.value) ? "active" : ""}`}
               title={p.label}
-              onClick={() => setEase([...p.value])}
+              onClick={() => onChange([...p.value])}
             >
               <EaseCurve value={p.value} />
             </button>
@@ -131,7 +128,7 @@ export default function EasePanel({ state, onPatch }) {
       </Field>
 
       <Field label="Editor bézier">
-        <BezierEditor value={ease} onChange={setEase} />
+        <BezierEditor value={value} onChange={onChange} />
       </Field>
 
       <div className="bezier-inputs">
@@ -144,15 +141,29 @@ export default function EasePanel({ state, onPatch }) {
               className="num-input"
               type="number"
               step={0.01}
-              value={ease[i]}
+              value={value[i]}
               onChange={(e) => {
-                const v = parseFloat(e.target.value);
-                if (!Number.isNaN(v)) setEaseComponent(i, v);
+                const n = parseFloat(e.target.value);
+                if (!Number.isNaN(n)) setComponent(i, n);
               }}
             />
           </div>
         ))}
       </div>
+    </>
+  );
+}
+
+// El ease es global y vive en `timing` (BRIEF §3): moldea cada ciclo por
+// separado, no la pieza entera. Con `linear` el movimiento es continuo; con una
+// curva inOut el template "pisa" un slot por ciclo.
+export default function EasePanel({ state, onPatch }) {
+  const ease = state.timing.ease;
+  const setEase = (val) => onPatch("timing", { ease: val });
+
+  return (
+    <Section title="Easing" defaultOpen={false}>
+      <EaseControl value={ease} onChange={setEase} />
 
       <div className="divider" />
 

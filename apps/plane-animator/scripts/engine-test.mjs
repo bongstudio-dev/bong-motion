@@ -4,6 +4,8 @@ import { loopClosure, minCyclesFor } from "../src/engine/loopTest.js";
 import { defaultState } from "../src/state/defaults.js";
 import { TEMPLATE_LIST } from "../src/engine/templates.js";
 import { VARIANTS_BY_TEMPLATE } from "../src/engine/library.js";
+import { closureParts, MAX_CYCLES } from "../src/engine/loopTest.js";
+import { applyCameraMove, cameraPeriod, CAMERA_MOVES } from "../src/engine/cameraMove.js";
 
 let fails = 0;
 const ok = (cond, msg) => {
@@ -500,6 +502,149 @@ console.log("\n== 12e. El tint no toca a los templates que ya estaban ==");
     }
   }
   ok(conTint === 0, `las 5 familias viejas no emiten un solo plano teñido (${conTint})`);
+}
+
+console.log("\n== 13. Capa de cámara ==");
+{
+  const FAMILIAS = TEMPLATE_LIST.map((t) => t.id);
+
+  // Check 1 del brief: con Movimiento en Fija, las ocho familias se comportan
+  // EXACTAMENTE igual que antes de que esta capa existiera. Se verifica contra
+  // un state sin sección de cámara, que es el estado previo del modelo.
+  let iguales = 0;
+  let distintas = 0;
+  for (const id of FAMILIAS) {
+    const conCamara = withAssets(6);
+    conCamara.template.id = id;
+    const sinCamara = { ...conCamara, camera: undefined };
+    for (let k = 0; k < 16; k++) {
+      const t = k / 16;
+      if (JSON.stringify(getScene(t, conCamara)) === JSON.stringify(getScene(t, sinCamara)))
+        iguales++;
+      else distintas++;
+    }
+  }
+  ok(distintas === 0, `Fija: ${iguales} escenas idénticas a no tener cámara (${distintas} distintas)`);
+
+  // Y devuelve la MISMA referencia, no una copia igual: el camino sin cámara no
+  // paga ni una asignación.
+  {
+    const base = { position: [0, 0, 1000], lookAt: [0, 0, 0] };
+    ok(applyCameraMove(base, { move: "fixed" }, 0.3) === base, "Fija no toca la cámara base");
+    ok(
+      applyCameraMove(base, { move: "dolly", amplitude: 0 }, 0.3) === base,
+      "amplitud 0 tampoco",
+    );
+  }
+
+  // Check 2: con cada uno de los otros tres movimientos, sobre las ocho
+  // familias, el indicador reporta un cierre correcto o avisa que no cierra.
+  for (const move of ["dolly", "orbit", "tilt"]) {
+    let mal = 0;
+    let avisos = 0;
+    for (const id of FAMILIAS) {
+      for (const period of [1, 2, 3, 4]) {
+        const st = withAssets(6);
+        st.template.id = id;
+        st.camera = { ...st.camera, move, period, amplitude: 0.7 };
+        const partes = closureParts(st);
+
+        // El total tiene que ser múltiplo de las dos partes: es un mcm.
+        if (partes.total % partes.template !== 0 || partes.total % partes.camera !== 0) mal++;
+
+        st.timing.cycles = Math.min(partes.total, MAX_CYCLES);
+        const c = loopClosure(st);
+        if (partes.total > MAX_CYCLES) {
+          // No se puede ofrecer: tiene que avisar, no callarse.
+          if (c.status !== "over") mal++;
+          else avisos++;
+        } else if (c.status !== "ok") {
+          mal++;
+        }
+      }
+    }
+    ok(mal === 0, `${move}: cierra o avisa en las 8 familias × 4 períodos (${avisos} avisos)`);
+  }
+
+  // El recorrido vuelve al punto de partida sí o sí, con cualquier ease.
+  {
+    const curvas = [
+      [0, 0, 1, 1],
+      [0.87, 0, 0.13, 1],
+      [0.34, 1.56, 0.64, 1],
+      [0.68, -0.6, 0.32, 1.6],
+    ];
+    let peor = 0;
+    for (const move of ["dolly", "orbit", "tilt"]) {
+      for (const ease of curvas) {
+        for (const phase of [0, 0.25, 0.6]) {
+          const st = withAssets(6);
+          st.camera = { move, amplitude: 1, phase, period: 1, ease };
+          const a = getScene(0, st).camera.position;
+          const b = getScene(1 - 1e-9, st).camera.position;
+          peor = Math.max(peor, Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]));
+        }
+      }
+    }
+    ok(peor < 1, `la cámara vuelve a su lugar con cualquier ease y fase (peor ${peor.toFixed(4)}px)`);
+  }
+
+  // Cada movimiento mueve lo que dice mover.
+  {
+    const pos = (move, t) => {
+      const st = withAssets(6);
+      st.camera = { move, amplitude: 1, phase: 0, period: 1, ease: [0, 0, 1, 1] };
+      return getScene(t, st).camera.position;
+    };
+    const z0 = pos("dolly", 0)[2];
+    ok(Math.abs(pos("dolly", 0.5)[2] - z0) > 100, "dolly recorre Z");
+    ok(Math.abs(pos("dolly", 0.5)[0]) < 1e-6, "y no se sale del eje");
+    // A la mitad del ciclo el barrido está en su extremo: con amplitud 1 son
+    // 180°, o sea la cámara justo detrás, donde X vuelve a ser 0. El cuarto de
+    // ciclo es donde el orbit está más de costado.
+    ok(Math.abs(pos("orbit", 0.25)[0]) > 100, "orbit sale del eje en X");
+    ok(Math.abs(pos("orbit", 0.5)[2] + pos("orbit", 0)[2]) < 1, "y con amplitud 1 llega justo atrás");
+    ok(Math.abs(pos("tilt", 0)[1]) > 100, "tilt arranca fuera del eje en Y");
+    ok(Math.abs(pos("tilt", 0.5)[1]) < 1, "y en el medio del ciclo está derecha");
+  }
+
+  // La composición NO sigue a la cámara: los templates se anclan a la base.
+  {
+    const fija = withAssets(6);
+    fija.template.id = "tunnel";
+    const movida = { ...fija, camera: { move: "dolly", amplitude: -1, phase: 0.25, period: 1, ease: [0, 0, 1, 1] } };
+    const a = getScene(0.25, fija).planes.map((p) => Math.round(p.pos[2])).join(",");
+    const b = getScene(0.25, movida).planes.map((p) => Math.round(p.pos[2])).join(",");
+    ok(a === b, "los planos quedan donde estaban aunque la cámara se mueva");
+    ok(
+      Math.round(getScene(0.25, fija).camera.position[2]) !==
+        Math.round(getScene(0.25, movida).camera.position[2]),
+      "y la cámara sí se movió",
+    );
+  }
+
+  // Y cuando la combinación NO cierra en una cantidad alcanzable, avisa en vez
+  // de dejarlo pasar en silencio. deck con jitter pide 24 ciclos; con una
+  // cámara que vuelve cada 5, el mcm es 120.
+  {
+    const st = withAssets(6);
+    st.template.id = "deck";
+    st.template.params = { deck: { count: 8, rotJitter: 12 } };
+    ok(minCyclesFor({ ...st, camera: null }) === 24, "el deck con jitter pide 24 ciclos");
+    st.camera = { ...st.camera, move: "orbit", period: 5, amplitude: 0.7 };
+    const partes = closureParts(st);
+    ok(partes.total === 120, `con cámara cada 5 ciclos el mcm da 120 (dio ${partes.total})`);
+    const c = loopClosure(st);
+    ok(c.status === "over", `y el indicador avisa en vez de callarse (status '${c.status}')`);
+    ok(c.minCycles > MAX_CYCLES, `informa los ${c.minCycles} ciclos que haría falta`);
+
+    // Con un período que divide al del template, en cambio, no cuesta nada.
+    st.camera = { ...st.camera, period: 4 };
+    ok(closureParts(st).total === 24, "con período 4 el mcm sigue siendo 24");
+  }
+
+  ok(CAMERA_MOVES.length === 4, `el panel ofrece los 4 movimientos del brief`);
+  ok(cameraPeriod({ move: "fixed", period: 5 }) === 1, "Fija no aporta ciclos al mcm");
 }
 
 console.log(fails === 0 ? "\nTODO OK\n" : `\n${fails} FALLAS\n`);
