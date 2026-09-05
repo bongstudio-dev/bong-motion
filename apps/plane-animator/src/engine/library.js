@@ -306,6 +306,47 @@ export const LIBRARY = [
       },
     ],
   },
+  {
+    template: "wall",
+    variants: [
+      {
+        id: "wall-muro",
+        name: "Muro",
+        fov: 45,
+        params: {
+          rows: 4, cols: 4, planeSize: 0.3, planeRatio: "4:5", gap: 0.03,
+          drift: 1, rowDir: "alternate", tiltX: 12, tiltY: -18,
+          centerScale: 0.25, edgeFade: 0.35, cornerRadius: 0.014,
+        },
+        timing: timing(2, 4, EASE_LINEAR),
+      },
+      {
+        // De frente y en una sola tira: la marquesina de toda la vida.
+        id: "wall-marquesina",
+        name: "Marquesina",
+        fov: 40,
+        params: {
+          rows: 1, cols: 6, planeSize: 0.42, planeRatio: "1:1", gap: 0.02,
+          drift: 1, rowDir: "uniform", tiltX: 0, tiltY: 0,
+          centerScale: 0, edgeFade: 0.28, cornerRadius: 0.02,
+        },
+        timing: timing(1.5, 6, EASE_LINEAR),
+      },
+      {
+        // Muy inclinado y con la fila del medio agrandada: el muro se lee como
+        // una pared vista de costado.
+        id: "wall-pared",
+        name: "Pared",
+        fov: 62,
+        params: {
+          rows: 6, cols: 5, planeSize: 0.22, planeRatio: "4:5", gap: 0.018,
+          drift: 2, rowDir: "alternate", tiltX: -8, tiltY: 38,
+          centerScale: 0.7, edgeFade: 0.5, cornerRadius: 0.01,
+        },
+        timing: timing(1.6, 5, EASE_LINEAR),
+      },
+    ],
+  },
 ];
 
 export const VARIANTS_BY_TEMPLATE = Object.fromEntries(

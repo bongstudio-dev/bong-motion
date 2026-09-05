@@ -257,7 +257,7 @@ console.log("\n== 11. Stagger y dirección ==");
 
 // Las tres familias nuevas comparten los mismos cinco checks, así que se
 // corren desde una sola tabla en vez de copiarlos tres veces.
-const NUEVAS = ["tunnel"];
+const NUEVAS = ["tunnel", "wall"];
 
 console.log("\n== 12. Familias nuevas: los cinco checks ==");
 for (const id of NUEVAS) {
@@ -351,6 +351,61 @@ console.log("\n== 12b. Tunnel: la profundidad no depende del ratio ==");
   }
   ok(minDist > 100, `ninguna card cruza el near plane (mínimo ${Math.round(minDist)}px)`);
   ok(opAlWrap < 0.02, `en el punto de wrap la opacidad ya es 0 (${opAlWrap.toFixed(4)})`);
+}
+
+console.log("\n== 12c. Wall: la deriva recorre tiles enteros ==");
+{
+  const s = withAssets(6);
+  s.template.id = "wall";
+  s.timing.ease = [0, 0, 1, 1];
+
+  // La deriva es un número entero de tiles, así que la geometría vuelve a su
+  // lugar cada ciclo. Lo que tarda más es la asignación de imágenes: cada
+  // columna hereda la de su vecina, y todo vuelve al arranque recién cuando
+  // cada card volvió a su columna. El cierre declarado es ése, no el
+  // geométrico, porque el badge no puede prometer un frame que no se repite.
+  //
+  // cols / gcd(cols, deriva) por columnas, y no depende de cuántos assets haya.
+  for (const [cols, drift, esperado] of [
+    [4, 1, 4],
+    [4, 2, 2],
+    [6, 1, 6],
+    [5, 2, 5],
+    [6, 3, 2],
+  ]) {
+    const st = { ...s, template: { ...s.template, params: { wall: { cols, drift } } } };
+    const min = minCyclesFor(st);
+    ok(min === esperado, `${cols} columnas × ${drift} tiles → ${esperado} ciclos (dio ${min})`);
+    st.timing = { ...st.timing, cycles: min };
+    ok(loopClosure(st).status === "ok", `  y con ${min} ciclos cierra de verdad`);
+  }
+
+  // Con 3 y 8 assets el número no cambia: las cards no rotan de imagen.
+  for (const m of [3, 8]) {
+    const st = withAssets(m);
+    st.template.id = "wall";
+    st.timing.ease = [0, 0, 1, 1];
+    ok(minCyclesFor(st) === 4, `con ${m} assets sigue cerrando a los 4 ciclos`);
+  }
+
+  // Filas alternas: las impares se mueven al revés que las pares.
+  const dx = (dir) => {
+    const st = {
+      ...s,
+      template: { ...s.template, params: { wall: { rowDir: dir, tiltX: 0, tiltY: 0 } } },
+    };
+    const a = getScene(0, st).planes;
+    const b = getScene(0.02, st).planes;
+    const fila = (r) => {
+      const i = r * 4;
+      return b[i].pos[0] - a[i].pos[0];
+    };
+    return [fila(0), fila(1)];
+  };
+  const alt = dx("alternate");
+  ok(alt[0] * alt[1] < 0, `alterno: fila 0 y fila 1 van en sentidos opuestos (${alt[0].toFixed(1)} vs ${alt[1].toFixed(1)})`);
+  const uni = dx("uniform");
+  ok(uni[0] * uni[1] > 0, `uniforme: las dos filas van para el mismo lado (${uni[0].toFixed(1)} vs ${uni[1].toFixed(1)})`);
 }
 
 console.log(fails === 0 ? "\nTODO OK\n" : `\n${fails} FALLAS\n`);

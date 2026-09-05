@@ -674,8 +674,140 @@ const tunnel = {
 };
 
 /* ------------------------------------------------------------------ */
+/* 7. WALL — grilla que deriva y envuelve                             */
+/* ------------------------------------------------------------------ */
 
-export const TEMPLATE_LIST = [carousel, deck, parallax, orbit, flip, tunnel];
+// La deriva envuelve dentro del ancho de la fila. Si la fila es más ancha que
+// el cuadro —el caso normal— el wrap ocurre afuera y no se ve. Si no lo es
+// (pocas columnas, cards chicas), este último tramo del recorrido baja la
+// opacidad a 0 para que el salto tampoco se vea. Es un seguro, no un look: con
+// la grilla por defecto cae fuera de cuadro y nadie lo nota.
+const WALL_WRAP_GUARD = 0.06; // fracción del ancho de la fila
+
+const wall = {
+  id: "wall",
+  name: "Wall",
+  // Una grilla con cards de distinto tamaño deja de ser una grilla: el tile es
+  // uniforme por definición.
+  supportsFitToAsset: false,
+  relativeUnits: true,
+  count: (p) => Math.max(1, Math.round(p.rows) * Math.round(p.cols)),
+  // Cada card se lleva su asset puesto: no rotan entre planos.
+  slotsPerCycle: () => 0,
+  // La GEOMETRÍA cierra en un ciclo —la deriva es un número entero de tiles y
+  // el muro queda idéntico—, pero el contrato del §7 mide también qué imagen
+  // quedó en cada posición, y ahí no cierra: después de un ciclo cada columna
+  // muestra la imagen de su vecina. Vuelve a cerrar cuando cada card volvió a
+  // su columna, o sea a los cols / gcd(cols, deriva) ciclos. Declararlo en 1
+  // haría que el badge diga que cierra algo que no cierra.
+  cycleUnit: (p) => {
+    const cols = Math.max(1, Math.round(p.cols));
+    return cols / gcd(cols, Math.max(1, Math.round(p.drift)));
+  },
+  params: {
+    rows: 4,
+    cols: 4,
+    planeSize: 0.3,
+    planeRatio: "4:5",
+    gap: 0.03,
+    drift: 1,
+    rowDir: "alternate",
+    tiltX: 12,
+    tiltY: -18,
+    centerScale: 0.25,
+    edgeFade: 0.35,
+    cornerRadius: 0.014,
+  },
+  schema: [
+    { group: "Composición", key: "rows", label: "Filas", min: 1, max: 8, step: 1 },
+    { group: "Composición", key: "cols", label: "Columnas", min: 1, max: 10, step: 1 },
+    { group: "Composición", key: "planeSize", label: "Tamaño", min: 0.06, max: 0.8, step: 0.01, pct: true },
+    { group: "Composición", key: "planeRatio", label: "Aspect del plano", type: "select", options: PLANE_RATIOS },
+    { group: "Composición", key: "gap", label: "Gap", min: 0, max: 0.2, step: 0.005, pct: true },
+
+    { group: "Movimiento", key: "drift", label: "Deriva por ciclo", min: 1, max: 6, step: 1, unit: " tiles" },
+    {
+      group: "Movimiento",
+      key: "rowDir",
+      label: "Sentido por fila",
+      type: "select",
+      options: [
+        { value: "uniform", label: "Uniforme" },
+        { value: "alternate", label: "Alterno" },
+      ],
+    },
+
+    { group: "Forma", key: "tiltX", label: "Inclinación en X", min: -60, max: 60, step: 1, unit: "°" },
+    { group: "Forma", key: "tiltY", label: "Inclinación en Y", min: -60, max: 60, step: 1, unit: "°" },
+    { group: "Forma", key: "centerScale", label: "Escala de la fila central", min: 0, max: 1.5, step: 0.01 },
+    { group: "Forma", key: "cornerRadius", label: "Corner radius", min: 0, max: 0.1, step: 0.002, pct: true },
+
+    { group: "Profundidad", key: "edgeFade", label: "Fade en los bordes", min: 0, max: 1, step: 0.01, pct: true },
+  ],
+
+  place(t, i, N, p, timing, ease, geom) {
+    const S = geom.SHORT;
+    const cols = Math.max(1, Math.round(p.cols));
+    const rows = Math.max(1, Math.round(p.rows));
+    const r = Math.floor(i / cols);
+    const c = i % cols;
+
+    const [cardW, cardH] = geom.size(i);
+    const gap = p.gap * S;
+    const tileW = cardW + gap;
+    const tileH = cardH + gap;
+    const rowW = cols * tileW;
+
+    // Filas alternas en sentido contrario: es el rasgo del muro.
+    const sign = p.rowDir === "alternate" && r % 2 ? -1 : 1;
+    const adv = steppedAdvance(t, ease, Math.round(p.drift));
+
+    const x0 = (c - (cols - 1) / 2) * tileW;
+    const y = -(r - (rows - 1) / 2) * tileH;
+    // Envuelve dentro del ancho de la fila. Con `drift` entero, un ciclo
+    // recorre un número exacto de tiles y cada card vuelve a su lugar.
+    const x = mod(x0 + sign * adv * tileW + rowW / 2, rowW) - rowW / 2;
+
+    // La escala de la fila central NO mueve la grilla: el tile sigue siendo el
+    // mismo y sólo cambia lo que se dibuja adentro. Si moviera la grilla, las
+    // filas dejarían de estar alineadas y el muro se desarmaría.
+    const mid = (rows - 1) / 2;
+    const dr = rows > 1 ? Math.abs(r - mid) / mid : 0;
+    const k = 1 + p.centerScale * smooth(1 - dr);
+
+    // Inclinación del muro entero: se rota la posición con la misma matriz que
+    // three le aplica al plano (Euler XYZ = RX·RY), así las cards quedan
+    // coplanares con el muro en vez de flotar sueltas sobre él.
+    const tx = p.tiltX * DEG;
+    const ty = p.tiltY * DEG;
+    const sx = Math.sin(ty);
+    const pos = [
+      x * Math.cos(ty),
+      y * Math.cos(tx) + x * sx * Math.sin(tx),
+      y * Math.sin(tx) - x * sx * Math.cos(tx),
+    ];
+
+    const view = geom.visible(pos[2]);
+    const uFrame = view.w > 0 ? Math.abs(pos[0]) / (view.w / 2) : 0;
+    const edge =
+      p.edgeFade > 0 ? 1 - smooth((uFrame - (1 - p.edgeFade)) / p.edgeFade) : 1;
+    const uRow = Math.abs(x) / (rowW / 2);
+    const guard = smooth((1 - uRow) / WALL_WRAP_GUARD);
+
+    return {
+      pos,
+      rot: [tx, ty, 0],
+      size: [cardW * k, cardH * k],
+      opacity: edge * guard,
+      radius: p.cornerRadius * S * k,
+      assetSlot: i,
+    };
+  },
+};
+
+/* ------------------------------------------------------------------ */
+
+export const TEMPLATE_LIST = [carousel, deck, parallax, orbit, flip, tunnel, wall];
 
 export const TEMPLATES = Object.fromEntries(
   TEMPLATE_LIST.map((tpl) => [tpl.id, tpl]),
