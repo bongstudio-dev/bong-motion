@@ -553,8 +553,419 @@ const flip = {
 };
 
 /* ------------------------------------------------------------------ */
+/* 6. TUNNEL — cards alineadas en Z que pasan de largo                */
+/* ------------------------------------------------------------------ */
 
-export const TEMPLATE_LIST = [carousel, deck, parallax, orbit, flip];
+// A partir de acá los params espaciales van en unidades RELATIVAS al lado menor
+// del frame (SHORT = 1080), no en px. Los templates viejos se quedan en px a
+// propósito: migrarlos rompería todos los presets de fábrica y los guardados.
+// Los angulares siguen en grados en las ocho familias.
+
+// El túnel se ancla en la CÁMARA, no en z = 0. Es la diferencia con el resto de
+// los templates y es deliberada: lo único que define la perspectiva es la
+// distancia a cámara, y anclando ahí esa distancia no depende del ratio. Un
+// túnel anclado en z = 0 se vería más largo en 9:16 que en 16:9, porque camZ
+// sale de stage.h.
+//
+// Salida: el wrap ocurre cuando la card pasa la cámara, y ahí tapa el cuadro
+// entero — no hay forma de esconderlo con encuadre. Así que el túnel reserva un
+// último tramo, TUNNEL_EXIT de su profundidad, donde la opacidad ya llegó a 0:
+// la card se apaga ANTES de saltar al fondo y el salto no se ve nunca. No es un
+// param, es el mecanismo que hace cerrar el loop — el mismo rol que el fade de
+// bordes del carousel o el `enter` del deck.
+const TUNNEL_EXIT = 0.12; // fracción de la profundidad total
+
+const tunnel = {
+  id: "tunnel",
+  name: "Tunnel",
+  supportsFitToAsset: true,
+  // Le dice al compositor que `planeSize` viene en fracción del lado menor.
+  relativeUnits: true,
+  count: (p) => Math.round(p.count),
+  slotsPerCycle: (p) => Math.round(p.slotsPerCycle),
+  // La dispersión y la rotación viajan CON la card (semilla por `i`, no por
+  // slot): cada una vuela derecho por su propio carril. El precio honesto es
+  // que el patrón de carriles sólo vuelve a repetirse cuando cada card volvió a
+  // su slot, o sea a los N / gcd(N, avance) ciclos. Con dispersión y rotación
+  // en 0 todas las cards son intercambiables y cierra en uno.
+  cycleUnit: (p, N) => {
+    if (!(p.spread > 0) && !(p.rotate > 0)) return 1;
+    return N / gcd(N, Math.max(1, Math.round(p.slotsPerCycle)));
+  },
+  params: {
+    count: 6,
+    planeSize: 0.62,
+    planeRatio: "4:5",
+    zGap: 0.55,
+    direction: "toward",
+    slotsPerCycle: 1,
+    // Con poca dispersión las cards pasan por el centro y tapan el cuadro
+    // entera de a una. Con medio lado menor la mayoría sale por los costados,
+    // que es de donde viene la sensación de atravesar algo.
+    spread: 0.5,
+    seed: 7,
+    rotate: 6,
+    fadeIn: 0.35,
+    cornerRadius: 0.022,
+  },
+  schema: [
+    { group: "Composición", key: "count", label: "Cards visibles", min: 3, max: 24, step: 1 },
+    { group: "Composición", key: "planeSize", label: "Tamaño", min: 0.1, max: 1.6, step: 0.01, pct: true },
+    { group: "Composición", key: "planeRatio", label: "Aspect del plano", type: "select", options: PLANE_RATIOS },
+    { group: "Composición", key: "zGap", label: "Separación en Z", min: 0.08, max: 2, step: 0.01, pct: true },
+
+    {
+      group: "Movimiento",
+      key: "direction",
+      label: "Dirección",
+      type: "select",
+      options: [
+        { value: "toward", label: "Hacia cámara" },
+        { value: "away", label: "Alejándose" },
+      ],
+    },
+    { group: "Movimiento", key: "slotsPerCycle", label: "Avance por ciclo", min: 1, max: 8, step: 1, unit: " slots" },
+
+    { group: "Forma", key: "spread", label: "Dispersión lateral", min: 0, max: 1.2, step: 0.01, pct: true },
+    { group: "Forma", key: "seed", label: "Semilla", min: 0, max: 999, step: 1 },
+    { group: "Forma", key: "rotate", label: "Rotación por card", min: 0, max: 45, step: 1, unit: "°" },
+    { group: "Forma", key: "cornerRadius", label: "Corner radius", min: 0, max: 0.2, step: 0.002, pct: true },
+
+    { group: "Profundidad", key: "fadeIn", label: "Fade de aparición", min: 0, max: 1, step: 0.01, pct: true },
+  ],
+
+  place(t, i, N, p, timing, ease, geom) {
+    const S = geom.SHORT;
+    const gapZ = Math.max(1, p.zGap * S);
+    const D = N * gapZ; // profundidad total del túnel
+    const dir = p.direction === "away" ? -1 : 1;
+
+    const adv = steppedAdvance(t, ease, p.slotsPerCycle);
+
+    // q crece con el avance; k es su posición dentro del túnel y w cuántas
+    // veces esta card ya dio la vuelta. Cada vuelta se lleva un asset nuevo,
+    // igual que el índice de cinta del carousel.
+    const q = dir * (adv - i);
+    const w = Math.floor(q / N);
+    const k = q - N * w; // [0, N): 0 = recién aparecida al fondo
+    const j = i + N * w;
+
+    // dist ∈ (near, near + D]: el fondo del túnel está a near + D de la cámara
+    // y el punto de wrap a `near`, donde la opacidad ya es 0. La escala la hace
+    // la perspectiva sola — acá no se toca el tamaño.
+    const near = TUNNEL_EXIT * D;
+    const dist = near + (D - k * gapZ);
+    const z = geom.camZ - dist;
+
+    const sx = (hash01(i * 12.9898 + p.seed * 7.13) * 2 - 1) * p.spread * S;
+    const sy = (hash01(i * 78.233 + p.seed * 3.71 + 11) * 2 - 1) * p.spread * S;
+    const rz = (hash01(i * 45.164 + p.seed * 5.17 + 23) * 2 - 1) * p.rotate;
+
+    const travel = near + D - dist; // 0 al aparecer al fondo
+    const enter = p.fadeIn > 0 ? smooth(travel / (p.fadeIn * D)) : 1;
+    const exit = smooth((dist - near) / near);
+
+    return {
+      pos: [sx, sy, z],
+      rot: [0, 0, rz * DEG],
+      size: geom.size(j),
+      opacity: enter * exit,
+      radius: p.cornerRadius * S,
+      assetSlot: j,
+    };
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* 7. WALL — grilla que deriva y envuelve                             */
+/* ------------------------------------------------------------------ */
+
+// La deriva envuelve dentro del ancho de la fila. Si la fila es más ancha que
+// el cuadro —el caso normal— el wrap ocurre afuera y no se ve. Si no lo es
+// (pocas columnas, cards chicas), este último tramo del recorrido baja la
+// opacidad a 0 para que el salto tampoco se vea. Es un seguro, no un look: con
+// la grilla por defecto cae fuera de cuadro y nadie lo nota.
+const WALL_WRAP_GUARD = 0.06; // fracción del ancho de la fila
+
+const wall = {
+  id: "wall",
+  name: "Wall",
+  // Una grilla con cards de distinto tamaño deja de ser una grilla: el tile es
+  // uniforme por definición.
+  supportsFitToAsset: false,
+  relativeUnits: true,
+  count: (p) => Math.max(1, Math.round(p.rows) * Math.round(p.cols)),
+  // Cada card se lleva su asset puesto: no rotan entre planos.
+  slotsPerCycle: () => 0,
+  // La GEOMETRÍA cierra en un ciclo —la deriva es un número entero de tiles y
+  // el muro queda idéntico—, pero el contrato del §7 mide también qué imagen
+  // quedó en cada posición, y ahí no cierra: después de un ciclo cada columna
+  // muestra la imagen de su vecina. Vuelve a cerrar cuando cada card volvió a
+  // su columna, o sea a los cols / gcd(cols, deriva) ciclos. Declararlo en 1
+  // haría que el badge diga que cierra algo que no cierra.
+  cycleUnit: (p) => {
+    const cols = Math.max(1, Math.round(p.cols));
+    return cols / gcd(cols, Math.max(1, Math.round(p.drift)));
+  },
+  params: {
+    rows: 4,
+    cols: 4,
+    planeSize: 0.3,
+    planeRatio: "4:5",
+    gap: 0.03,
+    drift: 1,
+    rowDir: "alternate",
+    tiltX: 12,
+    tiltY: -18,
+    centerScale: 0.25,
+    edgeFade: 0.35,
+    cornerRadius: 0.014,
+  },
+  schema: [
+    { group: "Composición", key: "rows", label: "Filas", min: 1, max: 8, step: 1 },
+    { group: "Composición", key: "cols", label: "Columnas", min: 1, max: 10, step: 1 },
+    { group: "Composición", key: "planeSize", label: "Tamaño", min: 0.06, max: 0.8, step: 0.01, pct: true },
+    { group: "Composición", key: "planeRatio", label: "Aspect del plano", type: "select", options: PLANE_RATIOS },
+    { group: "Composición", key: "gap", label: "Gap", min: 0, max: 0.2, step: 0.005, pct: true },
+
+    { group: "Movimiento", key: "drift", label: "Deriva por ciclo", min: 1, max: 6, step: 1, unit: " tiles" },
+    {
+      group: "Movimiento",
+      key: "rowDir",
+      label: "Sentido por fila",
+      type: "select",
+      options: [
+        { value: "uniform", label: "Uniforme" },
+        { value: "alternate", label: "Alterno" },
+      ],
+    },
+
+    { group: "Forma", key: "tiltX", label: "Inclinación en X", min: -60, max: 60, step: 1, unit: "°" },
+    { group: "Forma", key: "tiltY", label: "Inclinación en Y", min: -60, max: 60, step: 1, unit: "°" },
+    { group: "Forma", key: "centerScale", label: "Escala de la fila central", min: 0, max: 1.5, step: 0.01 },
+    { group: "Forma", key: "cornerRadius", label: "Corner radius", min: 0, max: 0.1, step: 0.002, pct: true },
+
+    { group: "Profundidad", key: "edgeFade", label: "Fade en los bordes", min: 0, max: 1, step: 0.01, pct: true },
+  ],
+
+  place(t, i, N, p, timing, ease, geom) {
+    const S = geom.SHORT;
+    const cols = Math.max(1, Math.round(p.cols));
+    const rows = Math.max(1, Math.round(p.rows));
+    const r = Math.floor(i / cols);
+    const c = i % cols;
+
+    const [cardW, cardH] = geom.size(i);
+    const gap = p.gap * S;
+    const tileW = cardW + gap;
+    const tileH = cardH + gap;
+    const rowW = cols * tileW;
+
+    // Filas alternas en sentido contrario: es el rasgo del muro.
+    const sign = p.rowDir === "alternate" && r % 2 ? -1 : 1;
+    const adv = steppedAdvance(t, ease, Math.round(p.drift));
+
+    const x0 = (c - (cols - 1) / 2) * tileW;
+    const y = -(r - (rows - 1) / 2) * tileH;
+    // Envuelve dentro del ancho de la fila. Con `drift` entero, un ciclo
+    // recorre un número exacto de tiles y cada card vuelve a su lugar.
+    const x = mod(x0 + sign * adv * tileW + rowW / 2, rowW) - rowW / 2;
+
+    // La escala de la fila central NO mueve la grilla: el tile sigue siendo el
+    // mismo y sólo cambia lo que se dibuja adentro. Si moviera la grilla, las
+    // filas dejarían de estar alineadas y el muro se desarmaría.
+    const mid = (rows - 1) / 2;
+    const dr = rows > 1 ? Math.abs(r - mid) / mid : 0;
+    const k = 1 + p.centerScale * smooth(1 - dr);
+
+    // Inclinación del muro entero: se rota la posición con la misma matriz que
+    // three le aplica al plano (Euler XYZ = RX·RY), así las cards quedan
+    // coplanares con el muro en vez de flotar sueltas sobre él.
+    const tx = p.tiltX * DEG;
+    const ty = p.tiltY * DEG;
+    const sx = Math.sin(ty);
+    const pos = [
+      x * Math.cos(ty),
+      y * Math.cos(tx) + x * sx * Math.sin(tx),
+      y * Math.sin(tx) - x * sx * Math.cos(tx),
+    ];
+
+    const view = geom.visible(pos[2]);
+    const uFrame = view.w > 0 ? Math.abs(pos[0]) / (view.w / 2) : 0;
+    const edge =
+      p.edgeFade > 0 ? 1 - smooth((uFrame - (1 - p.edgeFade)) / p.edgeFade) : 1;
+    const uRow = Math.abs(x) / (rowW / 2);
+    const guard = smooth((1 - uRow) / WALL_WRAP_GUARD);
+
+    return {
+      pos,
+      rot: [tx, ty, 0],
+      size: [cardW * k, cardH * k],
+      opacity: edge * guard,
+      radius: p.cornerRadius * S * k,
+      assetSlot: i,
+    };
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* 8. HERO — una card grande que se sostiene y la reemplaza la que sube */
+/* ------------------------------------------------------------------ */
+
+// Fase del ciclo repartida entre sostener y transicionar. Devuelve 0 durante
+// todo el sostén y recorre 0→1 en la transición, moldeada por el ease global.
+// Como vale 0 al principio y 1 al final, el avance por ciclo sigue siendo
+// exactamente 1 slot y el contrato del §7 se verifica igual que en el resto.
+function heroPhase(t, ease, hold) {
+  const c = Math.floor(t);
+  const f = t - c;
+  const h = clamp(hold, 0, 0.95);
+  return { c, ph: f < h ? 0 : ease((f - h) / (1 - h)) };
+}
+
+const hero = {
+  id: "hero",
+  name: "Hero",
+  supportsFitToAsset: true,
+  relativeUnits: true,
+  count: (p) => Math.round(p.count),
+  // Una card por ciclo. La vuelta entera por todos los slots es lo que cierra.
+  slotsPerCycle: () => 1,
+  params: {
+    count: 6,
+    planeSize: 0.78,
+    planeRatio: "4:5",
+    holdRatio: 0.55,
+    overlap: 0.7,
+    arc: 0.18,
+    rotate: 8,
+    peek: 0.12,
+    shadow: true,
+    shadowStrength: 0.45,
+    cornerRadius: 0.024,
+  },
+  schema: [
+    // Mínimo 3 y no 2: la rotación necesita una saliente, una en el centro y
+    // una esperando abajo. Con dos, la misma card tendría que estar saliendo
+    // por arriba y esperando abajo al mismo tiempo.
+    { group: "Composición", key: "count", label: "Cards", min: 3, max: 16, step: 1 },
+    { group: "Composición", key: "planeSize", label: "Escala del hero", min: 0.3, max: 1.4, step: 0.01, pct: true },
+    { group: "Composición", key: "planeRatio", label: "Aspect del plano", type: "select", options: PLANE_RATIOS },
+
+    { group: "Movimiento", key: "holdRatio", label: "Sostén del ciclo", min: 0, max: 0.95, step: 0.01, pct: true },
+    { group: "Movimiento", key: "overlap", label: "Solapamiento", min: 0, max: 1, step: 0.01, pct: true },
+    { group: "Movimiento", key: "arc", label: "Arco de la trayectoria", min: 0, max: 0.8, step: 0.01, pct: true },
+    { group: "Movimiento", key: "rotate", label: "Rotación en el pase", min: 0, max: 45, step: 1, unit: "°" },
+
+    { group: "Forma", key: "peek", label: "Peek de la siguiente", min: 0, max: 0.6, step: 0.01, pct: true },
+    { group: "Forma", key: "cornerRadius", label: "Corner radius", min: 0, max: 0.1, step: 0.002, pct: true },
+
+    { group: "Look", key: "shadow", label: "Sombra proyectada", type: "toggle" },
+    {
+      group: "Look",
+      key: "shadowStrength",
+      label: "Intensidad de la sombra",
+      min: 0,
+      max: 1,
+      step: 0.01,
+      pct: true,
+      when: (p) => !!p.shadow,
+    },
+  ],
+
+  place(t, i, N, p, timing, ease, geom) {
+    const S = geom.SHORT;
+    const { c, ph } = heroPhase(t, ease, p.holdRatio);
+
+    // Solapamiento: con 1 la que sale y la que entra se mueven juntas toda la
+    // transición; con 0 primero se va una y recién después llega la otra.
+    const ov = clamp(p.overlap);
+    const outEnd = (1 + ov) / 2;
+    const inStart = (1 - ov) / 2;
+    const pOut = clamp(ph / outEnd);
+    const pIn = clamp((ph - inStart) / (1 - inStart));
+
+    const sl = mod(i - c, N); // 0 = la que sale, 1 = la que entra, 2+ = en cola
+    const j = i - N * Math.floor((i - c) / N);
+
+    const size = geom.size(j);
+    const [w, h] = size;
+    // Mismo criterio de "fuera de cuadro" que usa el test de loop: el radio
+    // circunscrito cubre cualquier rotación, así la saliente se va de verdad.
+    // La sombra va más abajo y es un 5% más grande, así que si está encendida
+    // el recorrido de salida tiene que alcanzarle a ELLA: si no, la card sale
+    // de cuadro y su sombra se queda adentro, y el loop no cierra por 0.2 de
+    // opacidad que nadie sabría de dónde salen.
+    const shadowOn = !!p.shadow && p.shadowStrength > 0;
+    const shOff = h * 0.05;
+    const reach = Math.max(w, h) / 2;
+    const outReach = shadowOn ? reach * 1.05 + shOff : reach;
+    const view = geom.visible(0);
+    const exitY = view.h / 2 + outReach * 1.06;
+    // peek = cuánto asoma la siguiente por abajo durante el sostén. El punto de
+    // partida se mide con el MISMO radio circunscrito que usa el test de loop,
+    // más dos píxeles: apoyarlo justo sobre el borde deja el plano exactamente
+    // en el umbral del test, y ahí un error de coma flotante decide si cuenta
+    // como visible o no. Con peek en 0 tiene que estar escondido sin discusión.
+    const restY = -(view.h / 2 + reach + 2) + p.peek * h;
+
+    let y;
+    let x;
+    let rz;
+    let opacity;
+
+    if (sl === 0) {
+      // La saliente sube y se va. No se desvanece: sale de cuadro entera.
+      y = exitY * pOut;
+      x = p.arc * S * Math.sin(Math.PI * pOut);
+      rz = p.rotate * pOut;
+      opacity = 1;
+    } else {
+      // La cola entera sube un lugar. `k` es la posición continua en la fila:
+      // 0 es el centro, 1 es el lugar de peek, 2 en adelante ya no se ve. Al
+      // ser continua no hay ningún salto de rol entre ciclo y ciclo.
+      const k = sl - pIn;
+      const u = Math.min(k, 1);
+      y = restY * u - Math.max(0, k - 1) * h * 0.14;
+      // El arco de la que entra abre para el otro lado que el de la que sale:
+      // las dos se cruzan en vez de seguirse.
+      x = -p.arc * S * Math.sin(Math.PI * u);
+      rz = -p.rotate * u;
+      opacity = smooth(2 - k);
+    }
+
+    const out = {
+      pos: [x, y, 0],
+      rot: [0, 0, rz * DEG],
+      size,
+      opacity,
+      radius: p.cornerRadius * S,
+      assetSlot: j,
+    };
+
+    // Sombra proyectada: un plano negro atrás, apenas más grande y corrido
+    // hacia abajo. El compositor la agrega como plano propio (`tint`), así el
+    // template no toca el renderer ni el schema de nadie más.
+    if (shadowOn && opacity > 0.002) {
+      // Va en el MISMO z que la card, no atrás: el orden lo resuelve el
+      // renderOrder, y un z distinto le daría otro frustum —más ancho, porque
+      // está más lejos— que el que usó `exitY` para calcular la salida. Esa
+      // diferencia dejaba la sombra adentro del cuadro con la card ya afuera.
+      out.shadow = {
+        pos: [x + shOff * 0.35, y - shOff, 0],
+        size: [w * 1.05, h * 1.05],
+        opacity: opacity * p.shadowStrength * 0.55,
+        radius: p.cornerRadius * S * 1.05,
+      };
+    }
+
+    return out;
+  },
+};
+
+/* ------------------------------------------------------------------ */
+
+export const TEMPLATE_LIST = [carousel, deck, parallax, orbit, flip, tunnel, wall, hero];
 
 export const TEMPLATES = Object.fromEntries(
   TEMPLATE_LIST.map((tpl) => [tpl.id, tpl]),

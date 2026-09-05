@@ -39,7 +39,9 @@ export function TextSection({
     <Section
       title={title}
       defaultOpen={defaultOpen}
-      right={texts.length ? <span className="tag">{texts.length}</span> : null}
+      // Cerrada muestra cuántas capas hay, incluido el 0: sin esto, la única
+      // sección sin valor era justamente la que puede estar vacía.
+      value={texts.length}
     >
       <Button block onClick={add}>
         <Icon.Plus /> Agregar texto

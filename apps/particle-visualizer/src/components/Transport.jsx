@@ -49,13 +49,18 @@ export default function Transport({ config, recorder, onConfigChange, onClear })
       )}
 
       <div className="ratio-switch">
-        {Object.keys(ASPECT_RATIOS).map((key) => (
+        {Object.entries(ASPECT_RATIOS).map(([key, dims]) => (
           <button
             key={key}
             className={aspect === key ? "active" : ""}
             onClick={() => onConfigChange("aspect", key)}
           >
             {key}
+            {/* Sin multiplicador: captureStream() graba el canvas a su tamaño
+                de backing, que es literalmente este. */}
+            <span className="ratio-dims">
+              {dims.width}×{dims.height}
+            </span>
           </button>
         ))}
       </div>

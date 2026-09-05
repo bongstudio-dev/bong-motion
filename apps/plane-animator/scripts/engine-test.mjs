@@ -3,6 +3,10 @@ import { getScene } from "../src/engine/getScene.js";
 import { loopClosure, minCyclesFor } from "../src/engine/loopTest.js";
 import { defaultState } from "../src/state/defaults.js";
 import { TEMPLATE_LIST } from "../src/engine/templates.js";
+import { VARIANTS_BY_TEMPLATE } from "../src/engine/library.js";
+import { closureParts, MAX_CYCLES } from "../src/engine/loopTest.js";
+import { applyCameraMove, cameraPeriod, CAMERA_MOVES } from "../src/engine/cameraMove.js";
+import { shuffleParams, framingScore } from "../src/engine/shuffle.js";
 
 let fails = 0;
 const ok = (cond, msg) => {
@@ -251,6 +255,481 @@ console.log("\n== 11. Stagger y dirección ==");
     const frames = Array.from({ length: 12 }, (_, k) => getScene(k / 12, st));
     const bad = frames.some((f) => f.planes.some((p) => !Number.isFinite(p.pos[0])));
     ok(!bad, `dirección '${dir}' produce frames válidos`);
+  }
+}
+
+// Las tres familias nuevas comparten los mismos cinco checks, así que se
+// corren desde una sola tabla en vez de copiarlos tres veces.
+const NUEVAS = ["tunnel", "wall", "hero"];
+
+console.log("\n== 12. Familias nuevas: los cinco checks ==");
+for (const id of NUEVAS) {
+  const tpl = TEMPLATE_LIST.find((t) => t.id === id);
+  console.log(`  -- ${id} --`);
+  ok(!!tpl, `${id}: la familia existe`);
+  if (!tpl) continue;
+
+  // 2. El selector lista LIBRARY, no TEMPLATE_LIST: sin variantes de fábrica
+  //    la familia existiría en el engine y sería invisible en la interfaz.
+  ok((VARIANTS_BY_TEMPLATE[id] ?? []).length > 0, `${id}: aparece en el selector`);
+
+  // 3. Con cero assets, placeholders numerados como el resto.
+  const vacio = defaultState();
+  vacio.template.id = id;
+  // Las sombras son planos teñidos que acompañan a su card: comparten su
+  // número y no cuentan como placeholder propio.
+  const cards0 = getScene(0, vacio).planes.filter((p) => p.tint === undefined);
+  const N = cards0.length;
+  ok(
+    N > 0 && cards0.every((p) => p.assetIndex === -1 && p.placeholder >= 1),
+    `${id}: ${N} placeholders numerados sin assets`,
+  );
+  const nums = new Set(cards0.map((p) => p.placeholder));
+  ok(nums.size === N, `${id}: los ${N} placeholders tienen números distintos`);
+
+  // 4. Cambiar el ratio no cambia la composición, sólo el marco. Es el mismo
+  //    criterio del test 9: el lado menor siempre es 1080 y los planos se miden
+  //    contra eso, así que su tamaño no puede depender del ratio.
+  const conAssets = withAssets(6);
+  conAssets.template.id = id;
+  const firmas = ["1:1", "4:5", "9:16", "16:9"].map((r) => {
+    const st = { ...conAssets, stage: { ...conAssets.stage, ratio: r } };
+    const sc = getScene(0.25, st);
+    return sc.planes
+      .map((p) => `${Math.round(p.size[0])}x${Math.round(p.size[1])}`)
+      .sort()
+      .join("|");
+  });
+  ok(new Set(firmas).size === 1, `${id}: misma composición en los 4 ratios`);
+
+  // 4b. Un param relativo que nadie convierte a px pasa todos los demás checks
+  //     —un plano de 0.62px sigue estando "en cuadro"— y sólo se nota mirando.
+  const anchos = getScene(0, conAssets)
+    .planes.filter((p) => p.tint === undefined)
+    .map((p) => p.size[0]);
+  ok(
+    Math.min(...anchos) > 40 && Math.max(...anchos) < 4000,
+    `${id}: los planos miden px de verdad (${Math.round(Math.min(...anchos))}–${Math.round(Math.max(...anchos))}px)`,
+  );
+
+  // 5. El indicador reporta un cierre alcanzable.
+  const c = loopClosure(conAssets);
+  ok(c.status !== "broken", `${id}: el indicador reporta cierre (status '${c.status}')`);
+  if (c.suggested) {
+    conAssets.timing.cycles = c.suggested;
+    ok(
+      loopClosure(conAssets).status === "ok",
+      `${id}: con ${c.suggested} ciclos cierra de verdad`,
+    );
+  }
+}
+
+// El túnel se ancla en la cámara: la distancia a cámara de cada card —lo único
+// que define su tamaño en pantalla— no puede depender del ratio.
+console.log("\n== 12b. Tunnel: la profundidad no depende del ratio ==");
+{
+  const s = withAssets(6);
+  s.template.id = "tunnel";
+  const dists = ["1:1", "4:5", "9:16", "16:9"].map((r) => {
+    const st = { ...s, stage: { ...s.stage, ratio: r } };
+    const sc = getScene(0.3, st);
+    return sc.planes
+      .map((p) => Math.round(sc.camera.position[2] - p.pos[2]))
+      .sort((a, b) => a - b)
+      .join(",");
+  });
+  ok(new Set(dists).size === 1, `misma distancia a cámara en los 4 ratios`);
+
+  // El wrap ocurre en el punto más cercano a cámara, donde la card tapa el
+  // cuadro entero. Ahí la opacidad tiene que ser 0 o el salto se ve. Se mide con
+  // el fade de aparición apagado, que es el caso peor.
+  const st = { ...s, template: { ...s.template, params: { tunnel: { fadeIn: 0 } } } };
+  let minDist = Infinity;
+  let opAlWrap = 0;
+  for (let k = 0; k < 480; k++) {
+    const sc = getScene(k / 480, st);
+    for (const pl of sc.planes) {
+      const d = sc.camera.position[2] - pl.pos[2];
+      if (d < minDist) {
+        minDist = d;
+        opAlWrap = pl.opacity;
+      }
+    }
+  }
+  ok(minDist > 100, `ninguna card cruza el near plane (mínimo ${Math.round(minDist)}px)`);
+  ok(opAlWrap < 0.02, `en el punto de wrap la opacidad ya es 0 (${opAlWrap.toFixed(4)})`);
+}
+
+console.log("\n== 12c. Wall: la deriva recorre tiles enteros ==");
+{
+  const s = withAssets(6);
+  s.template.id = "wall";
+  s.timing.ease = [0, 0, 1, 1];
+
+  // La deriva es un número entero de tiles, así que la geometría vuelve a su
+  // lugar cada ciclo. Lo que tarda más es la asignación de imágenes: cada
+  // columna hereda la de su vecina, y todo vuelve al arranque recién cuando
+  // cada card volvió a su columna. El cierre declarado es ése, no el
+  // geométrico, porque el badge no puede prometer un frame que no se repite.
+  //
+  // cols / gcd(cols, deriva) por columnas, y no depende de cuántos assets haya.
+  for (const [cols, drift, esperado] of [
+    [4, 1, 4],
+    [4, 2, 2],
+    [6, 1, 6],
+    [5, 2, 5],
+    [6, 3, 2],
+  ]) {
+    const st = { ...s, template: { ...s.template, params: { wall: { cols, drift } } } };
+    const min = minCyclesFor(st);
+    ok(min === esperado, `${cols} columnas × ${drift} tiles → ${esperado} ciclos (dio ${min})`);
+    st.timing = { ...st.timing, cycles: min };
+    ok(loopClosure(st).status === "ok", `  y con ${min} ciclos cierra de verdad`);
+  }
+
+  // Con 3 y 8 assets el número no cambia: las cards no rotan de imagen.
+  for (const m of [3, 8]) {
+    const st = withAssets(m);
+    st.template.id = "wall";
+    st.timing.ease = [0, 0, 1, 1];
+    ok(minCyclesFor(st) === 4, `con ${m} assets sigue cerrando a los 4 ciclos`);
+  }
+
+  // Filas alternas: las impares se mueven al revés que las pares.
+  const dx = (dir) => {
+    const st = {
+      ...s,
+      template: { ...s.template, params: { wall: { rowDir: dir, tiltX: 0, tiltY: 0 } } },
+    };
+    const a = getScene(0, st).planes;
+    const b = getScene(0.02, st).planes;
+    const fila = (r) => {
+      const i = r * 4;
+      return b[i].pos[0] - a[i].pos[0];
+    };
+    return [fila(0), fila(1)];
+  };
+  const alt = dx("alternate");
+  ok(alt[0] * alt[1] < 0, `alterno: fila 0 y fila 1 van en sentidos opuestos (${alt[0].toFixed(1)} vs ${alt[1].toFixed(1)})`);
+  const uni = dx("uniform");
+  ok(uni[0] * uni[1] > 0, `uniforme: las dos filas van para el mismo lado (${uni[0].toFixed(1)} vs ${uni[1].toFixed(1)})`);
+}
+
+console.log("\n== 12d. Hero: la vuelta entera por todos los slots ==");
+{
+  const base = () => {
+    const s = withAssets(6);
+    s.template.id = "hero";
+    return s;
+  };
+
+  // Cierra al completar la vuelta: una card por ciclo.
+  const s = base();
+  ok(minCyclesFor(s) === 6, `6 assets → 6 ciclos (dio ${minCyclesFor(s)})`);
+
+  // El sostén no mueve nada y la transición hace todo el trabajo. Con el
+  // reparto por defecto, durante el primer 55% del ciclo el hero está quieto.
+  // Con cycles = 1, t01 ES la fase del ciclo: 0.55 es donde termina el sostén.
+  const quieto = base();
+  quieto.timing.ease = [0, 0, 1, 1];
+  const yHero = (t) =>
+    getScene(t, quieto).planes.find((p) => !p.tint && p.opacity > 0.99).pos[1];
+  ok(Math.abs(yHero(0) - yHero(0.5)) < 1, "durante el sostén el hero no se mueve");
+  ok(Math.abs(yHero(0.99)) > 100, "y en la transición sí");
+
+  // La saliente se va POR ARRIBA y la que entra viene DE ABAJO.
+  {
+    const sc = getScene(0.775, quieto); // mitad de la transición
+    const cards = sc.planes.filter((p) => !p.tint);
+    ok(cards.some((p) => p.pos[1] > 100), "a mitad de la transición hay una card subiendo");
+    ok(cards.some((p) => p.pos[1] < -100), "y otra llegando desde abajo");
+  }
+
+  // El barrido que importa: cada combinación de params tiene que cerrar. Es el
+  // check que atrapó la sombra que se quedaba adentro del cuadro con la card
+  // ya afuera, y el peek 0 que caía justo sobre el umbral del test.
+  const casos = [
+    ["default", {}],
+    ["sin sombra", { shadow: false }],
+    ["sombra al máximo", { shadowStrength: 1 }],
+    ["sin peek", { peek: 0 }],
+    ["peek al máximo", { peek: 0.6 }],
+    ["sin solapamiento", { overlap: 0 }],
+    ["solapamiento total", { overlap: 1 }],
+    ["arco y rotación al máximo", { arc: 0.8, rotate: 45 }],
+    ["sin sostén", { holdRatio: 0 }],
+    ["sostén al máximo", { holdRatio: 0.95 }],
+    ["hero enorme", { planeSize: 1.4 }],
+    ["plano apaisado", { planeRatio: "16:9" }],
+    ["3 cards", { count: 3 }],
+    ["16 cards", { count: 16 }],
+  ];
+  for (const [label, params] of casos) {
+    const st = base();
+    st.template.params = { hero: params };
+    st.timing.cycles = minCyclesFor(st);
+    ok(loopClosure(st).status === "ok", `${label}: cierra a los ${st.timing.cycles} ciclos`);
+  }
+
+  // La sombra existe, es negra y va detrás de su card.
+  {
+    const st = base();
+    const sc = getScene(0.05, st);
+    const sombras = sc.planes.filter((p) => p.tint === 0);
+    ok(sombras.length > 0, `emite ${sombras.length} sombras`);
+    const card = sc.planes.find((p) => p.id === "p0");
+    const sombra = sc.planes.find((p) => p.id === "p0s");
+    ok(sombra.renderOrder < card.renderOrder, "la sombra se dibuja antes que su card");
+    ok(sombra.pos[1] < card.pos[1], "y cae por debajo");
+
+    const sin = base();
+    sin.template.params = { hero: { shadow: false } };
+    ok(
+      getScene(0.05, sin).planes.every((p) => p.tint === undefined),
+      "con la sombra apagada no se emite ninguna",
+    );
+  }
+}
+
+// El tint es opcional: ningún template viejo lo emite y nada cambió para ellos.
+console.log("\n== 12e. El tint no toca a los templates que ya estaban ==");
+{
+  let conTint = 0;
+  for (const tpl of ["carousel", "deck", "parallax", "orbit", "flip"]) {
+    const s = withAssets(5);
+    s.template.id = tpl;
+    for (let k = 0; k < 12; k++) {
+      conTint += getScene(k / 12, s).planes.filter((p) => p.tint !== undefined).length;
+    }
+  }
+  ok(conTint === 0, `las 5 familias viejas no emiten un solo plano teñido (${conTint})`);
+}
+
+console.log("\n== 13. Capa de cámara ==");
+{
+  const FAMILIAS = TEMPLATE_LIST.map((t) => t.id);
+
+  // Check 1 del brief: con Movimiento en Fija, las ocho familias se comportan
+  // EXACTAMENTE igual que antes de que esta capa existiera. Se verifica contra
+  // un state sin sección de cámara, que es el estado previo del modelo.
+  let iguales = 0;
+  let distintas = 0;
+  for (const id of FAMILIAS) {
+    const conCamara = withAssets(6);
+    conCamara.template.id = id;
+    const sinCamara = { ...conCamara, camera: undefined };
+    for (let k = 0; k < 16; k++) {
+      const t = k / 16;
+      if (JSON.stringify(getScene(t, conCamara)) === JSON.stringify(getScene(t, sinCamara)))
+        iguales++;
+      else distintas++;
+    }
+  }
+  ok(distintas === 0, `Fija: ${iguales} escenas idénticas a no tener cámara (${distintas} distintas)`);
+
+  // Y devuelve la MISMA referencia, no una copia igual: el camino sin cámara no
+  // paga ni una asignación.
+  {
+    const base = { position: [0, 0, 1000], lookAt: [0, 0, 0] };
+    ok(applyCameraMove(base, { move: "fixed" }, 0.3) === base, "Fija no toca la cámara base");
+    ok(
+      applyCameraMove(base, { move: "dolly", amplitude: 0 }, 0.3) === base,
+      "amplitud 0 tampoco",
+    );
+  }
+
+  // Check 2: con cada uno de los otros tres movimientos, sobre las ocho
+  // familias, el indicador reporta un cierre correcto o avisa que no cierra.
+  for (const move of ["dolly", "orbit", "tilt"]) {
+    let mal = 0;
+    let avisos = 0;
+    for (const id of FAMILIAS) {
+      for (const period of [1, 2, 3, 4]) {
+        const st = withAssets(6);
+        st.template.id = id;
+        st.camera = { ...st.camera, move, period, amplitude: 0.7 };
+        const partes = closureParts(st);
+
+        // El total tiene que ser múltiplo de las dos partes: es un mcm.
+        if (partes.total % partes.template !== 0 || partes.total % partes.camera !== 0) mal++;
+
+        st.timing.cycles = Math.min(partes.total, MAX_CYCLES);
+        const c = loopClosure(st);
+        if (partes.total > MAX_CYCLES) {
+          // No se puede ofrecer: tiene que avisar, no callarse.
+          if (c.status !== "over") mal++;
+          else avisos++;
+        } else if (c.status !== "ok") {
+          mal++;
+        }
+      }
+    }
+    ok(mal === 0, `${move}: cierra o avisa en las 8 familias × 4 períodos (${avisos} avisos)`);
+  }
+
+  // El recorrido vuelve al punto de partida sí o sí, con cualquier ease.
+  {
+    const curvas = [
+      [0, 0, 1, 1],
+      [0.87, 0, 0.13, 1],
+      [0.34, 1.56, 0.64, 1],
+      [0.68, -0.6, 0.32, 1.6],
+    ];
+    let peor = 0;
+    for (const move of ["dolly", "orbit", "tilt"]) {
+      for (const ease of curvas) {
+        for (const phase of [0, 0.25, 0.6]) {
+          const st = withAssets(6);
+          st.camera = { move, amplitude: 1, phase, period: 1, ease };
+          const a = getScene(0, st).camera.position;
+          const b = getScene(1 - 1e-9, st).camera.position;
+          peor = Math.max(peor, Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]));
+        }
+      }
+    }
+    ok(peor < 1, `la cámara vuelve a su lugar con cualquier ease y fase (peor ${peor.toFixed(4)}px)`);
+  }
+
+  // Cada movimiento mueve lo que dice mover.
+  {
+    const pos = (move, t) => {
+      const st = withAssets(6);
+      st.camera = { move, amplitude: 1, phase: 0, period: 1, ease: [0, 0, 1, 1] };
+      return getScene(t, st).camera.position;
+    };
+    const z0 = pos("dolly", 0)[2];
+    ok(Math.abs(pos("dolly", 0.5)[2] - z0) > 100, "dolly recorre Z");
+    ok(Math.abs(pos("dolly", 0.5)[0]) < 1e-6, "y no se sale del eje");
+    // A la mitad del ciclo el barrido está en su extremo: con amplitud 1 son
+    // 180°, o sea la cámara justo detrás, donde X vuelve a ser 0. El cuarto de
+    // ciclo es donde el orbit está más de costado.
+    ok(Math.abs(pos("orbit", 0.25)[0]) > 100, "orbit sale del eje en X");
+    ok(Math.abs(pos("orbit", 0.5)[2] + pos("orbit", 0)[2]) < 1, "y con amplitud 1 llega justo atrás");
+    ok(Math.abs(pos("tilt", 0)[1]) > 100, "tilt arranca fuera del eje en Y");
+    ok(Math.abs(pos("tilt", 0.5)[1]) < 1, "y en el medio del ciclo está derecha");
+  }
+
+  // La composición NO sigue a la cámara: los templates se anclan a la base.
+  {
+    const fija = withAssets(6);
+    fija.template.id = "tunnel";
+    const movida = { ...fija, camera: { move: "dolly", amplitude: -1, phase: 0.25, period: 1, ease: [0, 0, 1, 1] } };
+    const a = getScene(0.25, fija).planes.map((p) => Math.round(p.pos[2])).join(",");
+    const b = getScene(0.25, movida).planes.map((p) => Math.round(p.pos[2])).join(",");
+    ok(a === b, "los planos quedan donde estaban aunque la cámara se mueva");
+    ok(
+      Math.round(getScene(0.25, fija).camera.position[2]) !==
+        Math.round(getScene(0.25, movida).camera.position[2]),
+      "y la cámara sí se movió",
+    );
+  }
+
+  // Y cuando la combinación NO cierra en una cantidad alcanzable, avisa en vez
+  // de dejarlo pasar en silencio. deck con jitter pide 24 ciclos; con una
+  // cámara que vuelve cada 5, el mcm es 120.
+  {
+    const st = withAssets(6);
+    st.template.id = "deck";
+    st.template.params = { deck: { count: 8, rotJitter: 12 } };
+    ok(minCyclesFor({ ...st, camera: null }) === 24, "el deck con jitter pide 24 ciclos");
+    st.camera = { ...st.camera, move: "orbit", period: 5, amplitude: 0.7 };
+    const partes = closureParts(st);
+    ok(partes.total === 120, `con cámara cada 5 ciclos el mcm da 120 (dio ${partes.total})`);
+    const c = loopClosure(st);
+    ok(c.status === "over", `y el indicador avisa en vez de callarse (status '${c.status}')`);
+    ok(c.minCycles > MAX_CYCLES, `informa los ${c.minCycles} ciclos que haría falta`);
+
+    // Con un período que divide al del template, en cambio, no cuesta nada.
+    st.camera = { ...st.camera, period: 4 };
+    ok(closureParts(st).total === 24, "con período 4 el mcm sigue siendo 24");
+  }
+
+  ok(CAMERA_MOVES.length === 4, `el panel ofrece los 4 movimientos del brief`);
+  ok(cameraPeriod({ move: "fixed", period: 5 }) === 1, "Fija no aporta ciclos al mcm");
+}
+
+// El check literal del brief: diez shuffles seguidos sobre cada familia sin
+// romper el render ni sacar la composición del frame.
+console.log("\n== 14. Shuffle del template activo ==");
+{
+  // Secuencia repetible: un fallo tiene que poder reproducirse.
+  let semilla = 12345;
+  const rnd = () => {
+    semilla = (semilla * 1664525 + 1013904223) % 4294967296;
+    return semilla / 4294967296;
+  };
+
+  for (const tpl of TEMPLATE_LIST) {
+    let vacios = 0;
+    let rotos = 0;
+    let fueraDeRango = 0;
+    let peorMin = Infinity;
+
+    let s = withAssets(6);
+    s.template.id = tpl.id;
+
+    for (let n = 0; n < 10; n++) {
+      const params = shuffleParams(s, rnd);
+      s = {
+        ...s,
+        template: { ...s.template, params: { ...s.template.params, [tpl.id]: params } },
+      };
+
+      // Dentro de los rangos que declara el schema.
+      for (const item of tpl.schema) {
+        const v = params[item.key];
+        if (v === undefined) continue;
+        if (item.type === "toggle") {
+          if (typeof v !== "boolean") fueraDeRango++;
+        } else if (item.type === "select") {
+          if (!item.options.some((o) => o.value === v)) fueraDeRango++;
+        } else if (v < item.min - 1e-9 || v > item.max + 1e-9) {
+          fueraDeRango++;
+        }
+      }
+
+      const score = framingScore(s);
+      if (score.roto) rotos++;
+      // El piso real: dos planos, o uno si la familia sólo tiene uno. Con uno
+      // solo lo que suele haber pasado es que se comió el cuadro y tapó al resto.
+      const piso = Math.min(2, Math.max(1, Math.round(tpl.count(params))));
+      if (score.peor < piso) vacios++;
+      peorMin = Math.min(peorMin, score.peor);
+    }
+
+    ok(rotos === 0, `${tpl.id}: 10 shuffles sin romper el render`);
+    ok(fueraDeRango === 0, `${tpl.id}: ningún param fuera de su rango`);
+    ok(vacios === 0, `${tpl.id}: ningún frame se quedó sin composición (mínimo ${peorMin} planos útiles)`);
+  }
+
+  // Lo que el shuffle NO toca.
+  {
+    const antes = withAssets(4);
+    antes.template.id = "carousel";
+    antes.stage.ratio = "9:16";
+    antes.timing.duration = 3.5;
+    const params = shuffleParams(antes, rnd);
+    const despues = {
+      ...antes,
+      template: { ...antes.template, params: { carousel: params } },
+    };
+    ok(despues.assets === antes.assets, "no toca los assets");
+    ok(despues.stage.ratio === "9:16", "no toca el ratio");
+    ok(despues.timing.duration === 3.5, "no toca la duración del ciclo");
+    ok(despues.timing.cycles === antes.timing.cycles, "ni los ciclos");
+  }
+
+  // Y el reset sigue devolviendo a los defaults, que es lo que lo distingue.
+  {
+    const s = withAssets(4);
+    s.template.params = { carousel: shuffleParams(s, rnd) };
+    const reset = { ...s, template: { ...s.template, params: { carousel: {} } } };
+    const tpl = TEMPLATE_LIST[0];
+    ok(
+      JSON.stringify(getScene(0, reset)) ===
+        JSON.stringify(getScene(0, { ...s, template: { ...s.template, params: {} } })),
+      `${tpl.id}: el reset vuelve exactamente a los defaults`,
+    );
   }
 }
 

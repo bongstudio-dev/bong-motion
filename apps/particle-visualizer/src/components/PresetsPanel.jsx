@@ -43,7 +43,7 @@ export default function PresetsPanel({ config, onApplyPreset, onResetDefaults })
   };
 
   return (
-    <Section title="Presets" defaultOpen={false}>
+    <Section title="Presets" defaultOpen={false} value={presets.length}>
       <Field label="Guardar configuración actual">
         <div className="btn-row">
           <input

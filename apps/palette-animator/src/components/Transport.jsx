@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { Icon } from "@bong/ui";
 import { resolveParams } from "../engine/getFrame.js";
+import { stageDims } from "../engine/layout.js";
 import { mod1 } from "../utils/math.js";
 
 const RATIOS = ["1:1", "4:5", "16:9", "9:16"];
@@ -29,6 +30,14 @@ function phaseAt(t, segments) {
 export default function Transport({ state, clock, onDuration, onRatio }) {
   const t = useSyncExternalStore(clock.subscribe, clock.getT);
   const playing = useSyncExternalStore(clock.subscribe, clock.isPlaying);
+
+  // Los píxeles reales de salida: el stage lógico por el multiplicador de
+  // resolución del export, que es exactamente lo que hace makeCanvas().
+  const res = state.export?.resolution ?? 1;
+  const dimsOf = (r) => {
+    const d = stageDims(r);
+    return `${d.w * res}×${d.h * res}`;
+  };
 
   const segments = phaseSegments(state);
   const duration = state.motion.duration;
@@ -101,6 +110,7 @@ export default function Transport({ state, clock, onDuration, onRatio }) {
             onClick={() => onRatio(r)}
           >
             {r}
+            <span className="ratio-dims">{dimsOf(r)}</span>
           </button>
         ))}
       </div>

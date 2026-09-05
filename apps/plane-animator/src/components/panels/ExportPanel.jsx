@@ -159,7 +159,11 @@ export default function ExportPanel({ state, setState, clock, engineRef, onReset
   };
 
   return (
-    <Section title="Export" defaultOpen={false}>
+    <Section
+      title="Export"
+      defaultOpen={false}
+      value={`${cfg.format} · ${cfg.resolution}×`}
+    >
       <Field label="Nombre del archivo">
         <input
           className="text-input"
@@ -178,6 +182,15 @@ export default function ExportPanel({ state, setState, clock, engineRef, onReset
               onClick={() => toggleRatio(r.value)}
             >
               {r.label}
+              <span className="ratio-dims">
+                {(() => {
+                  const d = stageDims(r.value, {
+                    w: state.stage.customW,
+                    h: state.stage.customH,
+                  });
+                  return `${d.w * cfg.resolution}×${d.h * cfg.resolution}`;
+                })()}
+              </span>
             </button>
           ))}
         </div>

@@ -7,6 +7,7 @@ import ScenePanel from "./components/panels/ScenePanel.jsx";
 import TimingPanel from "./components/panels/TimingPanel.jsx";
 import EasePanel from "./components/panels/EasePanel.jsx";
 import CanvasPanel from "./components/panels/CanvasPanel.jsx";
+import CameraPanel from "./components/panels/CameraPanel.jsx";
 import ExportPanel from "./components/panels/ExportPanel.jsx";
 import { ToolSidebar, TextSection, TextWindow } from "@bong/ui";
 import { createClock } from "./clock.js";
@@ -114,6 +115,7 @@ export default function App() {
           <TimingPanel state={state} onPatch={onPatch} />
           <EasePanel state={state} onPatch={onPatch} />
           <CanvasPanel state={state} onPatch={onPatch} />
+          <CameraPanel state={state} onPatch={onPatch} />
           <TextSection
             texts={state.texts}
             onChange={setTexts}

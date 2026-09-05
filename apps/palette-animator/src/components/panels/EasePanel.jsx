@@ -100,6 +100,10 @@ function BezierEditor({ value, onChange }) {
 
 const round2 = (v) => Math.round(v * 100) / 100;
 
+// El nombre del preset activo, o "Bézier" si la curva se editó a mano.
+const easeLabel = (ease) =>
+  EASE_PRESETS.find((p) => sameBezier(ease, p.value))?.label ?? "Bézier";
+
 export default function EasePanel({ state, onPatch }) {
   const ease = state.motion.ease;
 
@@ -111,7 +115,7 @@ export default function EasePanel({ state, onPatch }) {
   };
 
   return (
-    <Section title="Ease" defaultOpen={false}>
+    <Section title="Ease" defaultOpen={false} value={easeLabel(ease)}>
       <Field label="Presets">
         <div className="ease-grid">
           {EASE_PRESETS.map((p) => (

@@ -113,6 +113,8 @@ export function createRenderer(canvas) {
       u.uSize.value.set(pl.size[0], pl.size[1]);
       u.uRadius.value = pl.radius;
       u.uOpacity.value = pl.opacity;
+      // Sólo las sombras lo usan; el resto de los planos no trae `tint`.
+      u.uTint.value = pl.tint ?? 1;
       // En `contain` el sobrante se pinta con este color; en el resto de los
       // modos el shader nunca sale de [0,1] y el valor no se usa.
       u.uBg.value.set(bg.r, bg.g, bg.b, 1);

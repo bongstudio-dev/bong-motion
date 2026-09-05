@@ -83,7 +83,11 @@ export default function ExportPanel({ state, clock, onReplaceState, onReset }) {
   };
 
   return (
-    <Section title="Export" defaultOpen={false}>
+    <Section
+      title="Export"
+      defaultOpen={false}
+      value={`${cfg.fps}fps · ${cfg.resolution}×`}
+    >
       <Field label="FPS">
         <Segmented
           value={String(cfg.fps)}

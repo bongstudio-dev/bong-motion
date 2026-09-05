@@ -672,11 +672,27 @@ select.text-input { appearance: none; cursor: pointer; }
   background: var(--panel-2);
   color: var(--muted);
   border-radius: 6px;
-  padding: 7px 10px;
+  padding: 5px 10px;
   font-size: 11.5px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  line-height: 1.25;
 }
+
+/* Los píxeles de salida, debajo de la proporción. En dos líneas y no
+   inline: "4:5 · 1080×1350" son cinco botones de 110px en una barra que ya
+   comparte lugar con el scrub, y ahí el que se achica es el scrub. */
+.ratio-dims {
+  display: block;
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--muted-2);
+}
+
+.ratio-switch button.active .ratio-dims,
+.ratio-grid .btn.primary .ratio-dims { color: inherit; opacity: 0.7; }
+.ratio-grid .btn { line-height: 1.25; }
 
 .ratio-switch button:hover { color: var(--text); }
 
@@ -990,6 +1006,21 @@ select.text-input { appearance: none; cursor: pointer; }
   font-family: var(--mono);
   text-transform: uppercase;
   letter-spacing: 0.05em;
+}
+
+/* El valor activo del acordeón cerrado. Mismo peso que .tag pero sin
+   uppercase: acá van números y unidades ("1080×1350", "4.0s × 6"), y
+   mayusculizarlos los vuelve ilegibles. */
+.section-value {
+  font-size: 10px;
+  color: var(--muted-2);
+  font-family: var(--mono);
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  /* El header entero está en mayúsculas; el valor no. "2.6S × 6" y
+     "EXPO INOUT" se leen peor que en su capitalización propia. */
+  text-transform: none;
 }
 
 .saved-list { display: flex; flex-direction: column; gap: 6px; }

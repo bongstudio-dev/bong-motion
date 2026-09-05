@@ -40,7 +40,7 @@ export default function MotionPanel({ state, onPatch, onParam, onPreset }) {
   const bg = state.stage.background;
 
   return (
-    <Section title="Animación">
+    <Section title="Animación" value={`${preset.name} · ${layoutMode}`}>
       <Field label="Preset">
         <div className="ease-grid" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
           {PRESET_LIST.map((p) => (

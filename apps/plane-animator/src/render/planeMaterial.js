@@ -27,6 +27,7 @@ const fragmentShader = /* glsl */ `
   uniform float uRadius;
   uniform float uOpacity;
   uniform float uHasBack;
+  uniform float uTint;      // 1 = la imagen tal cual; 0 = silueta negra
 
   varying vec2 vUv;
 
@@ -66,7 +67,7 @@ const fragmentShader = /* glsl */ `
     float aa = max(fwidth(d), 1e-4);
     float mask = 1.0 - smoothstep(-aa, aa, d);
 
-    gl_FragColor = vec4(rgb, alpha * mask * uOpacity);
+    gl_FragColor = vec4(rgb * uTint, alpha * mask * uOpacity);
     if (gl_FragColor.a < 0.001) discard;
 
     #include <colorspace_fragment>
@@ -87,6 +88,7 @@ export function createPlaneMaterial() {
       uRadius: { value: 0 },
       uOpacity: { value: 1 },
       uHasBack: { value: 0 },
+      uTint: { value: 1 },
     },
     // Planos con opacidad < 1 y depth testing se pelean: se dibuja por
     // renderOrder (derivado de z) y no se escribe profundidad.

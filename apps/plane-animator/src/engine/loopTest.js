@@ -15,9 +15,19 @@
 
 import { getScene, resolveTemplate, resolveParams, visibleAssets } from "./getScene.js";
 import { stageOf, visibleAt } from "./camera.js";
+import { cameraPeriod, cameraActive } from "./cameraMove.js";
 import { gcd, lcm, mod } from "../utils/math.js";
 
 const TAU = Math.PI * 2;
+
+// Techo de lo "razonable": el mismo tope que impone `mergeState` a
+// timing.cycles. Un cierre que pide más que esto no se puede configurar, así
+// que se avisa en vez de ofrecerlo.
+//
+// No es el tope del slider por una razón concreta: `deck-baraja`, un preset de
+// fábrica, pide 24 ciclos. Poner el techo en 16 lo habría declarado roto sin
+// que nada hubiera cambiado en él.
+export const MAX_CYCLES = 32;
 
 // Distancia angular mínima entre dos ángulos: 0 y 2π son el mismo estado.
 const angleDist = (a, b) => {
@@ -138,11 +148,23 @@ function compare(state, eps) {
     if (!taken.has(i)) maxOpacity = Math.max(maxOpacity, B[i].vis);
   }
 
+  // La cámara también tiene que volver a su lugar. Sin esto, un movimiento que
+  // queda a medio camino movería la escena entera y el emparejamiento por
+  // vecino más cercano lo leería como que todos los planos se corrieron —o,
+  // peor, como que nada se movió porque se corrieron todos igual.
+  const camShift =
+    (Math.abs(a.camera.position[0] - b.camera.position[0]) +
+      Math.abs(a.camera.position[1] - b.camera.position[1]) +
+      Math.abs(a.camera.position[2] - b.camera.position[2])) /
+    minSide;
+
   return {
-    closes: maxDelta < 0.01 && maxOpacity < 0.02 && assetShift < 0.02,
-    maxDelta,
+    closes:
+      maxDelta < 0.01 && maxOpacity < 0.02 && assetShift < 0.02 && camShift < 0.005,
+    maxDelta: Math.max(maxDelta, camShift),
     maxOpacity,
     assetShift,
+    camShift,
   };
 }
 
@@ -164,7 +186,21 @@ export function minCyclesFor(state) {
   // ciclos que sí cierran, que es justo cuando más se está componiendo a ciegas.
   const effective = M > 0 ? M : N;
   const byAssets = slots === 0 ? 1 : effective / gcd(effective, slots);
-  return Math.max(1, lcm(byAssets, unit) || 1);
+  const byTemplate = Math.max(1, lcm(byAssets, unit) || 1);
+
+  // El cierre real de la pieza es el mínimo común múltiplo entre lo que pide el
+  // template y lo que pide la cámara. Una cámara que vuelve cada 3 ciclos sobre
+  // un carousel que cierra a los 4 da 12: los dos tienen que estar en su lugar
+  // en el mismo frame.
+  return Math.max(1, lcm(byTemplate, cameraPeriod(state.camera)) || byTemplate);
+}
+
+// Lo que pide cada parte por separado. Es lo que muestra el panel de cámara
+// para que el número de arriba no salga de la nada.
+export function closureParts(state) {
+  const sinCamara = minCyclesFor({ ...state, camera: null });
+  const camara = cameraActive(state.camera) ? cameraPeriod(state.camera) : 1;
+  return { template: sinCamara, camera: camara, total: minCyclesFor(state) };
 }
 
 // Tres estados para el badge del stage:
@@ -174,8 +210,16 @@ export function minCyclesFor(state) {
 export function loopClosure(state, eps = 1e-4) {
   const now = compare(state, eps);
   const min = minCyclesFor(state);
+  const overCycles = min > MAX_CYCLES;
 
-  if (now.closes) return { ...now, status: "ok", minCycles: min, suggested: null };
+  if (now.closes)
+    return { ...now, status: "ok", minCycles: min, suggested: null, overCycles: false };
+
+  // Un cierre que pide más ciclos de los que se pueden configurar no se puede
+  // ofrecer: se avisa. Callarlo dejaría un "loop ✓ (× 24 ciclos)" que el panel
+  // de Timing no deja alcanzar.
+  if (overCycles)
+    return { ...now, status: "over", minCycles: min, suggested: null, overCycles: true };
 
   // Si el problema es sólo cuántos ciclos se graban, lo verificamos de verdad
   // en vez de confiar en la fórmula: se re-corre el test con el múltiplo de
@@ -187,8 +231,9 @@ export function loopClosure(state, eps = 1e-4) {
       { ...state, timing: { ...state.timing, cycles: suggested } },
       eps,
     );
-    if (probe.closes) return { ...now, status: "cycles", minCycles: min, suggested };
+    if (probe.closes)
+      return { ...now, status: "cycles", minCycles: min, suggested, overCycles: false };
   }
 
-  return { ...now, status: "broken", minCycles: min, suggested: null };
+  return { ...now, status: "broken", minCycles: min, suggested: null, overCycles: false };
 }

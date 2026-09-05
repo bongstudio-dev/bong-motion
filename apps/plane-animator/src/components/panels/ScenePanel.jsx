@@ -9,6 +9,7 @@ import {
   Group,
 } from "@bong/ui";
 import { resolveTemplate, resolveParams } from "../../engine/getScene.js";
+import { shuffleParams } from "../../engine/shuffle.js";
 
 // Sólo los ajustes de la escena. Elegir QUÉ animación es un paso anterior y
 // vive en la biblioteca, a la izquierda: son dos decisiones distintas y tenerlas
@@ -36,6 +37,10 @@ function ParamControl({ item, value, onChange }) {
       max={item.max}
       step={item.step}
       unit={item.unit ?? ""}
+      // Los templates nuevos declaran sus params espaciales en fracción del
+      // lado menor del frame. Mostrarlos como porcentaje es lo que los hace
+      // legibles: "62%" del cuadro se entiende, "0.62" no.
+      format={item.pct ? (v) => `${Math.round(v * 100)}%` : undefined}
       onChange={onChange}
     />
   );
@@ -81,6 +86,17 @@ export default function ScenePanel({ state, setState }) {
       template: { ...s.template, params: { ...s.template.params, [tpl.id]: {} } },
     }));
 
+  // Aleatoriza los params formales de ESTA familia. Los assets, el ratio y la
+  // duración del ciclo no son params del template y no se tocan.
+  const shuffle = () =>
+    setState((s) => ({
+      ...s,
+      template: {
+        ...s.template,
+        params: { ...s.template.params, [tpl.id]: shuffleParams(s) },
+      },
+    }));
+
   return (
     <Section title="Escena" right={<span className="tag">{tpl.name}</span>}>
       {byGroup(tpl.schema, params).map(([group, items]) => (
@@ -96,9 +112,16 @@ export default function ScenePanel({ state, setState }) {
         </Group>
       ))}
 
-      <Button variant="ghost" block onClick={resetParams}>
-        Reset params de {tpl.name}
-      </Button>
+      {/* El nombre de la familia ya está en el header de la sección, así que
+          los botones no lo repiten y entran los dos en una fila. */}
+      <div className="row-2">
+        <Button variant="ghost" block onClick={resetParams} title={`Volver a los defaults de ${tpl.name}`}>
+          Reset params
+        </Button>
+        <Button variant="ghost" block onClick={shuffle} title={`Aleatorizar los params de ${tpl.name}`}>
+          Shuffle
+        </Button>
+      </div>
     </Section>
   );
 }
