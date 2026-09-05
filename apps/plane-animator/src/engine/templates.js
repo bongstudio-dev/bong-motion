@@ -806,8 +806,163 @@ const wall = {
 };
 
 /* ------------------------------------------------------------------ */
+/* 8. HERO — una card grande que se sostiene y la reemplaza la que sube */
+/* ------------------------------------------------------------------ */
 
-export const TEMPLATE_LIST = [carousel, deck, parallax, orbit, flip, tunnel, wall];
+// Fase del ciclo repartida entre sostener y transicionar. Devuelve 0 durante
+// todo el sostén y recorre 0→1 en la transición, moldeada por el ease global.
+// Como vale 0 al principio y 1 al final, el avance por ciclo sigue siendo
+// exactamente 1 slot y el contrato del §7 se verifica igual que en el resto.
+function heroPhase(t, ease, hold) {
+  const c = Math.floor(t);
+  const f = t - c;
+  const h = clamp(hold, 0, 0.95);
+  return { c, ph: f < h ? 0 : ease((f - h) / (1 - h)) };
+}
+
+const hero = {
+  id: "hero",
+  name: "Hero",
+  supportsFitToAsset: true,
+  relativeUnits: true,
+  count: (p) => Math.round(p.count),
+  // Una card por ciclo. La vuelta entera por todos los slots es lo que cierra.
+  slotsPerCycle: () => 1,
+  params: {
+    count: 6,
+    planeSize: 0.78,
+    planeRatio: "4:5",
+    holdRatio: 0.55,
+    overlap: 0.7,
+    arc: 0.18,
+    rotate: 8,
+    peek: 0.12,
+    shadow: true,
+    shadowStrength: 0.45,
+    cornerRadius: 0.024,
+  },
+  schema: [
+    // Mínimo 3 y no 2: la rotación necesita una saliente, una en el centro y
+    // una esperando abajo. Con dos, la misma card tendría que estar saliendo
+    // por arriba y esperando abajo al mismo tiempo.
+    { group: "Composición", key: "count", label: "Cards", min: 3, max: 16, step: 1 },
+    { group: "Composición", key: "planeSize", label: "Escala del hero", min: 0.3, max: 1.4, step: 0.01, pct: true },
+    { group: "Composición", key: "planeRatio", label: "Aspect del plano", type: "select", options: PLANE_RATIOS },
+
+    { group: "Movimiento", key: "holdRatio", label: "Sostén del ciclo", min: 0, max: 0.95, step: 0.01, pct: true },
+    { group: "Movimiento", key: "overlap", label: "Solapamiento", min: 0, max: 1, step: 0.01, pct: true },
+    { group: "Movimiento", key: "arc", label: "Arco de la trayectoria", min: 0, max: 0.8, step: 0.01, pct: true },
+    { group: "Movimiento", key: "rotate", label: "Rotación en el pase", min: 0, max: 45, step: 1, unit: "°" },
+
+    { group: "Forma", key: "peek", label: "Peek de la siguiente", min: 0, max: 0.6, step: 0.01, pct: true },
+    { group: "Forma", key: "cornerRadius", label: "Corner radius", min: 0, max: 0.1, step: 0.002, pct: true },
+
+    { group: "Look", key: "shadow", label: "Sombra proyectada", type: "toggle" },
+    {
+      group: "Look",
+      key: "shadowStrength",
+      label: "Intensidad de la sombra",
+      min: 0,
+      max: 1,
+      step: 0.01,
+      pct: true,
+      when: (p) => !!p.shadow,
+    },
+  ],
+
+  place(t, i, N, p, timing, ease, geom) {
+    const S = geom.SHORT;
+    const { c, ph } = heroPhase(t, ease, p.holdRatio);
+
+    // Solapamiento: con 1 la que sale y la que entra se mueven juntas toda la
+    // transición; con 0 primero se va una y recién después llega la otra.
+    const ov = clamp(p.overlap);
+    const outEnd = (1 + ov) / 2;
+    const inStart = (1 - ov) / 2;
+    const pOut = clamp(ph / outEnd);
+    const pIn = clamp((ph - inStart) / (1 - inStart));
+
+    const sl = mod(i - c, N); // 0 = la que sale, 1 = la que entra, 2+ = en cola
+    const j = i - N * Math.floor((i - c) / N);
+
+    const size = geom.size(j);
+    const [w, h] = size;
+    // Mismo criterio de "fuera de cuadro" que usa el test de loop: el radio
+    // circunscrito cubre cualquier rotación, así la saliente se va de verdad.
+    // La sombra va más abajo y es un 5% más grande, así que si está encendida
+    // el recorrido de salida tiene que alcanzarle a ELLA: si no, la card sale
+    // de cuadro y su sombra se queda adentro, y el loop no cierra por 0.2 de
+    // opacidad que nadie sabría de dónde salen.
+    const shadowOn = !!p.shadow && p.shadowStrength > 0;
+    const shOff = h * 0.05;
+    const reach = Math.max(w, h) / 2;
+    const outReach = shadowOn ? reach * 1.05 + shOff : reach;
+    const view = geom.visible(0);
+    const exitY = view.h / 2 + outReach * 1.06;
+    // peek = cuánto asoma la siguiente por abajo durante el sostén. El punto de
+    // partida se mide con el MISMO radio circunscrito que usa el test de loop,
+    // más dos píxeles: apoyarlo justo sobre el borde deja el plano exactamente
+    // en el umbral del test, y ahí un error de coma flotante decide si cuenta
+    // como visible o no. Con peek en 0 tiene que estar escondido sin discusión.
+    const restY = -(view.h / 2 + reach + 2) + p.peek * h;
+
+    let y;
+    let x;
+    let rz;
+    let opacity;
+
+    if (sl === 0) {
+      // La saliente sube y se va. No se desvanece: sale de cuadro entera.
+      y = exitY * pOut;
+      x = p.arc * S * Math.sin(Math.PI * pOut);
+      rz = p.rotate * pOut;
+      opacity = 1;
+    } else {
+      // La cola entera sube un lugar. `k` es la posición continua en la fila:
+      // 0 es el centro, 1 es el lugar de peek, 2 en adelante ya no se ve. Al
+      // ser continua no hay ningún salto de rol entre ciclo y ciclo.
+      const k = sl - pIn;
+      const u = Math.min(k, 1);
+      y = restY * u - Math.max(0, k - 1) * h * 0.14;
+      // El arco de la que entra abre para el otro lado que el de la que sale:
+      // las dos se cruzan en vez de seguirse.
+      x = -p.arc * S * Math.sin(Math.PI * u);
+      rz = -p.rotate * u;
+      opacity = smooth(2 - k);
+    }
+
+    const out = {
+      pos: [x, y, 0],
+      rot: [0, 0, rz * DEG],
+      size,
+      opacity,
+      radius: p.cornerRadius * S,
+      assetSlot: j,
+    };
+
+    // Sombra proyectada: un plano negro atrás, apenas más grande y corrido
+    // hacia abajo. El compositor la agrega como plano propio (`tint`), así el
+    // template no toca el renderer ni el schema de nadie más.
+    if (shadowOn && opacity > 0.002) {
+      // Va en el MISMO z que la card, no atrás: el orden lo resuelve el
+      // renderOrder, y un z distinto le daría otro frustum —más ancho, porque
+      // está más lejos— que el que usó `exitY` para calcular la salida. Esa
+      // diferencia dejaba la sombra adentro del cuadro con la card ya afuera.
+      out.shadow = {
+        pos: [x + shOff * 0.35, y - shOff, 0],
+        size: [w * 1.05, h * 1.05],
+        opacity: opacity * p.shadowStrength * 0.55,
+        radius: p.cornerRadius * S * 1.05,
+      };
+    }
+
+    return out;
+  },
+};
+
+/* ------------------------------------------------------------------ */
+
+export const TEMPLATE_LIST = [carousel, deck, parallax, orbit, flip, tunnel, wall, hero];
 
 export const TEMPLATES = Object.fromEntries(
   TEMPLATE_LIST.map((tpl) => [tpl.id, tpl]),

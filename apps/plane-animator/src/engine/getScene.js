@@ -251,6 +251,26 @@ export function getScene(t01, state, opts = {}) {
       // BRIEF §13: la puerta a color/texto queda abierta desde el día uno.
       fill: { type: "image" },
     });
+
+    // Sombra proyectada. El template la pide como un anexo del plano y el
+    // compositor la emite como plano propio, teñido de negro. Sale de acá y no
+    // del renderer para que siga habiendo UN modelo de escena: lo que se
+    // dibuja está siempre en `planes`, y el test de loop la ve como ve al
+    // resto. `tint` es opcional: sin él nada cambia para los otros templates.
+    if (out.shadow) {
+      const sh = out.shadow;
+      planes.push({
+        ...planes[planes.length - 1],
+        id: `p${i}s`,
+        pos: sh.pos,
+        rot: out.rot,
+        size: sh.size,
+        opacity: clamp(sh.opacity ?? 0),
+        radius: Math.max(0, sh.radius ?? 0),
+        tint: 0,
+        renderOrder: Math.round(sh.pos[2]) - 1,
+      });
+    }
   }
 
   planes.sort((a, b) => a.renderOrder - b.renderOrder);

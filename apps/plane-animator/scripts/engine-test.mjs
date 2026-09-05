@@ -257,7 +257,7 @@ console.log("\n== 11. Stagger y dirección ==");
 
 // Las tres familias nuevas comparten los mismos cinco checks, así que se
 // corren desde una sola tabla en vez de copiarlos tres veces.
-const NUEVAS = ["tunnel", "wall"];
+const NUEVAS = ["tunnel", "wall", "hero"];
 
 console.log("\n== 12. Familias nuevas: los cinco checks ==");
 for (const id of NUEVAS) {
@@ -273,13 +273,15 @@ for (const id of NUEVAS) {
   // 3. Con cero assets, placeholders numerados como el resto.
   const vacio = defaultState();
   vacio.template.id = id;
-  const sc0 = getScene(0, vacio);
-  const N = sc0.planes.length;
+  // Las sombras son planos teñidos que acompañan a su card: comparten su
+  // número y no cuentan como placeholder propio.
+  const cards0 = getScene(0, vacio).planes.filter((p) => p.tint === undefined);
+  const N = cards0.length;
   ok(
-    N > 0 && sc0.planes.every((p) => p.assetIndex === -1 && p.placeholder >= 1),
+    N > 0 && cards0.every((p) => p.assetIndex === -1 && p.placeholder >= 1),
     `${id}: ${N} placeholders numerados sin assets`,
   );
-  const nums = new Set(sc0.planes.map((p) => p.placeholder));
+  const nums = new Set(cards0.map((p) => p.placeholder));
   ok(nums.size === N, `${id}: los ${N} placeholders tienen números distintos`);
 
   // 4. Cambiar el ratio no cambia la composición, sólo el marco. Es el mismo
@@ -299,7 +301,9 @@ for (const id of NUEVAS) {
 
   // 4b. Un param relativo que nadie convierte a px pasa todos los demás checks
   //     —un plano de 0.62px sigue estando "en cuadro"— y sólo se nota mirando.
-  const anchos = getScene(0, conAssets).planes.map((p) => p.size[0]);
+  const anchos = getScene(0, conAssets)
+    .planes.filter((p) => p.tint === undefined)
+    .map((p) => p.size[0]);
   ok(
     Math.min(...anchos) > 40 && Math.max(...anchos) < 4000,
     `${id}: los planos miden px de verdad (${Math.round(Math.min(...anchos))}–${Math.round(Math.max(...anchos))}px)`,
@@ -406,6 +410,96 @@ console.log("\n== 12c. Wall: la deriva recorre tiles enteros ==");
   ok(alt[0] * alt[1] < 0, `alterno: fila 0 y fila 1 van en sentidos opuestos (${alt[0].toFixed(1)} vs ${alt[1].toFixed(1)})`);
   const uni = dx("uniform");
   ok(uni[0] * uni[1] > 0, `uniforme: las dos filas van para el mismo lado (${uni[0].toFixed(1)} vs ${uni[1].toFixed(1)})`);
+}
+
+console.log("\n== 12d. Hero: la vuelta entera por todos los slots ==");
+{
+  const base = () => {
+    const s = withAssets(6);
+    s.template.id = "hero";
+    return s;
+  };
+
+  // Cierra al completar la vuelta: una card por ciclo.
+  const s = base();
+  ok(minCyclesFor(s) === 6, `6 assets → 6 ciclos (dio ${minCyclesFor(s)})`);
+
+  // El sostén no mueve nada y la transición hace todo el trabajo. Con el
+  // reparto por defecto, durante el primer 55% del ciclo el hero está quieto.
+  // Con cycles = 1, t01 ES la fase del ciclo: 0.55 es donde termina el sostén.
+  const quieto = base();
+  quieto.timing.ease = [0, 0, 1, 1];
+  const yHero = (t) =>
+    getScene(t, quieto).planes.find((p) => !p.tint && p.opacity > 0.99).pos[1];
+  ok(Math.abs(yHero(0) - yHero(0.5)) < 1, "durante el sostén el hero no se mueve");
+  ok(Math.abs(yHero(0.99)) > 100, "y en la transición sí");
+
+  // La saliente se va POR ARRIBA y la que entra viene DE ABAJO.
+  {
+    const sc = getScene(0.775, quieto); // mitad de la transición
+    const cards = sc.planes.filter((p) => !p.tint);
+    ok(cards.some((p) => p.pos[1] > 100), "a mitad de la transición hay una card subiendo");
+    ok(cards.some((p) => p.pos[1] < -100), "y otra llegando desde abajo");
+  }
+
+  // El barrido que importa: cada combinación de params tiene que cerrar. Es el
+  // check que atrapó la sombra que se quedaba adentro del cuadro con la card
+  // ya afuera, y el peek 0 que caía justo sobre el umbral del test.
+  const casos = [
+    ["default", {}],
+    ["sin sombra", { shadow: false }],
+    ["sombra al máximo", { shadowStrength: 1 }],
+    ["sin peek", { peek: 0 }],
+    ["peek al máximo", { peek: 0.6 }],
+    ["sin solapamiento", { overlap: 0 }],
+    ["solapamiento total", { overlap: 1 }],
+    ["arco y rotación al máximo", { arc: 0.8, rotate: 45 }],
+    ["sin sostén", { holdRatio: 0 }],
+    ["sostén al máximo", { holdRatio: 0.95 }],
+    ["hero enorme", { planeSize: 1.4 }],
+    ["plano apaisado", { planeRatio: "16:9" }],
+    ["3 cards", { count: 3 }],
+    ["16 cards", { count: 16 }],
+  ];
+  for (const [label, params] of casos) {
+    const st = base();
+    st.template.params = { hero: params };
+    st.timing.cycles = minCyclesFor(st);
+    ok(loopClosure(st).status === "ok", `${label}: cierra a los ${st.timing.cycles} ciclos`);
+  }
+
+  // La sombra existe, es negra y va detrás de su card.
+  {
+    const st = base();
+    const sc = getScene(0.05, st);
+    const sombras = sc.planes.filter((p) => p.tint === 0);
+    ok(sombras.length > 0, `emite ${sombras.length} sombras`);
+    const card = sc.planes.find((p) => p.id === "p0");
+    const sombra = sc.planes.find((p) => p.id === "p0s");
+    ok(sombra.renderOrder < card.renderOrder, "la sombra se dibuja antes que su card");
+    ok(sombra.pos[1] < card.pos[1], "y cae por debajo");
+
+    const sin = base();
+    sin.template.params = { hero: { shadow: false } };
+    ok(
+      getScene(0.05, sin).planes.every((p) => p.tint === undefined),
+      "con la sombra apagada no se emite ninguna",
+    );
+  }
+}
+
+// El tint es opcional: ningún template viejo lo emite y nada cambió para ellos.
+console.log("\n== 12e. El tint no toca a los templates que ya estaban ==");
+{
+  let conTint = 0;
+  for (const tpl of ["carousel", "deck", "parallax", "orbit", "flip"]) {
+    const s = withAssets(5);
+    s.template.id = tpl;
+    for (let k = 0; k < 12; k++) {
+      conTint += getScene(k / 12, s).planes.filter((p) => p.tint !== undefined).length;
+    }
+  }
+  ok(conTint === 0, `las 5 familias viejas no emiten un solo plano teñido (${conTint})`);
 }
 
 console.log(fails === 0 ? "\nTODO OK\n" : `\n${fails} FALLAS\n`);

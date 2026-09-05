@@ -347,6 +347,48 @@ export const LIBRARY = [
       },
     ],
   },
+  {
+    template: "hero",
+    variants: [
+      {
+        id: "hero-hero",
+        name: "Hero",
+        fov: 45,
+        params: {
+          count: 6, planeSize: 0.78, planeRatio: "4:5", holdRatio: 0.55,
+          overlap: 0.7, arc: 0.18, rotate: 8, peek: 0.12,
+          shadow: true, shadowStrength: 0.45, cornerRadius: 0.024,
+        },
+        timing: timing(2.2, 6),
+      },
+      {
+        // Sostén largo y pase corto y derecho: para leer la imagen, no el
+        // movimiento. Sin arco, sin rotación, sin peek y sin sombra.
+        id: "hero-pase",
+        name: "Pase seco",
+        fov: 35,
+        params: {
+          count: 6, planeSize: 0.92, planeRatio: "1:1", holdRatio: 0.78,
+          overlap: 0.2, arc: 0, rotate: 0, peek: 0,
+          shadow: false, shadowStrength: 0.45, cornerRadius: 0,
+        },
+        timing: timing(2.6, 6),
+      },
+      {
+        // Todo lo contrario: las dos cards se cruzan por el aire, rotadas y
+        // con sombra fuerte. Se parece a repartir naipes.
+        id: "hero-naipe",
+        name: "Naipe",
+        fov: 55,
+        params: {
+          count: 6, planeSize: 0.66, planeRatio: "9:16", holdRatio: 0.3,
+          overlap: 1, arc: 0.45, rotate: 28, peek: 0.28,
+          shadow: true, shadowStrength: 0.9, cornerRadius: 0.03,
+        },
+        timing: timing(1.4, 6),
+      },
+    ],
+  },
 ];
 
 export const VARIANTS_BY_TEMPLATE = Object.fromEntries(
