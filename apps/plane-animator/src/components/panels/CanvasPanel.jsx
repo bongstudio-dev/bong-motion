@@ -1,9 +1,14 @@
 import { Section, Field, ScrubField, Segmented, Toggle, ColorInput, NumberInput } from "@bong/ui";
-import { RATIOS, stageOf } from "../../engine/camera.js";
+import { RATIOS, stageDims, stageOf } from "../../engine/camera.js";
 
 export default function CanvasPanel({ state, onPatch }) {
   const st = state.stage;
   const dims = stageOf(state);
+  const res = state.export?.resolution ?? 1;
+  const dimsOf = (v) => {
+    const d = stageDims(v, { w: st.customW, h: st.customH });
+    return `${d.w * res}×${d.h * res}`;
+  };
 
   return (
     <Section title="Canvas" value={st.ratio === "custom" ? `${dims.w}×${dims.h}` : st.ratio}>
@@ -16,6 +21,7 @@ export default function CanvasPanel({ state, onPatch }) {
               onClick={() => onPatch("stage", { ratio: r.value })}
             >
               {r.label}
+              <span className="ratio-dims">{dimsOf(r.value)}</span>
             </button>
           ))}
         </div>

@@ -1,13 +1,22 @@
 import { useSyncExternalStore } from "react";
 import { Icon } from "@bong/ui";
 import { mod1 } from "../utils/math.js";
-import { RATIOS } from "../engine/camera.js";
+import { RATIOS, stageDims } from "../engine/camera.js";
 
 // El scrub recorre la PIEZA entera (duration × cycles), no un ciclo: es lo que
 // se va a exportar. La barra de fase marca dónde termina cada ciclo.
 export default function Transport({ state, clock, onDuration, onRatio }) {
   const t = useSyncExternalStore(clock.subscribe, clock.getT);
   const playing = useSyncExternalStore(clock.subscribe, clock.isPlaying);
+
+  // Los píxeles que realmente salen: el stage lógico por el multiplicador de
+  // resolución del export. Con 2× lo que se graba son 2160 de lado menor, y el
+  // botón tiene que decir eso y no 1080.
+  const res = state.export?.resolution ?? 1;
+  const dimsOf = (v) => {
+    const d = stageDims(v, { w: state.stage.customW, h: state.stage.customH });
+    return `${d.w * res}×${d.h * res}`;
+  };
 
   const { duration, cycles } = state.timing;
   const total = duration * cycles;
@@ -82,6 +91,7 @@ export default function Transport({ state, clock, onDuration, onRatio }) {
             onClick={() => onRatio(r.value)}
           >
             {r.label}
+            <span className="ratio-dims">{dimsOf(r.value)}</span>
           </button>
         ))}
         <button
@@ -89,6 +99,7 @@ export default function Transport({ state, clock, onDuration, onRatio }) {
           onClick={() => onRatio("custom")}
         >
           custom
+          <span className="ratio-dims">{dimsOf("custom")}</span>
         </button>
       </div>
     </div>
