@@ -6,6 +6,7 @@ import { TEMPLATE_LIST } from "../src/engine/templates.js";
 import { VARIANTS_BY_TEMPLATE } from "../src/engine/library.js";
 import { closureParts, MAX_CYCLES } from "../src/engine/loopTest.js";
 import { applyCameraMove, cameraPeriod, CAMERA_MOVES } from "../src/engine/cameraMove.js";
+import { shuffleParams, framingScore } from "../src/engine/shuffle.js";
 
 let fails = 0;
 const ok = (cond, msg) => {
@@ -645,6 +646,91 @@ console.log("\n== 13. Capa de cámara ==");
 
   ok(CAMERA_MOVES.length === 4, `el panel ofrece los 4 movimientos del brief`);
   ok(cameraPeriod({ move: "fixed", period: 5 }) === 1, "Fija no aporta ciclos al mcm");
+}
+
+// El check literal del brief: diez shuffles seguidos sobre cada familia sin
+// romper el render ni sacar la composición del frame.
+console.log("\n== 14. Shuffle del template activo ==");
+{
+  // Secuencia repetible: un fallo tiene que poder reproducirse.
+  let semilla = 12345;
+  const rnd = () => {
+    semilla = (semilla * 1664525 + 1013904223) % 4294967296;
+    return semilla / 4294967296;
+  };
+
+  for (const tpl of TEMPLATE_LIST) {
+    let vacios = 0;
+    let rotos = 0;
+    let fueraDeRango = 0;
+    let peorMin = Infinity;
+
+    let s = withAssets(6);
+    s.template.id = tpl.id;
+
+    for (let n = 0; n < 10; n++) {
+      const params = shuffleParams(s, rnd);
+      s = {
+        ...s,
+        template: { ...s.template, params: { ...s.template.params, [tpl.id]: params } },
+      };
+
+      // Dentro de los rangos que declara el schema.
+      for (const item of tpl.schema) {
+        const v = params[item.key];
+        if (v === undefined) continue;
+        if (item.type === "toggle") {
+          if (typeof v !== "boolean") fueraDeRango++;
+        } else if (item.type === "select") {
+          if (!item.options.some((o) => o.value === v)) fueraDeRango++;
+        } else if (v < item.min - 1e-9 || v > item.max + 1e-9) {
+          fueraDeRango++;
+        }
+      }
+
+      const score = framingScore(s);
+      if (score.roto) rotos++;
+      // El piso real: dos planos, o uno si la familia sólo tiene uno. Con uno
+      // solo lo que suele haber pasado es que se comió el cuadro y tapó al resto.
+      const piso = Math.min(2, Math.max(1, Math.round(tpl.count(params))));
+      if (score.peor < piso) vacios++;
+      peorMin = Math.min(peorMin, score.peor);
+    }
+
+    ok(rotos === 0, `${tpl.id}: 10 shuffles sin romper el render`);
+    ok(fueraDeRango === 0, `${tpl.id}: ningún param fuera de su rango`);
+    ok(vacios === 0, `${tpl.id}: ningún frame se quedó sin composición (mínimo ${peorMin} planos útiles)`);
+  }
+
+  // Lo que el shuffle NO toca.
+  {
+    const antes = withAssets(4);
+    antes.template.id = "carousel";
+    antes.stage.ratio = "9:16";
+    antes.timing.duration = 3.5;
+    const params = shuffleParams(antes, rnd);
+    const despues = {
+      ...antes,
+      template: { ...antes.template, params: { carousel: params } },
+    };
+    ok(despues.assets === antes.assets, "no toca los assets");
+    ok(despues.stage.ratio === "9:16", "no toca el ratio");
+    ok(despues.timing.duration === 3.5, "no toca la duración del ciclo");
+    ok(despues.timing.cycles === antes.timing.cycles, "ni los ciclos");
+  }
+
+  // Y el reset sigue devolviendo a los defaults, que es lo que lo distingue.
+  {
+    const s = withAssets(4);
+    s.template.params = { carousel: shuffleParams(s, rnd) };
+    const reset = { ...s, template: { ...s.template, params: { carousel: {} } } };
+    const tpl = TEMPLATE_LIST[0];
+    ok(
+      JSON.stringify(getScene(0, reset)) ===
+        JSON.stringify(getScene(0, { ...s, template: { ...s.template, params: {} } })),
+      `${tpl.id}: el reset vuelve exactamente a los defaults`,
+    );
+  }
 }
 
 console.log(fails === 0 ? "\nTODO OK\n" : `\n${fails} FALLAS\n`);
