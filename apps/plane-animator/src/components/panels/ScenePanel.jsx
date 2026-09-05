@@ -36,6 +36,10 @@ function ParamControl({ item, value, onChange }) {
       max={item.max}
       step={item.step}
       unit={item.unit ?? ""}
+      // Los templates nuevos declaran sus params espaciales en fracción del
+      // lado menor del frame. Mostrarlos como porcentaje es lo que los hace
+      // legibles: "62%" del cuadro se entiende, "0.62" no.
+      format={item.pct ? (v) => `${Math.round(v * 100)}%` : undefined}
       onChange={onChange}
     />
   );

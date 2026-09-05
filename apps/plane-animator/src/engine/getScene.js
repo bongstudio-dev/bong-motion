@@ -108,7 +108,11 @@ function makeGeom({ stage, camera, tpl, p, N, assets, fit }) {
   const M = assets.length;
   const supports = tpl.supportsFitToAsset !== false;
 
-  const baseW = p.planeSize ?? 600;
+  // Los templates nuevos declaran `relativeUnits` y miden en fracción del lado
+  // menor; los viejos siguen en px. Es lo único que el compositor necesita
+  // saber de la unidad: el resto de la conversión la hace cada template.
+  const unit = tpl.relativeUnits ? SHORT : 1;
+  const baseW = (p.planeSize ?? 600) * unit;
   const baseH = baseW / ratioWH(p.planeRatio ?? "4:5");
   const area = baseW * baseH;
 

@@ -262,6 +262,50 @@ export const LIBRARY = [
       },
     ],
   },
+  {
+    template: "tunnel",
+    variants: [
+      {
+        // "Túnel" ya es un preset de orbit: acá el nombre es Corredor.
+        id: "tunnel-corredor",
+        name: "Corredor",
+        fov: 45,
+        params: {
+          count: 6, planeSize: 0.62, planeRatio: "4:5", zGap: 0.6,
+          direction: "toward", slotsPerCycle: 1, spread: 0.34, seed: 7,
+          rotate: 6, fadeIn: 0.35, cornerRadius: 0.022,
+        },
+        timing: timing(2.6, 6),
+      },
+      {
+        // Muchas cards chicas y muy dispersas: pasan de a montones por los
+        // costados en vez de taparte el cuadro de a una.
+        id: "tunnel-enjambre",
+        name: "Enjambre",
+        fov: 62,
+        params: {
+          count: 12, planeSize: 0.34, planeRatio: "1:1", zGap: 0.3,
+          direction: "toward", slotsPerCycle: 2, spread: 0.8, seed: 21,
+          rotate: 24, fadeIn: 0.5, cornerRadius: 0.03,
+        },
+        timing: timing(2, 6),
+      },
+      {
+        // Al revés y por el centro: las cards se alejan en vez de venir. Sin
+        // dispersión ni rotación las cards son intercambiables y el patrón
+        // cierra en un ciclo — lo único que pide vueltas son los assets.
+        id: "tunnel-pozo",
+        name: "Pozo",
+        fov: 35,
+        params: {
+          count: 6, planeSize: 0.86, planeRatio: "9:16", zGap: 0.95,
+          direction: "away", slotsPerCycle: 1, spread: 0, seed: 3,
+          rotate: 0, fadeIn: 0.22, cornerRadius: 0,
+        },
+        timing: timing(3.4, 6, EASE_LINEAR),
+      },
+    ],
+  },
 ];
 
 export const VARIANTS_BY_TEMPLATE = Object.fromEntries(

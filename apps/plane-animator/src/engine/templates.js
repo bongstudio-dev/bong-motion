@@ -553,8 +553,129 @@ const flip = {
 };
 
 /* ------------------------------------------------------------------ */
+/* 6. TUNNEL — cards alineadas en Z que pasan de largo                */
+/* ------------------------------------------------------------------ */
 
-export const TEMPLATE_LIST = [carousel, deck, parallax, orbit, flip];
+// A partir de acá los params espaciales van en unidades RELATIVAS al lado menor
+// del frame (SHORT = 1080), no en px. Los templates viejos se quedan en px a
+// propósito: migrarlos rompería todos los presets de fábrica y los guardados.
+// Los angulares siguen en grados en las ocho familias.
+
+// El túnel se ancla en la CÁMARA, no en z = 0. Es la diferencia con el resto de
+// los templates y es deliberada: lo único que define la perspectiva es la
+// distancia a cámara, y anclando ahí esa distancia no depende del ratio. Un
+// túnel anclado en z = 0 se vería más largo en 9:16 que en 16:9, porque camZ
+// sale de stage.h.
+//
+// Salida: el wrap ocurre cuando la card pasa la cámara, y ahí tapa el cuadro
+// entero — no hay forma de esconderlo con encuadre. Así que el túnel reserva un
+// último tramo, TUNNEL_EXIT de su profundidad, donde la opacidad ya llegó a 0:
+// la card se apaga ANTES de saltar al fondo y el salto no se ve nunca. No es un
+// param, es el mecanismo que hace cerrar el loop — el mismo rol que el fade de
+// bordes del carousel o el `enter` del deck.
+const TUNNEL_EXIT = 0.12; // fracción de la profundidad total
+
+const tunnel = {
+  id: "tunnel",
+  name: "Tunnel",
+  supportsFitToAsset: true,
+  // Le dice al compositor que `planeSize` viene en fracción del lado menor.
+  relativeUnits: true,
+  count: (p) => Math.round(p.count),
+  slotsPerCycle: (p) => Math.round(p.slotsPerCycle),
+  // La dispersión y la rotación viajan CON la card (semilla por `i`, no por
+  // slot): cada una vuela derecho por su propio carril. El precio honesto es
+  // que el patrón de carriles sólo vuelve a repetirse cuando cada card volvió a
+  // su slot, o sea a los N / gcd(N, avance) ciclos. Con dispersión y rotación
+  // en 0 todas las cards son intercambiables y cierra en uno.
+  cycleUnit: (p, N) => {
+    if (!(p.spread > 0) && !(p.rotate > 0)) return 1;
+    return N / gcd(N, Math.max(1, Math.round(p.slotsPerCycle)));
+  },
+  params: {
+    count: 6,
+    planeSize: 0.62,
+    planeRatio: "4:5",
+    zGap: 0.55,
+    direction: "toward",
+    slotsPerCycle: 1,
+    spread: 0.34,
+    seed: 7,
+    rotate: 6,
+    fadeIn: 0.35,
+    cornerRadius: 0.022,
+  },
+  schema: [
+    { group: "Composición", key: "count", label: "Cards visibles", min: 3, max: 24, step: 1 },
+    { group: "Composición", key: "planeSize", label: "Tamaño", min: 0.1, max: 1.6, step: 0.01, pct: true },
+    { group: "Composición", key: "planeRatio", label: "Aspect del plano", type: "select", options: PLANE_RATIOS },
+    { group: "Composición", key: "zGap", label: "Separación en Z", min: 0.08, max: 2, step: 0.01, pct: true },
+
+    {
+      group: "Movimiento",
+      key: "direction",
+      label: "Dirección",
+      type: "select",
+      options: [
+        { value: "toward", label: "Hacia cámara" },
+        { value: "away", label: "Alejándose" },
+      ],
+    },
+    { group: "Movimiento", key: "slotsPerCycle", label: "Avance por ciclo", min: 1, max: 8, step: 1, unit: " slots" },
+
+    { group: "Forma", key: "spread", label: "Dispersión lateral", min: 0, max: 1.2, step: 0.01, pct: true },
+    { group: "Forma", key: "seed", label: "Semilla", min: 0, max: 999, step: 1 },
+    { group: "Forma", key: "rotate", label: "Rotación por card", min: 0, max: 45, step: 1, unit: "°" },
+    { group: "Forma", key: "cornerRadius", label: "Corner radius", min: 0, max: 0.2, step: 0.002, pct: true },
+
+    { group: "Profundidad", key: "fadeIn", label: "Fade de aparición", min: 0, max: 1, step: 0.01, pct: true },
+  ],
+
+  place(t, i, N, p, timing, ease, geom) {
+    const S = geom.SHORT;
+    const gapZ = Math.max(1, p.zGap * S);
+    const D = N * gapZ; // profundidad total del túnel
+    const dir = p.direction === "away" ? -1 : 1;
+
+    const adv = steppedAdvance(t, ease, p.slotsPerCycle);
+
+    // q crece con el avance; k es su posición dentro del túnel y w cuántas
+    // veces esta card ya dio la vuelta. Cada vuelta se lleva un asset nuevo,
+    // igual que el índice de cinta del carousel.
+    const q = dir * (adv - i);
+    const w = Math.floor(q / N);
+    const k = q - N * w; // [0, N): 0 = recién aparecida al fondo
+    const j = i + N * w;
+
+    // dist ∈ (near, near + D]: el fondo del túnel está a near + D de la cámara
+    // y el punto de wrap a `near`, donde la opacidad ya es 0. La escala la hace
+    // la perspectiva sola — acá no se toca el tamaño.
+    const near = TUNNEL_EXIT * D;
+    const dist = near + (D - k * gapZ);
+    const z = geom.camZ - dist;
+
+    const sx = (hash01(i * 12.9898 + p.seed * 7.13) * 2 - 1) * p.spread * S;
+    const sy = (hash01(i * 78.233 + p.seed * 3.71 + 11) * 2 - 1) * p.spread * S;
+    const rz = (hash01(i * 45.164 + p.seed * 5.17 + 23) * 2 - 1) * p.rotate;
+
+    const travel = near + D - dist; // 0 al aparecer al fondo
+    const enter = p.fadeIn > 0 ? smooth(travel / (p.fadeIn * D)) : 1;
+    const exit = smooth((dist - near) / near);
+
+    return {
+      pos: [sx, sy, z],
+      rot: [0, 0, rz * DEG],
+      size: geom.size(j),
+      opacity: enter * exit,
+      radius: p.cornerRadius * S,
+      assetSlot: j,
+    };
+  },
+};
+
+/* ------------------------------------------------------------------ */
+
+export const TEMPLATE_LIST = [carousel, deck, parallax, orbit, flip, tunnel];
 
 export const TEMPLATES = Object.fromEntries(
   TEMPLATE_LIST.map((tpl) => [tpl.id, tpl]),

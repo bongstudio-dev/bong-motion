@@ -3,6 +3,7 @@ import { getScene } from "../src/engine/getScene.js";
 import { loopClosure, minCyclesFor } from "../src/engine/loopTest.js";
 import { defaultState } from "../src/state/defaults.js";
 import { TEMPLATE_LIST } from "../src/engine/templates.js";
+import { VARIANTS_BY_TEMPLATE } from "../src/engine/library.js";
 
 let fails = 0;
 const ok = (cond, msg) => {
@@ -252,6 +253,104 @@ console.log("\n== 11. Stagger y dirección ==");
     const bad = frames.some((f) => f.planes.some((p) => !Number.isFinite(p.pos[0])));
     ok(!bad, `dirección '${dir}' produce frames válidos`);
   }
+}
+
+// Las tres familias nuevas comparten los mismos cinco checks, así que se
+// corren desde una sola tabla en vez de copiarlos tres veces.
+const NUEVAS = ["tunnel"];
+
+console.log("\n== 12. Familias nuevas: los cinco checks ==");
+for (const id of NUEVAS) {
+  const tpl = TEMPLATE_LIST.find((t) => t.id === id);
+  console.log(`  -- ${id} --`);
+  ok(!!tpl, `${id}: la familia existe`);
+  if (!tpl) continue;
+
+  // 2. El selector lista LIBRARY, no TEMPLATE_LIST: sin variantes de fábrica
+  //    la familia existiría en el engine y sería invisible en la interfaz.
+  ok((VARIANTS_BY_TEMPLATE[id] ?? []).length > 0, `${id}: aparece en el selector`);
+
+  // 3. Con cero assets, placeholders numerados como el resto.
+  const vacio = defaultState();
+  vacio.template.id = id;
+  const sc0 = getScene(0, vacio);
+  const N = sc0.planes.length;
+  ok(
+    N > 0 && sc0.planes.every((p) => p.assetIndex === -1 && p.placeholder >= 1),
+    `${id}: ${N} placeholders numerados sin assets`,
+  );
+  const nums = new Set(sc0.planes.map((p) => p.placeholder));
+  ok(nums.size === N, `${id}: los ${N} placeholders tienen números distintos`);
+
+  // 4. Cambiar el ratio no cambia la composición, sólo el marco. Es el mismo
+  //    criterio del test 9: el lado menor siempre es 1080 y los planos se miden
+  //    contra eso, así que su tamaño no puede depender del ratio.
+  const conAssets = withAssets(6);
+  conAssets.template.id = id;
+  const firmas = ["1:1", "4:5", "9:16", "16:9"].map((r) => {
+    const st = { ...conAssets, stage: { ...conAssets.stage, ratio: r } };
+    const sc = getScene(0.25, st);
+    return sc.planes
+      .map((p) => `${Math.round(p.size[0])}x${Math.round(p.size[1])}`)
+      .sort()
+      .join("|");
+  });
+  ok(new Set(firmas).size === 1, `${id}: misma composición en los 4 ratios`);
+
+  // 4b. Un param relativo que nadie convierte a px pasa todos los demás checks
+  //     —un plano de 0.62px sigue estando "en cuadro"— y sólo se nota mirando.
+  const anchos = getScene(0, conAssets).planes.map((p) => p.size[0]);
+  ok(
+    Math.min(...anchos) > 40 && Math.max(...anchos) < 4000,
+    `${id}: los planos miden px de verdad (${Math.round(Math.min(...anchos))}–${Math.round(Math.max(...anchos))}px)`,
+  );
+
+  // 5. El indicador reporta un cierre alcanzable.
+  const c = loopClosure(conAssets);
+  ok(c.status !== "broken", `${id}: el indicador reporta cierre (status '${c.status}')`);
+  if (c.suggested) {
+    conAssets.timing.cycles = c.suggested;
+    ok(
+      loopClosure(conAssets).status === "ok",
+      `${id}: con ${c.suggested} ciclos cierra de verdad`,
+    );
+  }
+}
+
+// El túnel se ancla en la cámara: la distancia a cámara de cada card —lo único
+// que define su tamaño en pantalla— no puede depender del ratio.
+console.log("\n== 12b. Tunnel: la profundidad no depende del ratio ==");
+{
+  const s = withAssets(6);
+  s.template.id = "tunnel";
+  const dists = ["1:1", "4:5", "9:16", "16:9"].map((r) => {
+    const st = { ...s, stage: { ...s.stage, ratio: r } };
+    const sc = getScene(0.3, st);
+    return sc.planes
+      .map((p) => Math.round(sc.camera.position[2] - p.pos[2]))
+      .sort((a, b) => a - b)
+      .join(",");
+  });
+  ok(new Set(dists).size === 1, `misma distancia a cámara en los 4 ratios`);
+
+  // El wrap ocurre en el punto más cercano a cámara, donde la card tapa el
+  // cuadro entero. Ahí la opacidad tiene que ser 0 o el salto se ve. Se mide con
+  // el fade de aparición apagado, que es el caso peor.
+  const st = { ...s, template: { ...s.template, params: { tunnel: { fadeIn: 0 } } } };
+  let minDist = Infinity;
+  let opAlWrap = 0;
+  for (let k = 0; k < 480; k++) {
+    const sc = getScene(k / 480, st);
+    for (const pl of sc.planes) {
+      const d = sc.camera.position[2] - pl.pos[2];
+      if (d < minDist) {
+        minDist = d;
+        opAlWrap = pl.opacity;
+      }
+    }
+  }
+  ok(minDist > 100, `ninguna card cruza el near plane (mínimo ${Math.round(minDist)}px)`);
+  ok(opAlWrap < 0.02, `en el punto de wrap la opacidad ya es 0 (${opAlWrap.toFixed(4)})`);
 }
 
 console.log(fails === 0 ? "\nTODO OK\n" : `\n${fails} FALLAS\n`);
