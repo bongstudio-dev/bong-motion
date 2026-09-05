@@ -79,15 +79,21 @@
         const tpl = TEMPLATES[id];
         if (!tpl) throw new Error(`No existe el template "${id}"`);
 
-        // El estado de la primera variante de fábrica: es lo que ve alguien que
-        // entra a la familia y le da click, no un default que nadie usa.
-        const variante = (VARIANTS_BY_TEMPLATE[id] ?? [])[0];
+        // Por defecto, la primera variante de fábrica: es lo que ve alguien que
+        // entra a la familia y le da click, no un default que nadie usa. Con
+        // ?variant=<id> se puede pedir cualquier otra.
+        const variantes = VARIANTS_BY_TEMPLATE[id] ?? [];
+        const pedida = q.get("variant");
+        const variante = pedida ? variantes.find((v) => v.id === pedida) : variantes[0];
+        if (pedida && !variante) throw new Error(`No existe el preset "${pedida}"`);
         const state = defaultState();
         state.template.id = id;
         if (variante) {
           state.template.params = { [id]: variante.params };
           state.timing = { ...state.timing, ...variante.timing };
           state.stage.fov = variante.fov ?? state.stage.fov;
+          // Un preset puede traer su propia cámara; si no, queda Fija.
+          if (variante.camera) state.camera = { ...state.camera, ...variante.camera };
         }
         state.stage.ratio = ratio;
         // Un ciclo, seis frames: es lo que muestra qué HACE el template. La

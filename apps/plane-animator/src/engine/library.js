@@ -333,6 +333,55 @@ export const LIBRARY = [
         timing: timing(1.5, 6, EASE_LINEAR),
       },
       {
+        // Grilla de ladrillo plana, sin perspectiva: filas alternas cruzándose
+        // en 2D. Para mostrar páginas de un manual, donde lo que importa es
+        // que la página se lea, no el efecto.
+        id: "wall-ladrillo",
+        name: "Ladrillo",
+        fov: 45,
+        params: {
+          // 5×5 y sin fade en los bordes: la grilla es más ancha y más alta
+          // que el cuadro, así que el wrap ocurre afuera y no hace falta
+          // taparlo. Un fade acá recortaría páginas del manual justo cuando se
+          // las quiere leer.
+          rows: 5, cols: 5, planeSize: 0.3, planeRatio: "4:5", gap: 0.02,
+          drift: 1, rowDir: "alternate", tiltX: 0, tiltY: 0,
+          centerScale: 0, edgeFade: 0, cornerRadius: 0.008,
+        },
+        timing: timing(1.4, 5, EASE_SNAP),
+      },
+      {
+        // El mismo ladrillo, pero la cámara arranca lejos y entra con cada
+        // paso de la grilla. La fase en 0.5 es lo que la pone lejos en el
+        // frame 0: el recorrido de cámara es de ida y vuelta, y media fase lo
+        // arranca en el extremo en vez de en el medio.
+        //
+        // Un paso de grilla por ciclo y un viaje de cámara por ciclo: el zoom
+        // y el movimiento son la misma cuenta, por eso quedan sincronizados.
+        id: "wall-ladrillo-zoom",
+        name: "Ladrillo zoom",
+        fov: 45,
+        params: {
+          // Sin fade en los bordes, y esta vez es una condición y no un gusto:
+          // el fade se calcula contra el cuadro BASE —los templates componen
+          // contra la cámara fija, si no el dolly no se vería— así que al
+          // alejarse aparecería el borde del fade en vez de más grilla. La
+          // grilla es lo bastante grande como para llenar el cuadro también en
+          // el punto más lejano del viaje.
+          rows: 5, cols: 5, planeSize: 0.3, planeRatio: "4:5", gap: 0.02,
+          drift: 1, rowDir: "alternate", tiltX: 0, tiltY: 0,
+          centerScale: 0, edgeFade: 0, cornerRadius: 0.008,
+        },
+        camera: {
+          move: "dolly",
+          amplitude: 0.8,
+          phase: 0.5,
+          period: 1,
+          ease: EASE_SNAP,
+        },
+        timing: timing(1.4, 5, EASE_SNAP),
+      },
+      {
         // Muy inclinado y con la fila del medio agrandada: el muro se lee como
         // una pared vista de costado.
         id: "wall-pared",
@@ -413,5 +462,10 @@ export function variantState(base, variant, template) {
     timing: { ...base.timing, ...variant.timing },
     fit: { ...base.fit, ...(variant.fit ?? {}) },
     stage: { ...base.stage, fov: variant.fov ?? 45 },
+    // La cámara sólo se pisa si el preset la declara. Los presets que no dicen
+    // nada dejan el movimiento que ya estaba puesto, que es lo que hace que la
+    // capa de cámara sea una capa: sobrevive al cambio de preset. Los que sí la
+    // declaran es porque el movimiento ES el preset.
+    camera: variant.camera ? { ...base.camera, ...variant.camera } : base.camera,
   };
 }
