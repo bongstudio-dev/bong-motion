@@ -599,7 +599,10 @@ const tunnel = {
     zGap: 0.55,
     direction: "toward",
     slotsPerCycle: 1,
-    spread: 0.34,
+    // Con poca dispersión las cards pasan por el centro y tapan el cuadro
+    // entera de a una. Con medio lado menor la mayoría sale por los costados,
+    // que es de donde viene la sensación de atravesar algo.
+    spread: 0.5,
     seed: 7,
     rotate: 6,
     fadeIn: 0.35,

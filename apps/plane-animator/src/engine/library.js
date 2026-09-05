@@ -272,7 +272,7 @@ export const LIBRARY = [
         fov: 45,
         params: {
           count: 6, planeSize: 0.62, planeRatio: "4:5", zGap: 0.6,
-          direction: "toward", slotsPerCycle: 1, spread: 0.34, seed: 7,
+          direction: "toward", slotsPerCycle: 1, spread: 0.5, seed: 7,
           rotate: 6, fadeIn: 0.35, cornerRadius: 0.022,
         },
         timing: timing(2.6, 6),
