@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hoja de contacto — plane-animator</title>
+    <!--
+      Harness de desarrollo, NO entra al build.
+
+      Vite construye sólo index.html: el resto de los .html de la raíz del
+      workspace los sirve en dev y los ignora en `vite build`. Por eso esta
+      página puede importar el motor real —el mismo renderer, el mismo
+      compositor— sin sumarle un gramo al bundle que se publica.
+
+      La usa scripts/contact-sheet.mjs con Chrome headless. A mano:
+      http://localhost:5175/contact-sheet.html?tpl=hero&ratio=9:16
+    -->
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        width: 1200px;
+        height: 968px;
+        overflow: hidden;
+        background: #141416;
+        color: #e6e6e8;
+        font: 500 13px/1.4 ui-sans-serif, system-ui, -apple-system, sans-serif;
+        padding: 28px 32px;
+      }
+      header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px; }
+      h1 { margin: 0; font-size: 19px; font-weight: 700; letter-spacing: 0.01em; }
+      .meta { color: #8a8b93; font-size: 12px; font-variant-numeric: tabular-nums; }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 22px 20px;
+        justify-items: center;
+      }
+      figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 7px; }
+      .frame {
+        height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      canvas { display: block; border-radius: 3px; }
+      figcaption {
+        color: #8a8b93;
+        font-size: 11px;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-variant-numeric: tabular-nums;
+      }
+      #error { color: #ff6b6b; font-family: ui-monospace, monospace; white-space: pre-wrap; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1 id="titulo">…</h1>
+      <span class="meta" id="meta"></span>
+    </header>
+    <div class="grid" id="grid"></div>
+    <div id="error"></div>
+
+    <script type="module">
+      import { createRenderer } from "/src/render/renderer.js";
+      import { defaultState } from "/src/state/defaults.js";
+      import { stageDims } from "/src/engine/camera.js";
+      import { TEMPLATES } from "/src/engine/templates.js";
+      import { VARIANTS_BY_TEMPLATE } from "/src/engine/library.js";
+      import { resolveParams } from "/src/engine/getScene.js";
+
+      const FRAMES = 6;
+      const ALTO = 400; // alto de la celda, en px de pantalla
+
+      try {
+        const q = new URLSearchParams(location.search);
+        const id = q.get("tpl") ?? "tunnel";
+        const ratio = q.get("ratio") ?? "4:5";
+        const tpl = TEMPLATES[id];
+        if (!tpl) throw new Error(`No existe el template "${id}"`);
+
+        // El estado de la primera variante de fábrica: es lo que ve alguien que
+        // entra a la familia y le da click, no un default que nadie usa.
+        const variante = (VARIANTS_BY_TEMPLATE[id] ?? [])[0];
+        const state = defaultState();
+        state.template.id = id;
+        if (variante) {
+          state.template.params = { [id]: variante.params };
+          state.timing = { ...state.timing, ...variante.timing };
+          state.stage.fov = variante.fov ?? state.stage.fov;
+        }
+        state.stage.ratio = ratio;
+        // Un ciclo, seis frames: es lo que muestra qué HACE el template. La
+        // pieza entera son varios ciclos iguales salvo por qué imagen toca.
+        state.timing.cycles = 1;
+
+        const dims = stageDims(ratio, { w: 1080, h: 1350 });
+        const escala = ALTO / dims.h;
+        const ancho = Math.round(dims.w * escala);
+
+        document.getElementById("titulo").textContent = `${tpl.name}${variante ? ` · ${variante.name}` : ""}`;
+        const p = resolveParams(state, tpl);
+        document.getElementById("meta").textContent =
+          `${ratio} · ${dims.w}×${dims.h} · ${FRAMES} frames de un ciclo · fov ${state.stage.fov}°`;
+
+        const grid = document.getElementById("grid");
+        for (let i = 0; i < FRAMES; i++) {
+          const t = i / FRAMES;
+
+          const fig = document.createElement("figure");
+          const caja = document.createElement("div");
+          caja.className = "frame";
+          const canvas = document.createElement("canvas");
+          canvas.style.width = `${ancho}px`;
+          canvas.style.height = `${ALTO}px`;
+          caja.appendChild(canvas);
+
+          const cap = document.createElement("figcaption");
+          cap.textContent = `t = ${t.toFixed(3)}`;
+
+          fig.appendChild(caja);
+          fig.appendChild(cap);
+          grid.appendChild(fig);
+
+          // El renderer real, el mismo que dibuja el preview y el export. Se
+          // dibuja contra el stage LÓGICO y se resuelve a 2× el tamaño de
+          // pantalla: la hoja se lee bien y no hay que mover 1080×1920 seis
+          // veces por SwiftShader.
+          const engine = createRenderer(canvas);
+          engine.setSize(dims.w, dims.h, (ancho * 2) / dims.w);
+          engine.draw(t, state, { stage: dims });
+        }
+
+        window.__hojaLista = true;
+      } catch (err) {
+        document.getElementById("error").textContent = `${err.message}\n${err.stack ?? ""}`;
+        window.__hojaError = String(err.message);
+      }
+    </script>
+  </body>
+</html>
