@@ -12,6 +12,8 @@
 // Cada preset está verificado por scripts/library-test.mjs: geometría válida,
 // planos dentro de cuadro y un número de ciclos que cierra el loop.
 
+import { defaultCamera, sameCamera } from "./cameraMove.js";
+
 const EASE_SNAP = [0.87, 0, 0.13, 1]; // expoInOut: "pisa" un paso por ciclo
 const EASE_SOFT = [0.65, 0, 0.35, 1];
 const EASE_LINEAR = [0, 0, 1, 1];
@@ -452,6 +454,12 @@ export const findVariant = (id) => ALL_VARIANTS.find((v) => v.id === id) ?? null
 
 // Estado completo para previsualizar un preset sin tocar el del usuario: lo que
 // consume la miniatura y lo que se aplica al elegirlo.
+// ¿Esta cámara es, exactamente, la que declara algún preset de la biblioteca?
+const cameraFromPreset = (cam) =>
+  ALL_VARIANTS.some(
+    (v) => v.camera && sameCamera(cam, { ...defaultCamera(), ...v.camera }),
+  );
+
 export function variantState(base, variant, template) {
   return {
     ...base,
@@ -462,10 +470,20 @@ export function variantState(base, variant, template) {
     timing: { ...base.timing, ...variant.timing },
     fit: { ...base.fit, ...(variant.fit ?? {}) },
     stage: { ...base.stage, fov: variant.fov ?? 45 },
-    // La cámara sólo se pisa si el preset la declara. Los presets que no dicen
-    // nada dejan el movimiento que ya estaba puesto, que es lo que hace que la
-    // capa de cámara sea una capa: sobrevive al cambio de preset. Los que sí la
-    // declaran es porque el movimiento ES el preset.
-    camera: variant.camera ? { ...base.camera, ...variant.camera } : base.camera,
+    // La cámara sólo se pisa si el preset la declara: los que no dicen nada
+    // dejan el movimiento puesto, que es lo que hace que la capa de cámara sea
+    // una capa. Los que sí la declaran es porque el movimiento ES el preset.
+    //
+    // Con una excepción, y es la que hacía falta: si la cámara que hay puesta
+    // es exactamente la de algún preset, entonces la puso un preset y no la
+    // persona — y un preset que no declara cámara tiene que limpiarla. Sin
+    // esto, "Ladrillo" y "Ladrillo zoom" comparten params y el zoom quedaba
+    // pegado: elegir Ladrillo no devolvía Ladrillo. Una cámara armada a mano
+    // no coincide con ninguna declarada, así que sigue sobreviviendo.
+    camera: variant.camera
+      ? { ...base.camera, ...variant.camera }
+      : cameraFromPreset(base.camera)
+        ? defaultCamera()
+        : base.camera,
   };
 }

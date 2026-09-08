@@ -97,7 +97,11 @@ export function createRenderer(canvas) {
       mesh.renderOrder = pl.renderOrder;
 
       const map = prepare(
-        pl.assetId ? getTexture(pl.assetId) : placeholderTexture(pl.placeholder),
+        pl.assetId
+          ? getTexture(pl.assetId)
+          : // El placeholder se dibuja con la proporción del plano: el motor da
+            // por hecho que la textura ya viene con esa forma y no la recorta.
+            placeholderTexture(pl.placeholder, pl.size[0] / pl.size[1]),
       );
       const backMap = pl.backAssetId ? prepare(getTexture(pl.backAssetId)) : null;
 

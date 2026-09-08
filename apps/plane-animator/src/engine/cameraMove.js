@@ -36,6 +36,12 @@ export const defaultCamera = () => ({
   ease: [0.65, 0, 0.35, 1],
 });
 
+// ¿Son la misma cámara? El ease es un array, así que se compara serializado.
+const CAM_KEYS = ["move", "amplitude", "phase", "period"];
+
+export const sameCamera = (a, b) =>
+  CAM_KEYS.every((k) => a?.[k] === b?.[k]) && String(a?.ease) === String(b?.ease);
+
 // Cuántos ciclos de template tarda la cámara en completar su recorrido.
 //
 // El param es "cada cuántos ciclos vuelve" y no "cuántas vueltas da por ciclo":

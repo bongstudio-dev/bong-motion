@@ -9,7 +9,7 @@
  * verde profundo es una mancha.
  */
 
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { Button, Icon, IconButton } from "./controls.jsx";
 import { ScrubField } from "./ScrubField.jsx";
 import {
@@ -18,6 +18,7 @@ import {
   getGlass,
   glassAsCss,
   glassDefault,
+  glassRange,
   isGlassTweaked,
   resetGlass,
   setGlass,
@@ -46,6 +47,12 @@ function GlassTweakerInner({ onClose }) {
   const [, bump] = useState(0);
   const [copied, setCopied] = useState(false);
   const [dump, setDump] = useState(null);
+  // Estable entre renders: si cambiara de identidad, memo() no serviría de nada
+  // porque las quince perillas verían un prop nuevo igual.
+  const onKnob = useRef((key, v) => {
+    setGlass(key, v);
+    bump((n) => n + 1);
+  }).current;
   const drag = useRef(null);
 
   useEffect(() => {
@@ -120,9 +127,20 @@ function GlassTweakerInner({ onClose }) {
         {GROUPS.map((group) => (
           <div className="group" key={group}>
             <div className="group-title">{group}</div>
-            {GLASS_PARAMS.filter((p) => p.group === group).map((p) => (
-              <Knob key={p.key} spec={p} onChange={() => bump((n) => n + 1)} />
-            ))}
+            {GLASS_PARAMS.filter((p) => p.group === group).map((p) => {
+              const [min, max] = glassRange(p.key);
+              return (
+                <Knob
+                  key={p.key}
+                  spec={p}
+                  value={getGlass(p.key)}
+                  tweaked={isGlassTweaked(p.key)}
+                  min={min}
+                  max={max}
+                  onChange={onKnob}
+                />
+              );
+            })}
           </div>
         ))}
 
@@ -163,38 +181,35 @@ function GlassTweakerInner({ onClose }) {
   );
 }
 
-// Una perilla. El botón de la derecha aparece sólo si el valor está fuera del
-// default, y hace dos cosas a la vez: marca qué se tocó —después de veinte
-// movimientos uno ya no se acuerda— y lo devuelve.
-function Knob({ spec, onChange }) {
-  const value = getGlass(spec.key);
-  const tweaked = isGlassTweaked(spec.key);
+/* Una perilla. El botón de la derecha aparece sólo si el valor está fuera del
+   default, y hace dos cosas a la vez: marca qué se tocó —después de veinte
+   movimientos uno ya no se acuerda— y lo devuelve.
+
+   Va memoizada y recibe su valor por prop en vez de leerlo del store. Sin eso,
+   arrastrar una perilla re-renderiza las quince en cada pointermove, y eso
+   compite por el mismo frame con el motor de luz que se está tratando de
+   ajustar: la herramienta empeoraba justo lo que venías a medir. */
+const Knob = memo(function Knob({ spec, value, tweaked, min, max, onChange }) {
   return (
     <div className={`knob ${tweaked ? "tweaked" : ""}`.trim()} title={spec.hint ?? ""}>
       <ScrubField
         label={spec.label}
         value={value}
-        min={spec.min}
-        max={spec.max}
+        min={min}
+        max={max}
         step={spec.step}
         unit={spec.unit ?? ""}
-        onChange={(v) => {
-          setGlass(spec.key, v);
-          onChange();
-        }}
+        onChange={(v) => onChange(spec.key, v)}
       />
       {tweaked && (
         <button
           className="knob-reset"
           title={`Volver al default (${glassDefault(spec.key)})`}
-          onClick={() => {
-            setGlass(spec.key, glassDefault(spec.key));
-            onChange();
-          }}
+          onClick={() => onChange(spec.key, glassDefault(spec.key))}
         />
       )}
     </div>
   );
-}
+});
 
 export default GlassTweaker;

@@ -73,14 +73,17 @@
      Todo lo que define el material está acá y en ningún otro lado: el tweaker
      las pisa en línea sobre <html> y con eso alcanza. Estos son los defaults
      del tema claro; el bloque oscuro redefine los que cambian. */
-  --g-light: 0.42; /* pico del reflejo */
-  --g-contrast: 0.055; /* la contraparte oscura, del otro lado del panel */
+  /* Sobre crema, el reflejo NO se hace con blanco: el panel ya está contra el
+     techo y aclararlo no tiene a dónde ir (medido: 11 niveles de recorrido
+     total). Acá el que trabaja es --g-contrast, que hunde el lado opuesto. */
+  --g-light: 0.55; /* pico del reflejo */
+  --g-contrast: 0.13; /* la contraparte oscura, del otro lado del panel */
   --g-spread: 1; /* qué tan abierto es el degradado */
   --g-edge: 1; /* brillo del filo especular */
   --g-rim: 1.3px; /* cuánto se corre ese filo */
   --g-blur: 26px;
   --g-sat: 1.6;
-  --g-opacity: 0.5; /* opacidad del vidrio */
+  --g-opacity: 0.4; /* opacidad del vidrio: más baja que 0.5 para que el reflejo tenga recorrido */
   --g-shadow: 1; /* peso de la sombra */
   --g-lift: 1; /* cuánto flota */
   --g-parallax: 2px; /* cuánto se corre la sombra en contra de la luz */
@@ -221,14 +224,14 @@
   background: radial-gradient(
       calc(175% * var(--g-spread) * var(--lwx, 1)) calc(230% * var(--g-spread) * var(--lwy, 1))
         at var(--lx) var(--ly),
-      rgba(255, 255, 255, var(--g-light)) 0%,
-      rgba(255, 255, 255, calc(var(--g-light) * 0.29)) 36%,
+      rgba(255, 255, 255, calc(var(--g-light) * (0.25 + 0.75 * var(--li)))) 0%,
+      rgba(255, 255, 255, calc(var(--g-light) * 0.29 * (0.25 + 0.75 * var(--li)))) 36%,
       rgba(255, 255, 255, 0) 74%
     ),
     radial-gradient(
       calc(175% * var(--g-spread)) calc(230% * var(--g-spread))
         at calc(100% - var(--lx)) calc(100% - var(--ly)),
-      rgba(22, 54, 43, var(--g-contrast)) 0%,
+      rgba(22, 54, 43, calc(var(--g-contrast) * (0.25 + 0.75 * var(--li)))) 0%,
       rgba(22, 54, 43, 0) 66%
     );
 }
@@ -299,20 +302,50 @@
    no existe. */
 :root[data-skin="glass"] .sidebar > * { flex-shrink: 0; }
 
-/* La barra de scroll por defecto se dibuja oscura y encima del canto derecho
-   de las cards. Con las cards separadas del contenedor eso se nota. */
-:root[data-skin="glass"] .sidebar::-webkit-scrollbar { width: 8px; }
-:root[data-skin="glass"] .sidebar::-webkit-scrollbar-track { background-color: transparent; }
-:root[data-skin="glass"] .sidebar::-webkit-scrollbar-thumb {
-  background-color: rgba(22, 54, 43, 0.18);
+/* Una sola barra de scroll para todo lo que scrollea en el skin. El thumb es
+   una pastilla con aire propio: el borde transparente más background-clip es
+   lo que separa la pastilla del canal sin tener que dibujar el canal.
+
+   Va con los tokens de contorno y no con un color fijo, así el mismo bloque
+   sirve en claro y en oscuro. */
+:root[data-skin="glass"] .sidebar::-webkit-scrollbar,
+:root[data-skin="glass"] .library-body::-webkit-scrollbar,
+:root[data-skin="glass"] .float-panel-body::-webkit-scrollbar,
+:root[data-skin="glass"] .modal-body::-webkit-scrollbar,
+:root[data-skin="glass"] .section-body::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+:root[data-skin="glass"] .sidebar::-webkit-scrollbar-track,
+:root[data-skin="glass"] .library-body::-webkit-scrollbar-track,
+:root[data-skin="glass"] .float-panel-body::-webkit-scrollbar-track,
+:root[data-skin="glass"] .modal-body::-webkit-scrollbar-track,
+:root[data-skin="glass"] .section-body::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+:root[data-skin="glass"] .sidebar::-webkit-scrollbar-thumb,
+:root[data-skin="glass"] .library-body::-webkit-scrollbar-thumb,
+:root[data-skin="glass"] .float-panel-body::-webkit-scrollbar-thumb,
+:root[data-skin="glass"] .modal-body::-webkit-scrollbar-thumb,
+:root[data-skin="glass"] .section-body::-webkit-scrollbar-thumb {
+  background-color: var(--stroke-strong);
   border-radius: 99px;
-  border: 2px solid transparent;
+  border: 3px solid transparent;
   background-clip: content-box;
 }
-:root[data-skin="glass"] .sidebar:hover::-webkit-scrollbar-thumb {
-  background-color: rgba(22, 54, 43, 0.3);
+
+:root[data-skin="glass"] .sidebar:hover::-webkit-scrollbar-thumb,
+:root[data-skin="glass"] .library-body:hover::-webkit-scrollbar-thumb,
+:root[data-skin="glass"] .float-panel-body:hover::-webkit-scrollbar-thumb,
+:root[data-skin="glass"] .modal-body:hover::-webkit-scrollbar-thumb {
+  background-color: var(--muted-2);
   background-clip: content-box;
 }
+
+:root[data-skin="glass"] .library-body,
+:root[data-skin="glass"] .modal-body { scrollbar-gutter: stable; }
 
 :root[data-skin="glass"] .sidebar-head {
   padding: 14px 16px;
@@ -1389,8 +1422,8 @@
   /* Perillas del cristal en oscuro. Sobre un suelo verde profundo el mismo
      reflejo del tema claro se vuelve una mancha lechosa: la luz entra a un
      cuarto y el filo a un tercio. */
-  --g-light: 0.1;
-  --g-contrast: 0.14;
+  --g-light: 0.13;
+  --g-contrast: 0.16;
   --g-edge: 0.3;
   --g-sat: 1.1;
   --g-opacity: 0.075;
@@ -1444,14 +1477,14 @@
     radial-gradient(
       calc(175% * var(--g-spread) * var(--lwx, 1)) calc(230% * var(--g-spread) * var(--lwy, 1))
         at var(--lx) var(--ly),
-      rgba(255, 255, 255, var(--g-light)) 0%,
-      rgba(255, 255, 255, calc(var(--g-light) * 0.3)) 36%,
+      rgba(255, 255, 255, calc(var(--g-light) * (0.25 + 0.75 * var(--li)))) 0%,
+      rgba(255, 255, 255, calc(var(--g-light) * 0.3 * (0.25 + 0.75 * var(--li)))) 36%,
       rgba(255, 255, 255, 0) 74%
     ),
     radial-gradient(
       calc(175% * var(--g-spread)) calc(230% * var(--g-spread))
         at calc(100% - var(--lx)) calc(100% - var(--ly)),
-      rgba(0, 0, 0, var(--g-contrast)) 0%,
+      rgba(0, 0, 0, calc(var(--g-contrast) * (0.25 + 0.75 * var(--li)))) 0%,
       rgba(0, 0, 0, 0) 66%
     );
 }
@@ -1630,14 +1663,6 @@
     0 26px 60px -30px rgba(0, 0, 0, 0.8);
 }
 
-:root[data-skin="glass"][data-theme="dark"] .sidebar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.16);
-  background-clip: content-box;
-}
-:root[data-skin="glass"][data-theme="dark"] .sidebar:hover::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.28);
-  background-clip: content-box;
-}
 :root[data-skin="glass"][data-theme="dark"] .rail-panel::after,
 :root[data-skin="glass"][data-theme="dark"] .skin-toggle::after { background: var(--stroke); }
 
