@@ -22,6 +22,8 @@
   --green-800: #125540; /* nivel del slider */
   --green-500: #2ba976; /* perilla */
   --green-rail: #002e1f; /* riel del slider: fijo, nunca reacciona */
+  --bar: rgba(0, 72, 49, 0.28); /* la barra de scroll */
+  --bar-hover: rgba(0, 72, 49, 0.5);
   --ink: #16261f; /* texto: verde casi negro, nunca negro puro sobre crema */
 
   --bg: var(--cream);
@@ -180,9 +182,6 @@
   -webkit-backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
   backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
   box-shadow:
-    /* filo especular, del lado que mira a la luz */
-    inset calc(var(--nx) * var(--g-rim) * -1) calc(var(--ny) * var(--g-rim) * -1) 0 0
-      rgba(255, 255, 255, calc(var(--g-edge) * (0.55 + 0.45 * var(--li)))),
     /* espesor: el canto de abajo devuelve un poco de sombra hacia adentro, que
        es lo que hace que el cristal tenga cuerpo y no sea una lámina */
     inset 0 -1px 3px -1px rgba(22, 54, 43, calc(0.1 * var(--g-shadow))),
@@ -191,9 +190,8 @@
     /* contacto */
     0 1px 2px 0 rgba(22, 54, 43, calc(0.05 * var(--g-shadow))),
     /* peso, corrido en contra de la luz */
-    calc(var(--nx) * var(--g-parallax) * -1)
-      calc(8px * var(--g-lift) + var(--ny) * var(--g-parallax) * -1)
-      calc(26px * var(--g-lift)) -14px rgba(22, 54, 43, calc(0.32 * var(--g-shadow)));
+    0 calc(8px * var(--g-lift)) calc(26px * var(--g-lift)) -14px
+      rgba(22, 54, 43, calc(0.32 * var(--g-shadow)));
 }
 
 /* El ::after del reflejo necesita un contenedor posicionado. Se lo damos sólo
@@ -208,14 +206,13 @@
   position: relative;
 }
 
-:root[data-skin="glass"] .tool-rail::after,
-:root[data-skin="glass"] .library::after,
-:root[data-skin="glass"] .sidebar-head::after,
-:root[data-skin="glass"] .section::after,
-:root[data-skin="glass"] .transport::after,
-:root[data-skin="glass"] .float-panel::after,
-:root[data-skin="glass"] .modal::after {
-  content: "";
+:root[data-skin="glass"] .tool-rail > .glass-sheen,
+:root[data-skin="glass"] .library > .glass-sheen,
+:root[data-skin="glass"] .sidebar-head > .glass-sheen,
+:root[data-skin="glass"] .section > .glass-sheen,
+:root[data-skin="glass"] .transport > .glass-sheen,
+:root[data-skin="glass"] .float-panel > .glass-sheen,
+:root[data-skin="glass"] .modal > .glass-sheen {
   position: absolute;
   inset: 0;
   z-index: 0;
@@ -330,7 +327,10 @@
 :root[data-skin="glass"] .float-panel-body::-webkit-scrollbar-thumb,
 :root[data-skin="glass"] .modal-body::-webkit-scrollbar-thumb,
 :root[data-skin="glass"] .section-body::-webkit-scrollbar-thumb {
-  background-color: var(--stroke-strong);
+  /* Verde de marca, no gris. Va translúcido: sobre las cards de cristal un
+     verde sólido se lee como un control más y la barra no es un control, es
+     una señal de posición. */
+  background-color: var(--bar);
   border-radius: 99px;
   border: 3px solid transparent;
   background-clip: content-box;
@@ -340,7 +340,7 @@
 :root[data-skin="glass"] .library-body:hover::-webkit-scrollbar-thumb,
 :root[data-skin="glass"] .float-panel-body:hover::-webkit-scrollbar-thumb,
 :root[data-skin="glass"] .modal-body:hover::-webkit-scrollbar-thumb {
-  background-color: var(--muted-2);
+  background-color: var(--bar-hover);
   background-clip: content-box;
 }
 
@@ -772,7 +772,7 @@
   background-color: var(--green-900);
   color: #fff;
 }
-:root[data-skin="glass"] .skin-toggle::after { background-color: rgba(22, 54, 43, 0.14); }
+:root[data-skin="glass"] .skin-toggle > .glass-sheen { background-color: rgba(22, 54, 43, 0.14); }
 :root[data-skin="glass"] .skin-toggle:hover { background-color: rgba(255, 255, 255, 0.75); }
 
 
@@ -820,7 +820,12 @@
   :root[data-skin="glass"] .notice,
   :root[data-skin="glass"] .pick,
   :root[data-skin="glass"] .icon-btn,
-  :root[data-skin="glass"] .stage-wrap {
+  :root[data-skin="glass"] .stage-wrap,
+  /* La hoja del reflejo hereda el RADIO del panel con border-radius: inherit,
+     pero corner-shape no se hereda. Sin esto dibuja un arco de círculo donde la
+     card dibuja una superelipse, y a radio igual el arco recorta más: se ve un
+     escalón de luz en cada esquina. */
+  :root[data-skin="glass"] .glass-sheen {
     corner-shape: squircle;
   }
 }
@@ -1408,6 +1413,8 @@
   --green-800: #16906a; /* hover, y el nivel del slider */
   --green-500: #35d29a; /* la perilla */
   --green-rail: #00251a; /* el riel: sigue siendo el punto más oscuro de todo */
+  --bar: rgba(53, 210, 154, 0.3);
+  --bar-hover: rgba(53, 210, 154, 0.55);
 
   --active: var(--ink);
   --active-bg: rgba(53, 210, 154, 0.14);
@@ -1456,23 +1463,20 @@
   -webkit-backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
   backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
   box-shadow:
-    inset calc(var(--nx) * var(--g-rim) * -1) calc(var(--ny) * var(--g-rim) * -1) 0 0
-      rgba(255, 255, 255, calc(var(--g-edge) * (0.47 + 0.53 * var(--li)))),
     inset 0 -1px 3px -1px rgba(0, 0, 0, calc(0.28 * var(--g-shadow))),
     0 0 0 1px rgba(255, 255, 255, 0.05),
     0 1px 2px 0 rgba(0, 0, 0, calc(0.3 * var(--g-shadow))),
-    calc(var(--nx) * var(--g-parallax) * -1)
-      calc(8px * var(--g-lift) + var(--ny) * var(--g-parallax) * -1)
-      calc(26px * var(--g-lift)) -14px rgba(0, 0, 0, calc(0.6 * var(--g-shadow)));
+    0 calc(8px * var(--g-lift)) calc(26px * var(--g-lift)) -14px
+      rgba(0, 0, 0, calc(0.6 * var(--g-shadow)));
 }
 
-:root[data-skin="glass"][data-theme="dark"] .tool-rail::after,
-:root[data-skin="glass"][data-theme="dark"] .library::after,
-:root[data-skin="glass"][data-theme="dark"] .sidebar-head::after,
-:root[data-skin="glass"][data-theme="dark"] .section::after,
-:root[data-skin="glass"][data-theme="dark"] .transport::after,
-:root[data-skin="glass"][data-theme="dark"] .float-panel::after,
-:root[data-skin="glass"][data-theme="dark"] .modal::after {
+:root[data-skin="glass"][data-theme="dark"] .tool-rail > .glass-sheen,
+:root[data-skin="glass"][data-theme="dark"] .library > .glass-sheen,
+:root[data-skin="glass"][data-theme="dark"] .sidebar-head > .glass-sheen,
+:root[data-skin="glass"][data-theme="dark"] .section > .glass-sheen,
+:root[data-skin="glass"][data-theme="dark"] .transport > .glass-sheen,
+:root[data-skin="glass"][data-theme="dark"] .float-panel > .glass-sheen,
+:root[data-skin="glass"][data-theme="dark"] .modal > .glass-sheen {
   background:
     radial-gradient(
       calc(175% * var(--g-spread) * var(--lwx, 1)) calc(230% * var(--g-spread) * var(--lwy, 1))
@@ -1663,8 +1667,8 @@
     0 26px 60px -30px rgba(0, 0, 0, 0.8);
 }
 
-:root[data-skin="glass"][data-theme="dark"] .rail-panel::after,
-:root[data-skin="glass"][data-theme="dark"] .skin-toggle::after { background: var(--stroke); }
+:root[data-skin="glass"][data-theme="dark"] .rail-panel > .glass-sheen,
+:root[data-skin="glass"][data-theme="dark"] .skin-toggle > .glass-sheen { background: var(--stroke); }
 
 /* El nivel del slider va aparte del verde de selección. Comparten token en
    claro porque ahí los dos son oscuros, pero en oscuro el verde de selección
@@ -1745,3 +1749,42 @@
 
 :root[data-skin="glass"] .glass-tweaker .float-panel-title { color: var(--green-900); }
 :root[data-skin="glass"][data-theme="dark"] .glass-tweaker .float-panel-title { color: var(--ink); }
+
+
+/* ============================================================================
+   La hoja del reflejo
+   ============================================================================
+   El reflejo dejó de ser un ::after de la superficie y pasó a ser un elemento
+   propio, vacío, que crea el motor de luz.
+
+   El motivo es medido y es grande: escribir una custom property en un elemento
+   invalida el estilo de TODO lo que cuelga de él, porque las custom properties
+   se heredan. Las doce superficies del skin tienen 563 descendientes entre
+   todas, y actualizar la luz sobre ellas costaba 7 ms por frame de los 16.7
+   disponibles — con una variable inútil costaba lo mismo, así que no era el
+   gradiente ni el blur: era la herencia. Sobre una hoja sin descendientes la
+   misma escritura cuesta 0.12 ms.
+
+   Un pseudo-elemento no sirve para esto: registrar las variables con
+   `inherits: false` sería la solución elegante, pero entonces el ::after deja
+   de verlas —probado— porque hereda del originante y sin herencia toma el
+   valor inicial. Por eso hace falta un elemento de verdad. */
+
+:root[data-skin="glass"] .glass-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  /* El filo especular vive acá y no en la superficie por la misma razón que
+     todo lo demás: es lo único que necesitaba --nx/--ny arriba. */
+  box-shadow: inset calc(var(--nx, 0) * var(--g-rim) * -1)
+    calc(var(--ny, -1) * var(--g-rim) * -1) 0 0
+    rgba(255, 255, 255, calc(var(--g-edge) * (0.55 + 0.45 * var(--li, 0.35))));
+}
+
+:root[data-skin="glass"][data-theme="dark"] .glass-sheen {
+  box-shadow: inset calc(var(--nx, 0) * var(--g-rim) * -1)
+    calc(var(--ny, -1) * var(--g-rim) * -1) 0 0
+    rgba(255, 255, 255, calc(var(--g-edge) * (0.47 + 0.53 * var(--li, 0.35))));
+}

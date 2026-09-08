@@ -403,10 +403,46 @@ let boxes = null; // [{el, left, top, width, height}]
 let boxesDirty = true;
 let ro = null;
 let mo = null;
+let injecting = false; // ignorar las mutaciones que provoca el propio motor
 
+let pendingMeasure = false;
+
+/* Medir NO cuelga del rAF. El motor arranca en tiempo de import, o sea antes de
+   que React monte nada, y una pestaña que arranca en segundo plano no corre
+   rAF: las superficies se quedarían sin su hoja hasta que alguien mueva el
+   mouse con la ventana al frente. Se mide en un microtask, una vez por ráfaga
+   de mutaciones, y cuesta 0.1 ms. */
 function invalidateBoxes() {
+  if (injecting) return;
   boxesDirty = true;
-  if (!frame) frame = requestAnimationFrame(paint);
+  if (!pendingMeasure) {
+    pendingMeasure = true;
+    queueMicrotask(() => {
+      pendingMeasure = false;
+      if (boxesDirty) measure();
+    });
+  }
+}
+
+/* La hoja donde se escribe la luz. Va como último hijo de la superficie y es
+   la razón de todo el arreglo de rendimiento: escribir sobre ella no invalida
+   el estilo de nadie, porque no tiene descendientes.
+
+   Se crea desde acá y no desde el JSX porque son siete componentes en tres
+   apps, y porque `measure()` ya corre ante cualquier mutación del DOM: si React
+   llegara a barrerla en un re-render, vuelve sola en el frame siguiente. */
+function ensureSheen(el) {
+  let sheen = el.lastElementChild;
+  if (sheen?.classList?.contains("glass-sheen")) return sheen;
+  sheen = el.querySelector(":scope > .glass-sheen");
+  if (sheen) return sheen;
+  sheen = document.createElement("i");
+  sheen.className = "glass-sheen";
+  sheen.setAttribute("aria-hidden", "true");
+  injecting = true;
+  el.appendChild(sheen);
+  injecting = false;
+  return sheen;
 }
 
 function measure() {
@@ -417,7 +453,14 @@ function measure() {
     // Fuera de pantalla o colapsado no se pinta: no se ve y cuesta igual.
     if (r.width < 1 || r.height < 1) continue;
     if (r.bottom < -200 || r.top > innerHeight + 200) continue;
-    next.push({ el, left: r.left, top: r.top, width: r.width, height: r.height });
+    next.push({
+      el,
+      sheen: ensureSheen(el),
+      left: r.left,
+      top: r.top,
+      width: r.width,
+      height: r.height,
+    });
   }
   boxes = next;
   boxesDirty = false;
@@ -484,11 +527,10 @@ function paint() {
   warpX += (wx / Math.sqrt(wy) - warpX) * 0.3;
   warpY += (wy / Math.sqrt(wx) - warpY) * 0.3;
 
-  const rootStyle = document.documentElement.style;
-  setIfChanged(rootStyle, "--lwx", warpX.toFixed(2));
-  setIfChanged(rootStyle, "--lwy", warpY.toFixed(2));
-
   if (boxesDirty || !boxes) measure();
+
+  const wx2 = warpX.toFixed(2);
+  const wy2 = warpY.toFixed(2);
 
   for (let i = 0; i < boxes.length; i++) {
     const b = boxes[i];
@@ -510,14 +552,18 @@ function paint() {
     const oy = Math.max(b.top - lightY, 0, lightY - (b.top + b.height));
     const t = clamp(1 - Math.hypot(ox, oy) / reach, 0, 1);
 
-    /* Se escribe redondeado y sólo si cambió. Un panel lejos apenas se mueve, y
-       cada escritura que no cambia nada igual repinta una capa con blur. */
-    const st = b.el.style;
+    /* Todo se escribe en la HOJA, nunca en la superficie: ahí no hay
+       descendientes a los que invalidarles el estilo. Y redondeado y sólo si
+       cambió — un panel lejano apenas se mueve, y cada escritura que no cambia
+       nada igual repinta una capa con blur. */
+    const st = b.sheen.style;
     setIfChanged(st, "--lx", lx.toFixed(0) + "%");
     setIfChanged(st, "--ly", ly.toFixed(0) + "%");
     setIfChanged(st, "--nx", (dx / len).toFixed(2));
     setIfChanged(st, "--ny", (dy / len).toFixed(2));
     setIfChanged(st, "--li", (t * t * (3 - 2 * t)).toFixed(2));
+    setIfChanged(st, "--lwx", wx2);
+    setIfChanged(st, "--lwy", wy2);
   }
 
   paintHover();
@@ -559,7 +605,7 @@ function startLight() {
   ro = new ResizeObserver(invalidateBoxes);
   mo = new MutationObserver(invalidateBoxes);
   mo.observe(document.body, { childList: true, subtree: true });
-  measure();
+  invalidateBoxes();
 }
 
 function stopLight() {
@@ -589,15 +635,7 @@ function stopLight() {
   warpX = 1;
   warpY = 1;
   lastFrame = 0;
-  document.documentElement.style.removeProperty("--lwx");
-  document.documentElement.style.removeProperty("--lwy");
-  document.querySelectorAll(SEL).forEach((el) => {
-    el.style.removeProperty("--lx");
-    el.style.removeProperty("--ly");
-    el.style.removeProperty("--nx");
-    el.style.removeProperty("--ny");
-    el.style.removeProperty("--li");
-  });
+  document.querySelectorAll(".glass-sheen").forEach((el) => el.remove());
 }
 
 if (typeof document !== "undefined") {
