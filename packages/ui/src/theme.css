@@ -223,6 +223,11 @@ input { font-family: inherit; }
 .section-head .chev { color: var(--muted-2); transition: transform 0.15s ease; }
 .section.open .section-head .chev { transform: rotate(90deg); }
 
+/* El cuerpo se monta siempre (lo necesita la animación de cierre del skin
+   Glass, que sin nodo no tiene qué contraer) y es esta regla la que lo oculta
+   cuando la sección está plegada. */
+.section:not(.open) .section-body { display: none; }
+
 .section-body {
   padding: 4px 16px 16px;
   display: flex;

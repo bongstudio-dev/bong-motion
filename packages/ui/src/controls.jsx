@@ -106,6 +106,31 @@ export const Icon = {
       />
     </svg>
   ),
+  // El clásico de "condensar panel": el marco del panel con su columna, y la
+  // flecha diciendo hacia dónde se va.
+  PanelCollapse: (p) => (
+    <svg width="15" height="15" viewBox="0 0 16 16" {...p}>
+      <rect
+        x="1.5"
+        y="2.5"
+        width="13"
+        height="11"
+        rx="2"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.2"
+      />
+      <path d="M6 2.5v11" stroke="currentColor" strokeWidth="1.2" />
+      <path
+        d="M11.6 6.4L9.6 8l2 1.6"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  ),
   Close: (p) => (
     <svg width="13" height="13" viewBox="0 0 14 14" {...p}>
       <path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" strokeWidth="1.2" />
@@ -135,7 +160,10 @@ export function Section({ title, defaultOpen = true, value = null, right = null,
           <Icon.Chevron className="chev" />
         </span>
       </button>
-      {open && <div className="section-body">{children}</div>}
+      {/* El cuerpo se monta siempre y lo esconde el CSS (`display: none` cuando
+          la sección no está abierta). Desmontarlo dejaba el cierre sin nada que
+          animar: la salida necesita que el nodo siga ahí mientras se contrae. */}
+      <div className="section-body">{children}</div>
     </div>
   );
 }
