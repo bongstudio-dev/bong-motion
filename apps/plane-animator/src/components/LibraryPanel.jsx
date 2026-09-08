@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Button, Icon, IconButton } from "@bong/ui";
 import { TEMPLATES } from "../engine/templates.js";
 import { LIBRARY, ALL_VARIANTS, variantState } from "../engine/library.js";
+import { defaultCamera, sameCamera } from "../engine/cameraMove.js";
 import { presetFromState, applyPreset } from "../state/defaults.js";
 import { loadPresets, savePresets } from "../state/storage.js";
 import PresetThumb from "./PresetThumb.jsx";
@@ -14,10 +15,28 @@ import PresetThumb from "./PresetThumb.jsx";
 // estaba— mezclaba el segundo paso con el tercero y los hacía competir por el
 // mismo espacio.
 
-// ¿Los params actuales son exactamente los de esta variante? Marca cuál está
+// ¿El estado actual es exactamente el de esta variante? Marca cuál está
 // aplicada; se desmarca al tocar cualquier slider, que es cuando dejó de serlo.
-const matches = (params, variant) =>
-  Object.entries(variant.params ?? {}).every(([k, v]) => params[k] === v);
+//
+// La cámara entra en la comparación porque hay variantes que se diferencian
+// SÓLO por ella: "Ladrillo" y "Ladrillo zoom" tienen los mismos params y lo
+// único que las separa es el dolly. Mirando nada más los params, elegir una
+// marcaba las dos.
+//
+// Las dos direcciones:
+// - La variante declara cámara: tiene que ser esa. El movimiento ES el preset.
+// - No la declara: la cámara tiene que estar en el default. Si hay un
+//   movimiento encima, el estado no es el preset — es el preset más una capa,
+//   igual que cuando se movió un slider.
+const matches = (params, variant, camera) => {
+  if (!Object.entries(variant.params ?? {}).every(([k, v]) => params[k] === v)) {
+    return false;
+  }
+  if (!camera) return true;
+  return variant.camera
+    ? sameCamera(camera, { ...defaultCamera(), ...variant.camera })
+    : sameCamera(camera, defaultCamera());
+};
 
 // Sin tildes: "tunel" tiene que encontrar "Túnel". Nadie escribe los acentos
 // cuando busca.
@@ -33,6 +52,9 @@ const asVariant = (preset) => ({
   timing: preset.timing,
   fit: preset.fit,
   fov: preset.fov,
+  // Los presets propios guardan la cámara, así que también se compara: dos
+  // guardados que sólo difieran en el movimiento son dos presets distintos.
+  camera: preset.camera,
 });
 
 export default function LibraryPanel({ state, params, onTemplate, setState, onCollapse }) {
@@ -84,7 +106,7 @@ export default function LibraryPanel({ state, params, onTemplate, setState, onCo
             base={state}
             variant={v}
             template={template ?? v.template}
-            active={current === (template ?? v.template) && matches(params, v)}
+            active={current === (template ?? v.template) && matches(params, v, state.camera)}
           />
         </div>
       ))}
@@ -165,7 +187,7 @@ export default function LibraryPanel({ state, params, onTemplate, setState, onCo
                           base={state}
                           variant={v}
                           template={p.template.id}
-                          active={current === p.template.id && matches(params, v)}
+                          active={current === p.template.id && matches(params, v, state.camera)}
                         />
                       </div>
                       <IconButton

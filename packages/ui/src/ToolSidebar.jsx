@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { TOOLS, toolHref } from "./tools.js";
 import { cycleMode, getMode, getSkin, toggleSkin } from "./skin.js";
+import { GlassTweaker } from "./GlassTweaker.jsx";
 
 // Isotipo de Bong. Va con currentColor para que tome el verde del tema y no
 // arrastre un hex propio.
@@ -91,6 +92,16 @@ const MODE_GLYPH = {
   ),
 };
 
+// Dos láminas superpuestas con un brillo cruzándolas: el material, no una
+// tuerca. Lo que se ajusta acá es el vidrio, no la configuración de la app.
+const GlassGlyph = () => (
+  <svg viewBox="0 0 18 18" width="16" height="16" aria-hidden="true">
+    <rect x="1.5" y="4" width="11" height="8" rx="2.4" fill="none" stroke="currentColor" strokeWidth="1.3" opacity=".45" />
+    <rect x="5.5" y="6" width="11" height="8" rx="2.4" fill="none" stroke="currentColor" strokeWidth="1.3" />
+    <path d="M7.4 12.6L13.6 6.8" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+  </svg>
+);
+
 const MODE_LABEL = { system: "Auto", light: "Claro", dark: "Oscuro" };
 const MODE_TITLE = {
   system: "Claro / oscuro: sigue al sistema — click para forzar claro",
@@ -103,13 +114,34 @@ const MODE_TITLE = {
 //
 // Van con la misma forma y la misma etiqueta que las tools. Un ícono suelto sin
 // texto acá abajo no se encuentra: el rail entrenó al ojo a leer glifo + palabra.
-function RailSettings() {
+/* Las perillas son una herramienta de ajuste, no una preferencia: sirven para
+   encontrar el material y volcarlo al stylesheet. Una vez volcado, en la tool
+   desplegada no tienen nada que hacer. Vite reemplaza esto por `false` al
+   compilar, así que el panel entero se cae del bundle de producción. */
+const TWEAKER = import.meta.env?.DEV ?? false;
+
+function RailSettings({ tweaking, onTweak }) {
   const [skin, setSkinLocal] = useState(getSkin);
   const [mode, setModeLocal] = useState(getMode);
   const glass = skin === "glass";
 
   return (
     <>
+      {/* Las perillas del material. Sólo existen en Glass: el chasis viejo no
+          tiene cristal que ajustar. */}
+      {glass && TWEAKER && (
+        <button
+          type="button"
+          className={`tool-rail-item glass-toggle ${tweaking ? "on" : ""}`.trim()}
+          onClick={onTweak}
+          title="Ajustar el cristal"
+          aria-pressed={tweaking}
+        >
+          <GlassGlyph />
+          <span>Cristal</span>
+        </button>
+      )}
+
       {/* Claro/oscuro sólo tiene sentido dentro de Glass: el chasis viejo es
           oscuro y punto. */}
       {glass && (
@@ -139,7 +171,14 @@ function RailSettings() {
 }
 
 export function ToolSidebar({ current, isDev = false, library = null }) {
+  // El panel de perillas se monta FUERA del <nav>. Adentro lo alcanzaba la
+  // regla "el contenido va encima del reflejo", que le pone position: relative
+  // a todo hijo directo de una superficie de cristal — y eso lo sacaba de
+  // fixed y lo metía en el flujo del rail.
+  const [tweaking, setTweaking] = useState(false);
+
   return (
+    <>
     <nav className="tool-rail" aria-label="Herramientas">
       <a className="tool-rail-mark" href="../" title="Bong Motion">
         <BongMark />
@@ -182,8 +221,10 @@ export function ToolSidebar({ current, isDev = false, library = null }) {
         );
       })}
 
-      <RailSettings />
+      <RailSettings tweaking={tweaking} onTweak={() => setTweaking((v) => !v)} />
     </nav>
+    {TWEAKER && <GlassTweaker open={tweaking} onClose={() => setTweaking(false)} />}
+    </>
   );
 }
 

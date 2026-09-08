@@ -101,31 +101,51 @@ export function releaseAll() {
 
 // La tool tiene que ser usable antes de cargar nada: sin assets se dibujan
 // placeholders grises numerados (BRIEF §6.4).
-export function placeholderTexture(n) {
-  const key = Math.max(1, Math.round(n));
+//
+// El canvas se dibuja CON EL ASPECTO DEL PLANO. El motor calcula el recorte con
+// `asset?.aspect ?? planeAspect`, o sea que a falta de asset da por hecho que la
+// textura ya viene con la proporción del plano y no recorta nada. Con un canvas
+// siempre cuadrado esa suposición era falsa y el número salía comprimido en
+// cuanto el plano dejaba de ser 1:1.
+export function placeholderTexture(n, aspect = 1) {
+  const num = Math.max(1, Math.round(n));
+  const a = Number.isFinite(aspect) && aspect > 0 ? clampAspect(aspect) : 1;
+  const key = `${num}@${a}`;
   let tex = placeholders.get(key);
   if (tex) return tex;
 
-  const size = 512;
+  // Lado mayor fijo: el chico sale de la proporción. Así un 9:16 no dibuja un
+  // canvas gigante sólo por ser alto.
+  const LONG = 512;
+  const w = a >= 1 ? LONG : Math.round(LONG * a);
+  const h = a >= 1 ? Math.round(LONG / a) : LONG;
+
   const c = document.createElement("canvas");
-  c.width = size;
-  c.height = size;
+  c.width = w;
+  c.height = h;
   const g = c.getContext("2d");
   g.fillStyle = "#26272c";
-  g.fillRect(0, 0, size, size);
+  g.fillRect(0, 0, w, h);
   g.strokeStyle = "#3a3b42";
   g.lineWidth = 6;
-  g.strokeRect(3, 3, size - 6, size - 6);
+  g.strokeRect(3, 3, w - 6, h - 6);
   g.fillStyle = "#63646b";
-  g.font = '700 190px Satoshi, ui-sans-serif, system-ui, sans-serif';
+  // El cuerpo sale del lado menor: el número tiene que entrar en un plano
+  // angosto igual que en uno cuadrado.
+  const body = Math.round(Math.min(w, h) * 0.37);
+  g.font = `700 ${body}px Satoshi, ui-sans-serif, system-ui, sans-serif`;
   g.textAlign = "center";
   g.textBaseline = "middle";
-  g.fillText(String(key), size / 2, size / 2 + 8);
+  g.fillText(String(num), w / 2, h / 2 + body * 0.04);
 
   tex = configure(new THREE.CanvasTexture(c));
   placeholders.set(key, tex);
   return tex;
 }
+
+// Se cachea una textura por número y proporción; redondear evita que un ratio
+// libre arrastrado con el mouse genere una textura nueva por píxel.
+const clampAspect = (a) => Math.round(Math.min(4, Math.max(0.25, a)) * 100) / 100;
 
 // ¿Algún asset se queda corto para el export pedido? (BRIEF §6)
 export function upscaleWarning(assets, targetShortSide) {
