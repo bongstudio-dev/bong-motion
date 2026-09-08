@@ -114,6 +114,12 @@ const MODE_TITLE = {
 //
 // Van con la misma forma y la misma etiqueta que las tools. Un ícono suelto sin
 // texto acá abajo no se encuentra: el rail entrenó al ojo a leer glifo + palabra.
+/* Las perillas son una herramienta de ajuste, no una preferencia: sirven para
+   encontrar el material y volcarlo al stylesheet. Una vez volcado, en la tool
+   desplegada no tienen nada que hacer. Vite reemplaza esto por `false` al
+   compilar, así que el panel entero se cae del bundle de producción. */
+const TWEAKER = import.meta.env?.DEV ?? false;
+
 function RailSettings({ tweaking, onTweak }) {
   const [skin, setSkinLocal] = useState(getSkin);
   const [mode, setModeLocal] = useState(getMode);
@@ -123,7 +129,7 @@ function RailSettings({ tweaking, onTweak }) {
     <>
       {/* Las perillas del material. Sólo existen en Glass: el chasis viejo no
           tiene cristal que ajustar. */}
-      {glass && (
+      {glass && TWEAKER && (
         <button
           type="button"
           className={`tool-rail-item glass-toggle ${tweaking ? "on" : ""}`.trim()}
@@ -217,7 +223,7 @@ export function ToolSidebar({ current, isDev = false, library = null }) {
 
       <RailSettings tweaking={tweaking} onTweak={() => setTweaking((v) => !v)} />
     </nav>
-    <GlassTweaker open={tweaking} onClose={() => setTweaking(false)} />
+    {TWEAKER && <GlassTweaker open={tweaking} onClose={() => setTweaking(false)} />}
     </>
   );
 }

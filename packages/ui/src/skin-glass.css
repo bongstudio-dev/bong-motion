@@ -1433,16 +1433,23 @@
 
   --danger: #e6867f;
 
-  /* Perillas del cristal en oscuro. Sobre un suelo verde profundo el mismo
-     reflejo del tema claro se vuelve una mancha lechosa: la luz entra a un
-     cuarto y el filo a un tercio. */
-  --g-light: 0.13;
+  /* Perillas del cristal en oscuro, ajustadas a mano con el tweaker.
+     El vidrio casi no se pinta —opacidad 0.03— y el reflejo entra a un
+     quinto: sobre verde profundo el cristal ya lo dibujan el desenfoque del
+     fondo y el filo, y agregarle blanco encima es lo que lo volvía grotesco.
+     Lo que sostiene la forma acá es el canto, no la superficie. */
+  --g-light: 0.025;
   --g-contrast: 0.16;
-  /* Sobre superficies casi negras el mismo blanco del tema claro quema. */
-  --g-glow: 0.22;
-  --g-edge: 0.3;
+  --g-spread: 1.2;
+  --g-edge: 0.34;
+  --g-blur: 21px;
   --g-sat: 1.1;
-  --g-opacity: 0.075;
+  --g-opacity: 0.03;
+
+  /* El hover, más grande y más lento que en claro, y mucho más tenue. */
+  --g-glow: 0.08;
+  --g-glow-size: 230px;
+  --g-glow-time: 0.82s;
 }
 
 /* Ambiente: las mismas dos manchas, ahora una que aclara arriba a la izquierda
@@ -1785,6 +1792,11 @@
   z-index: 0;
   border-radius: inherit;
   pointer-events: none;
+  /* La superficie de arriba lleva backdrop-filter, que es caro de recalcular.
+     `contain: paint` le dice al navegador que lo que se dibuja acá no sale de
+     esta caja, así que repintar el reflejo no obliga a repintar el panel ni a
+     volver a desenfocar su fondo. */
+  contain: paint;
   /* El filo especular vive acá y no en la superficie por la misma razón que
      todo lo demás: es lo único que necesitaba --nx/--ny arriba. */
   box-shadow: inset calc(var(--nx, 0) * var(--g-rim) * -1)
