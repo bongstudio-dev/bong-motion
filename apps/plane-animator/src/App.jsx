@@ -25,6 +25,11 @@ export default function App() {
   // Exportar es un momento, no un ajuste: vive en un modal y no en la columna
   // que se recorre mientras se compone.
   const [exporting, setExporting] = useState(false);
+  // La biblioteca se puede esconder para darle la pantalla al stage. El
+  // interruptor vive en el rail —que es la barra de la plataforma— y no adentro
+  // de la propia columna: un botón que se esconde con lo que esconde deja de
+  // poder traerlo de vuelta.
+  const [libraryOpen, setLibraryOpen] = useState(true);
   const clockRef = useRef(null);
   if (!clockRef.current) clockRef.current = createClock();
   const clock = clockRef.current;
@@ -88,14 +93,21 @@ export default function App() {
   const openTextLayer = state.texts.find((t) => t.id === openText) ?? null;
 
   return (
-    <div className="app with-library">
-      <ToolSidebar current="plane-animator" isDev={import.meta.env.DEV} />
-      <LibraryPanel
-        state={state}
-        params={resolveParams(state)}
-        onTemplate={onTemplate}
-        setState={setState}
+    <div className={`app ${libraryOpen ? "with-library" : ""}`.trim()}>
+      <ToolSidebar
+        current="plane-animator"
+        isDev={import.meta.env.DEV}
+        library={{ open: libraryOpen, onToggle: () => setLibraryOpen((v) => !v) }}
       />
+      {libraryOpen && (
+        <LibraryPanel
+          state={state}
+          params={resolveParams(state)}
+          onTemplate={onTemplate}
+          setState={setState}
+          onCollapse={() => setLibraryOpen(false)}
+        />
+      )}
       <div className="workspace">
         <Stage
           state={state}

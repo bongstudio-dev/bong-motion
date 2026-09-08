@@ -35,7 +35,7 @@ const asVariant = (preset) => ({
   fov: preset.fov,
 });
 
-export default function LibraryPanel({ state, params, onTemplate, setState }) {
+export default function LibraryPanel({ state, params, onTemplate, setState, onCollapse }) {
   const [tab, setTab] = useState("templates");
   const [open, setOpen] = useState(null);
   const [query, setQuery] = useState("");
@@ -106,6 +106,15 @@ export default function LibraryPanel({ state, params, onTemplate, setState }) {
         >
           Custom
         </button>
+        {onCollapse && (
+          <button
+            className="library-collapse"
+            onClick={onCollapse}
+            title="Condensar la biblioteca"
+          >
+            <Icon.PanelCollapse />
+          </button>
+        )}
       </div>
 
       {tab === "templates" && (

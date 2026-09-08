@@ -2,6 +2,7 @@ export { ScrubField } from "./ScrubField.jsx";
 export { Modal } from "./Modal.jsx";
 export { ToolSidebar } from "./ToolSidebar.jsx";
 export { TOOLS, toolHref } from "./tools.js";
+export { getSkin, setSkin, toggleSkin } from "./skin.js";
 export {
   Icon,
   Section,

@@ -1,0 +1,1598 @@
+/* ============================================================================
+   Bong Motion — skin "Glass"
+   ============================================================================
+   Approach claro en prueba, tomado de la referencia de Figma (Posts Bong,
+   node 1007-707): fondo crema, grupos flotando sobre cristal, sliders verdes
+   con la etiqueta y el valor en blanco adentro de la misma píldora.
+
+   Todo lo de acá es override sobre theme.css, colgado de html[data-skin="glass"].
+   No se toca una sola línea del tema oscuro: apagar el skin devuelve el chasis
+   de siempre, exacto.
+
+   El tema oscuro existe por una razón que este skin contradice a propósito:
+   ninguna superficie grande compite con la pieza que se está previsualizando.
+   Por eso acá el crema es lo más plano posible y el verde vive sólo dentro de
+   los controles, nunca extendido en el fondo.
+   ============================================================================ */
+
+:root[data-skin="glass"] {
+  /* ---- Paleta, muestreada de la referencia ---- */
+  --cream: #f3f0e9; /* fondo claro */
+  --green-900: #004831; /* riel del slider — el verde profundo de marca */
+  --green-800: #125540; /* nivel del slider */
+  --green-500: #2ba976; /* perilla */
+  --green-rail: #002e1f; /* riel del slider: fijo, nunca reacciona */
+  --ink: #16261f; /* texto: verde casi negro, nunca negro puro sobre crema */
+
+  --bg: var(--cream);
+
+  /* Superficies de cristal. La opacidad sube con la jerarquía: la card es la
+     más translúcida, el control apoyado encima es más sólido. */
+  --panel: rgba(255, 255, 255, 0.5);
+  --panel-2: rgba(255, 255, 255, 0.68);
+  --panel-3: rgba(255, 255, 255, 0.88);
+
+  --stroke: rgba(22, 54, 43, 0.1);
+  --stroke-strong: rgba(22, 54, 43, 0.24);
+
+  --text: var(--ink);
+  /* La referencia usa #9FA0A0 para el "GRUPO". Sobre el crema eso da 2.4:1 y
+     acá no es una etiqueta de maqueta: es el gris de TODOS los textos chicos de
+     la interfaz —ayudas, valores, unidades—. Los dos grises bajan hasta pasar
+     AA y el gris de la referencia queda sólo para el título de grupo, que es
+     una etiqueta y no texto que haya que leer. */
+  --muted: #4f6159;   /* 6.8:1 sobre el cristal */
+  --muted-2: #6b7a73; /* 4.6:1 */
+  --label: #86918b;   /* el "GRUPO" de la referencia, un punto más oscuro */
+
+  --active: var(--green-900);
+  --active-bg: rgba(0, 72, 49, 0.09);
+  --active-stroke: rgba(0, 72, 49, 0.28);
+
+  /* El verde brillante de la perilla no llega a contraste como texto sobre
+     claro, así que --accent baja un par de puntos y el brillo queda reservado
+     para la perilla, que siempre se apoya sobre verde profundo. */
+  --accent: #0b7a52;
+  --accent-soft: rgba(11, 122, 82, 0.12);
+  --accent-line: rgba(11, 122, 82, 0.42);
+
+  --danger: #b4453f;
+
+  /* Escala de redondeo. Tres pasos y no más: la card, la caja mediana y la
+     cápsula. Mezclar más radios es lo que hace que una interfaz redondeada se
+     vea desprolija en vez de blanda. */
+  --radius: 24px; /* cards flotantes */
+  --radius-sm: 14px; /* inputs, celdas, filas */
+  --r-pill: 999px; /* botones, sliders, segmentados */
+
+  /* Separación entre piezas flotantes. Sube con el radio: una esquina de 24px
+     necesita más aire alrededor o las curvas de dos cards vecinas se tocan. */
+  --float-gap: 12px;
+
+  /* Luz por defecto: cenital. Es lo que se ve sin mover el cursor y lo que
+     queda si el usuario pide reduced-motion. skin.js las pisa por elemento. */
+  --lx: 50%;
+  --ly: -25%;
+  --nx: 0;
+  --ny: -1;
+  --li: 0.35;
+}
+
+/* ============================================================================
+   Ambiente
+   ============================================================================
+   El cristal necesita algo detrás o no es cristal, es un rectángulo blanco.
+   Dos manchas enormes y muy tenues alcanzan: una cálida arriba a la izquierda
+   y una fría abajo a la derecha, en el mismo eje verde de la marca. */
+
+:root[data-skin="glass"] body {
+  background-color: var(--cream);
+  background-image:
+    radial-gradient(85% 65% at 12% 0%, rgba(255, 252, 243, 0.9) 0%, rgba(255, 252, 243, 0) 62%),
+    radial-gradient(70% 60% at 100% 100%, rgba(0, 72, 49, 0.07) 0%, rgba(0, 72, 49, 0) 64%),
+    radial-gradient(50% 50% at 78% 8%, rgba(43, 169, 118, 0.05) 0%, rgba(43, 169, 118, 0) 70%);
+  background-attachment: fixed;
+  color: var(--ink);
+}
+
+/* ============================================================================
+   Layout: todo flota
+   ============================================================================
+   El chasis oscuro es un tablero de columnas pegadas con filetes de 1px. Acá
+   las mismas columnas se separan y cada una se sostiene sola. */
+
+:root[data-skin="glass"] .app {
+  padding: var(--float-gap);
+  gap: var(--float-gap);
+  background-color: transparent;
+}
+
+:root[data-skin="glass"] .workspace {
+  gap: var(--float-gap);
+  overflow: visible;
+}
+
+/* El badge del loop cuelga 26px por debajo del canvas: el padding de abajo
+   tiene que dejarle lugar o queda cortado contra el transport. */
+:root[data-skin="glass"] .stage-area {
+  padding: 20px 18px 36px;
+}
+
+/* La pieza flota sobre el crema con una sombra suave: la del tema oscuro es
+   casi negra y sobre claro se lee como suciedad. */
+:root[data-skin="glass"] .stage-wrap {
+  border-radius: 4px;
+  box-shadow:
+    0 2px 6px -2px rgba(22, 54, 43, 0.18),
+    0 26px 60px -34px rgba(22, 54, 43, 0.55);
+}
+
+:root[data-skin="glass"] .stage-canvas { border-radius: 3px; }
+
+/* ============================================================================
+   La superficie de cristal
+   ============================================================================
+   Un solo bloque para todas las piezas flotantes. Tres capas:
+
+   1. el vidrio: blanco translúcido + blur de lo que hay atrás;
+   2. el reflejo: un degradado gigante centrado en la luz. Es tan grande que
+      nunca se ve como mancha — lo que se percibe es que un lado del panel está
+      más claro que el otro, y que ese lado cambia al mover el cursor. Del otro
+      lado va la contraparte oscura, muy tenue, que es lo que le da dirección;
+   3. el filo especular: el canto que mira a la luz se prende, el opuesto se
+      apaga. Es el detalle que hace que se lea como un canto de vidrio y no
+      como una caja con opacidad.
+
+   La sombra también se corre un pelo en contra de la luz: es lo que separa el
+   panel del fondo y hace que flote en vez de estar pegado. */
+
+:root[data-skin="glass"] .tool-rail,
+:root[data-skin="glass"] .library,
+:root[data-skin="glass"] .sidebar-head,
+:root[data-skin="glass"] .section,
+:root[data-skin="glass"] .transport,
+:root[data-skin="glass"] .float-panel,
+:root[data-skin="glass"] .modal {
+  isolation: isolate;
+  border: none;
+  border-radius: var(--radius);
+  background-color: var(--panel);
+  -webkit-backdrop-filter: blur(26px) saturate(1.6);
+  backdrop-filter: blur(26px) saturate(1.6);
+  box-shadow:
+    /* filo especular, del lado que mira a la luz */
+    inset calc(var(--nx) * -1.3px) calc(var(--ny) * -1.3px) 0 0
+      rgba(255, 255, 255, calc(0.55 + 0.45 * var(--li))),
+    /* espesor: el canto de abajo devuelve un poco de sombra hacia adentro, que
+       es lo que hace que el cristal tenga cuerpo y no sea una lámina */
+    inset 0 -1px 3px -1px rgba(22, 54, 43, 0.1),
+    /* contorno propio, para que no se pierda contra el crema */
+    0 0 0 1px rgba(22, 54, 43, 0.06),
+    /* contacto */
+    0 1px 2px 0 rgba(22, 54, 43, 0.05),
+    /* peso, corrido en contra de la luz */
+    calc(var(--nx) * -2px) calc(8px + var(--ny) * -2px) 26px -14px rgba(22, 54, 43, 0.32);
+}
+
+/* El ::after del reflejo necesita un contenedor posicionado. Se lo damos sólo
+   a los que hoy son estáticos: .sidebar-head es sticky y .float-panel es fixed,
+   y las dos ya establecen contenedor por su cuenta. Pisarles el position deja
+   el encabezado sin pegar y manda la ventana flotante al flujo del documento. */
+:root[data-skin="glass"] .tool-rail,
+:root[data-skin="glass"] .library,
+:root[data-skin="glass"] .section,
+:root[data-skin="glass"] .transport,
+:root[data-skin="glass"] .modal {
+  position: relative;
+}
+
+:root[data-skin="glass"] .tool-rail::after,
+:root[data-skin="glass"] .library::after,
+:root[data-skin="glass"] .sidebar-head::after,
+:root[data-skin="glass"] .section::after,
+:root[data-skin="glass"] .transport::after,
+:root[data-skin="glass"] .float-panel::after,
+:root[data-skin="glass"] .modal::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-color: radial-gradient(
+      175% 230% at var(--lx) var(--ly),
+      rgba(255, 255, 255, 0.42) 0%,
+      rgba(255, 255, 255, 0.12) 36%,
+      rgba(255, 255, 255, 0) 74%
+    ),
+    radial-gradient(
+      175% 230% at calc(100% - var(--lx)) calc(100% - var(--ly)),
+      rgba(22, 54, 43, 0.055) 0%,
+      rgba(22, 54, 43, 0) 66%
+    );
+}
+
+/* Todo el contenido por encima del reflejo. */
+:root[data-skin="glass"] .tool-rail > *,
+:root[data-skin="glass"] .library > *,
+:root[data-skin="glass"] .sidebar-head > *,
+:root[data-skin="glass"] .section > *,
+:root[data-skin="glass"] .transport > *,
+:root[data-skin="glass"] .float-panel > *,
+:root[data-skin="glass"] .modal > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================================
+   Rail de herramientas
+   ============================================================================ */
+
+:root[data-skin="glass"] .tool-rail {
+  padding: 12px 7px;
+  background-color: var(--panel);
+}
+
+:root[data-skin="glass"] .tool-rail-mark { color: var(--green-900); }
+
+:root[data-skin="glass"] .tool-rail-item { color: var(--muted); }
+:root[data-skin="glass"] .tool-rail-item:hover {
+  color: var(--green-900);
+  background-color: rgba(255, 255, 255, 0.72);
+}
+
+:root[data-skin="glass"] .tool-rail-item.active {
+  color: #fff;
+  background-color: var(--green-900);
+}
+
+/* La barra verde de la tool activa no funciona sobre un rail que ya no toca el
+   borde de la pantalla: la pastilla verde llena sola ese trabajo. */
+:root[data-skin="glass"] .tool-rail-item.active::before { display: none; }
+
+/* ============================================================================
+   Sidebar: el contenedor desaparece, quedan los grupos
+   ============================================================================
+   Es el corazón del approach. El sidebar deja de ser una columna con fondo y
+   pasa a ser sólo el riel por donde scrollean cards sueltas. */
+
+/* `scrollbar-gutter: stable` no es cosmético acá. Definir un ancho de
+   ::-webkit-scrollbar convierte la barra flotante de macOS en una que ocupa
+   layout: 11px que aparecen y desaparecen según haya overflow. Con el acordeón
+   animándose eso hacía que TODAS las cards se estiraran a la derecha y volvieran
+   a media animación. Reservando el canal, el ancho no cambia nunca. */
+:root[data-skin="glass"] .sidebar {
+  border: none;
+  background-color: transparent;
+  padding: 0 0 var(--float-gap);
+  gap: var(--float-gap);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+}
+
+/* flex-shrink: 0 no es decorativo. Las cards llevan overflow: hidden para
+   recortar el reflejo en las esquinas, y eso les deja el alto mínimo en cero:
+   dentro de una columna flex se aplastarían hasta caber en la pantalla en vez
+   de scrollear. En el tema oscuro las secciones no recortan nada y el problema
+   no existe. */
+:root[data-skin="glass"] .sidebar > * { flex-shrink: 0; }
+
+/* La barra de scroll por defecto se dibuja oscura y encima del canto derecho
+   de las cards. Con las cards separadas del contenedor eso se nota. */
+:root[data-skin="glass"] .sidebar::-webkit-scrollbar { width: 8px; }
+:root[data-skin="glass"] .sidebar::-webkit-scrollbar-track { background-color: transparent; }
+:root[data-skin="glass"] .sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(22, 54, 43, 0.18);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+:root[data-skin="glass"] .sidebar:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(22, 54, 43, 0.3);
+  background-clip: content-box;
+}
+
+:root[data-skin="glass"] .sidebar-head {
+  padding: 14px 16px;
+  background-color: var(--panel);
+  z-index: 3;
+}
+
+:root[data-skin="glass"] .brand { color: var(--green-900); }
+:root[data-skin="glass"] .brand span,
+:root[data-skin="glass"] .brand-sub { color: var(--muted-2); }
+
+:root[data-skin="glass"] .section {
+  border-bottom: none;
+  overflow: hidden;
+}
+
+:root[data-skin="glass"] .section-head {
+  padding: 13px 15px;
+  color: var(--green-900);
+  border-radius: var(--radius);
+}
+
+:root[data-skin="glass"] .section-head:hover { background-color: rgba(255, 255, 255, 0.5); }
+:root[data-skin="glass"] .section.open .section-head { border-radius: var(--radius) var(--radius) 0 0; }
+
+:root[data-skin="glass"] .section-body { padding: 2px 14px 14px; }
+
+/* El "GRUPO" de la referencia: gris, chico, muy espaciado. */
+:root[data-skin="glass"] .group-title { color: var(--label); }
+
+/* ============================================================================
+   Biblioteca
+   ============================================================================ */
+
+:root[data-skin="glass"] .library {
+  border: none;
+  overflow: hidden;
+}
+
+:root[data-skin="glass"] .library-tabs { border-bottom: 1px solid var(--stroke); }
+:root[data-skin="glass"] .library-tabs button { color: var(--muted); }
+:root[data-skin="glass"] .library-tabs button.active { color: var(--green-900); }
+:root[data-skin="glass"] .library-search { background-color: rgba(255, 255, 255, 0.66); }
+:root[data-skin="glass"] .preset-thumb { background-color: rgba(255, 255, 255, 0.55); }
+:root[data-skin="glass"] .preset-thumb.active { border-color: var(--green-900); }
+:root[data-skin="glass"] .preset-thumb.active span { color: var(--green-900); }
+:root[data-skin="glass"] .browser-row.active { color: var(--green-900); }
+
+/* ============================================================================
+   ScrubField — el slider de la referencia
+   ============================================================================
+   Píldora verde profunda, nivel en verde medio, etiqueta y valor en blanco
+   adentro. La perilla acá va SIEMPRE visible, no sólo en hover: sobre verde
+   contra verde el escalón del nivel casi no se lee, y la línea clara es lo que
+   dice dónde está parado el valor. Es la diferencia con el tema oscuro, donde
+   el escalón se lee solo y la perilla podía quedarse para el hover. */
+
+/* El riel es un color fijo y no reacciona a nada: es el fondo contra el que se
+   mide el nivel, y si cambia de valor con el hover el nivel parece moverse sin
+   que nadie lo haya tocado. Toda la respuesta al cursor la dan el nivel, la
+   perilla y la etiqueta. Va más oscuro que el #004831 de la referencia para
+   que el escalón del nivel se lea de lejos. */
+:root[data-skin="glass"] .scrub {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background-color: var(--green-rail);
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+  transition: none;
+}
+
+:root[data-skin="glass"] .scrub:hover,
+:root[data-skin="glass"] .scrub.dragging {
+  background-color: var(--green-rail);
+  border-color: transparent;
+}
+
+:root[data-skin="glass"] .scrub-fill {
+  background-color: var(--green-800);
+  transition: background 0.22s ease;
+}
+
+:root[data-skin="glass"] .scrub:hover .scrub-fill { background-color: #15604a; }
+:root[data-skin="glass"] .scrub.dragging .scrub-fill { background-color: #186a52; }
+
+:root[data-skin="glass"] .scrub-knob {
+  top: 7px;
+  bottom: 7px;
+  width: 3px;
+  border-radius: 2px;
+  background-color: var(--green-500);
+  opacity: 1;
+}
+
+:root[data-skin="glass"] .scrub:hover .scrub-knob { opacity: 1; }
+
+:root[data-skin="glass"] .scrub.dragging .scrub-knob {
+  box-shadow: 0 0 9px 0 rgba(43, 169, 118, 0.75);
+}
+
+:root[data-skin="glass"] .scrub-label {
+  color: rgba(255, 255, 255, 0.88);
+  font-weight: 500;
+}
+
+:root[data-skin="glass"] .scrub:hover .scrub-label { color: #fff; }
+
+:root[data-skin="glass"] .scrub-value { color: #fff; }
+
+:root[data-skin="glass"] .scrub.disabled { opacity: 0.4; }
+
+/* Al escribir el valor a mano, la caja blanca sobre el verde. */
+:root[data-skin="glass"] .scrub-input {
+  background-color: #fff;
+  border-color: rgba(255, 255, 255, 0.5);
+  color: var(--ink);
+}
+
+/* ============================================================================
+   Transport: la barra de abajo
+   ============================================================================
+   Mismo cristal flotante que el resto, y adentro los botones en verde con
+   texto blanco. */
+
+:root[data-skin="glass"] .transport {
+  padding: 11px 16px;
+  gap: 14px;
+}
+
+/* El play pasa a tinta. Es el control con más peso de la barra y tiene que
+   seguir siéndolo, pero si es verde hay dos verdes compitiendo y el de Exportar
+   deja de querer decir "acción". El círculo lleno oscuro le da la misma
+   prioridad visual sin usar el color. */
+:root[data-skin="glass"] .transport .play {
+  background-color: var(--ink);
+  color: #fff;
+  box-shadow: 0 2px 8px -3px rgba(22, 38, 31, 0.55);
+  transition: background-color 0.22s ease;
+}
+
+:root[data-skin="glass"] .transport .play:hover { background-color: #22392f; }
+
+/* Los ratios de la barra copian la jerarquía de los del panel CANVAS: la
+   proporción manda en tinta plena y los píxeles van abajo en gris. Ya no son
+   verdes — el verde queda reservado para la acción. */
+:root[data-skin="glass"] .transport .btn,
+:root[data-skin="glass"] .transport .ratio-switch button {
+  background-color: rgba(255, 255, 255, 0.62);
+  border-color: var(--stroke);
+  color: var(--ink);
+}
+
+:root[data-skin="glass"] .transport .btn:hover,
+:root[data-skin="glass"] .transport .ratio-switch button:hover {
+  background-color: #fff;
+  border-color: var(--stroke-strong);
+}
+
+/* El elegido se marca con el contorno, no con relleno. Está a diez píxeles de
+   Exportar: dos pastillas verdes llenas en la misma barra y el verde deja de
+   querer decir "acción". El contorno alcanza para leer cuál está puesto y no le
+   compite. En el panel CANVAS, donde no hay ningún botón de acción cerca, el
+   elegido sí va lleno. */
+:root[data-skin="glass"] .transport .ratio-switch button.active,
+:root[data-skin="glass"] .transport .ratio-switch button.active:hover {
+  background-color: rgba(255, 255, 255, 0.78);
+  border-color: var(--green-900);
+  box-shadow: inset 0 0 0 1px var(--green-900);
+  color: var(--green-900);
+}
+
+:root[data-skin="glass"] .transport .ratio-dims { color: var(--muted-2); }
+:root[data-skin="glass"] .transport .ratio-switch button.active .ratio-dims {
+  color: var(--green-800);
+  opacity: 0.75;
+}
+
+/* El único verde de la barra. Con todo lo demás en cristal, el color solo ya
+   alcanza para señalar dónde está la acción: no necesita además ser el más
+   grande ni tener borde. */
+:root[data-skin="glass"] .transport .btn.primary,
+:root[data-skin="glass"] .transport .btn.accent {
+  background-color: var(--green-900);
+  color: #fff;
+  border-color: transparent;
+}
+
+:root[data-skin="glass"] .transport .btn.primary:hover,
+:root[data-skin="glass"] .transport .btn.accent:hover { background-color: var(--green-800); }
+
+:root[data-skin="glass"] .transport .duration-field { color: var(--muted); }
+:root[data-skin="glass"] .transport .num-input,
+:root[data-skin="glass"] .transport .text-input {
+  background-color: rgba(255, 255, 255, 0.75);
+  border-color: var(--stroke);
+}
+
+:root[data-skin="glass"] .slider { background-color: rgba(22, 54, 43, 0.16); }
+:root[data-skin="glass"] .slider::-webkit-slider-thumb { background-color: var(--green-900); }
+:root[data-skin="glass"] .slider::-moz-range-thumb { background-color: var(--green-900); }
+:root[data-skin="glass"] .phase-bar { background-color: rgba(22, 54, 43, 0.12); }
+:root[data-skin="glass"] .phase-seg { border-right-color: rgba(255, 255, 255, 0.8); }
+:root[data-skin="glass"] .phase-label { color: var(--muted-2); }
+
+/* ============================================================================
+   Controles sueltos
+   ============================================================================ */
+
+:root[data-skin="glass"] .btn {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: var(--stroke);
+  color: var(--ink);
+}
+:root[data-skin="glass"] .btn:hover { background-color: #fff; border-color: var(--stroke-strong); }
+
+:root[data-skin="glass"] .btn.primary {
+  background-color: var(--green-900);
+  border-color: transparent;
+  color: #fff;
+}
+:root[data-skin="glass"] .btn.primary:hover { background-color: var(--green-800); }
+
+:root[data-skin="glass"] .btn.accent {
+  background-color: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--accent);
+}
+
+:root[data-skin="glass"] .btn.ghost { background-color: transparent; }
+
+:root[data-skin="glass"] .icon-btn { color: var(--muted); }
+:root[data-skin="glass"] .icon-btn:hover {
+  color: var(--green-900);
+  background-color: rgba(255, 255, 255, 0.8);
+}
+
+:root[data-skin="glass"] .text-input,
+:root[data-skin="glass"] .num-input,
+:root[data-skin="glass"] textarea.text-input {
+  background-color: rgba(255, 255, 255, 0.72);
+  border-color: var(--stroke);
+  color: var(--ink);
+}
+
+:root[data-skin="glass"] .text-input:focus,
+:root[data-skin="glass"] .num-input:focus {
+  background-color: #fff;
+  border-color: var(--accent-line);
+}
+
+:root[data-skin="glass"] .segmented {
+  background-color: rgba(255, 255, 255, 0.55);
+  border-color: var(--stroke);
+}
+:root[data-skin="glass"] .segmented button { color: var(--muted); }
+:root[data-skin="glass"] .segmented button:hover { color: var(--ink); }
+:root[data-skin="glass"] .segmented button.active {
+  background-color: var(--green-900);
+  color: #fff;
+}
+
+:root[data-skin="glass"] .toggle {
+  background-color: rgba(255, 255, 255, 0.7);
+  border-color: var(--stroke-strong);
+}
+:root[data-skin="glass"] .toggle span { background-color: var(--muted-2); }
+:root[data-skin="glass"] .toggle.on {
+  background-color: var(--green-900);
+  border-color: transparent;
+}
+:root[data-skin="glass"] .toggle.on span { background-color: var(--green-500); }
+
+:root[data-skin="glass"] .ease-cell {
+  background-color: rgba(255, 255, 255, 0.62);
+  border-color: var(--stroke);
+}
+:root[data-skin="glass"] .ease-cell.active {
+  background-color: var(--green-900);
+  border-color: transparent;
+}
+:root[data-skin="glass"] .ease-cell .curve { stroke: var(--muted); }
+:root[data-skin="glass"] .ease-cell.active .curve { stroke: var(--green-500); }
+
+:root[data-skin="glass"] .dropzone {
+  background-color: rgba(255, 255, 255, 0.55);
+  border-color: rgba(22, 54, 43, 0.28);
+  color: var(--muted);
+}
+:root[data-skin="glass"] .dropzone:hover,
+:root[data-skin="glass"] .dropzone.over {
+  background-color: rgba(255, 255, 255, 0.75);
+  border-color: var(--accent-line);
+}
+
+:root[data-skin="glass"] .asset-row,
+:root[data-skin="glass"] .color-row,
+:root[data-skin="glass"] .text-row,
+:root[data-skin="glass"] .saved-row {
+  background-color: rgba(255, 255, 255, 0.62);
+  border-color: var(--stroke);
+}
+
+:root[data-skin="glass"] .asset-thumb {
+  background-color: rgba(22, 54, 43, 0.06);
+  border-color: var(--stroke);
+}
+
+:root[data-skin="glass"] .divider { background-color: var(--stroke); }
+:root[data-skin="glass"] .progress { background-color: rgba(22, 54, 43, 0.12); }
+:root[data-skin="glass"] .progress > div { background-color: var(--green-900); }
+
+:root[data-skin="glass"] .tag,
+:root[data-skin="glass"] .section-value { color: var(--muted-2); }
+
+:root[data-skin="glass"] .notice {
+  background-color: rgba(255, 255, 255, 0.6);
+  border-color: var(--stroke);
+}
+
+/* ============================================================================
+   Ventana flotante y modal
+   ============================================================================
+   La ventana de texto ya flotaba: acá simplemente se pone del mismo material
+   que todo lo demás. */
+
+:root[data-skin="glass"] .float-panel {
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  backdrop-filter: blur(24px) saturate(1.4);
+  background-color: rgba(255, 255, 255, 0.62);
+}
+
+:root[data-skin="glass"] .float-panel-head {
+  border-bottom: 1px solid var(--stroke);
+  color: var(--green-900);
+}
+:root[data-skin="glass"] .float-panel-grip { background-color: var(--muted-2); }
+
+:root[data-skin="glass"] .pos-cell {
+  background-color: rgba(255, 255, 255, 0.6);
+  border-color: var(--stroke);
+}
+:root[data-skin="glass"] .pos-cell:hover { background-color: #fff; }
+:root[data-skin="glass"] .pos-cell.active {
+  background-color: var(--green-900);
+  border-color: transparent;
+}
+:root[data-skin="glass"] .pos-cell.active i { background-color: var(--green-500); }
+
+:root[data-skin="glass"] .scrim { background-color: rgba(22, 54, 43, 0.28); }
+
+:root[data-skin="glass"] .modal {
+  background-color: rgba(255, 255, 255, 0.86);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+  backdrop-filter: blur(28px) saturate(1.4);
+}
+
+:root[data-skin="glass"] .modal-head,
+:root[data-skin="glass"] .modal-foot { border-color: var(--stroke); }
+:root[data-skin="glass"] .modal-head b { color: var(--green-900); }
+:root[data-skin="glass"] .export-preview { background-color: rgba(22, 54, 43, 0.05); }
+
+/* ============================================================================
+   Stage: las señales sobre la pieza
+   ============================================================================
+   El badge y los overlays viven encima del canvas, no del crema: se quedan
+   claros sobre oscuro como en el tema base. Sólo cambia la fila de texto que
+   cae fuera del canvas. */
+
+:root[data-skin="glass"] .stage-badge { color: var(--muted); }
+:root[data-skin="glass"] .stage-badge .ok {
+  color: #fff;
+  background-color: var(--green-900);
+  border-color: transparent;
+}
+
+/* ============================================================================
+   Interruptor del skin
+   ============================================================================ */
+
+/* Hereda .tool-rail-item: forma, tamaño y etiqueta iguales a los de las tools.
+   Lo único propio es que se va al pie y que lleva un filete arriba, para que se
+   lea como "esto no es una tool más". */
+.mode-toggle { margin-top: auto; position: relative; border: none; background: none; }
+.mode-toggle + .skin-toggle { margin-top: 0; }
+.mode-toggle + .skin-toggle::after { display: none; }
+
+.skin-toggle {
+  margin-top: auto;
+  border: none;
+  background-color: transparent;
+  position: relative;
+}
+
+.mode-toggle::after,
+.skin-toggle::after {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: 8px;
+  right: 8px;
+  height: 1px;
+  background-color: var(--stroke);
+}
+
+:root[data-skin="glass"] .skin-toggle { color: var(--green-900); }
+:root[data-skin="glass"] .skin-toggle::after { background-color: rgba(22, 54, 43, 0.14); }
+:root[data-skin="glass"] .skin-toggle:hover { background-color: rgba(255, 255, 255, 0.75); }
+
+
+/* ============================================================================
+   Redondeo continuo
+   ============================================================================
+   El detalle que separa "redondeado" de "Apple" no es el radio sino la forma de
+   la esquina: iOS no usa un cuarto de círculo sino una superelipse, donde la
+   curvatura entra y sale gradualmente en vez de arrancar de golpe. Es lo que
+   hace que el canto se lea continuo con el lado recto.
+
+   `corner-shape: squircle` lo da nativo. Va detrás de @supports: donde no está,
+   queda el border-radius normal y no se pierde nada más que el matiz.
+
+   La cápsula queda AFUERA de la superelipse a propósito. Cuando el radio ya es
+   la mitad del lado la forma es un estadio, y el estadio es lo que usa iOS en
+   botones y sliders — pasarlo a squircle lo abolla. */
+
+@supports (corner-shape: squircle) {
+  :root[data-skin="glass"] .tool-rail,
+  :root[data-skin="glass"] .tool-rail-item,
+  :root[data-skin="glass"] .library,
+  :root[data-skin="glass"] .library-search,
+  :root[data-skin="glass"] .sidebar-head,
+  :root[data-skin="glass"] .section,
+  :root[data-skin="glass"] .section-head,
+  :root[data-skin="glass"] .transport,
+  :root[data-skin="glass"] .float-panel,
+  :root[data-skin="glass"] .modal,
+  :root[data-skin="glass"] .text-input,
+  :root[data-skin="glass"] .num-input,
+  :root[data-skin="glass"] textarea.text-input,
+  :root[data-skin="glass"] .scrub-input,
+  :root[data-skin="glass"] .ease-cell,
+  :root[data-skin="glass"] .pos-cell,
+  :root[data-skin="glass"] .preset-thumb,
+  :root[data-skin="glass"] .dropzone,
+  :root[data-skin="glass"] .asset-row,
+  :root[data-skin="glass"] .asset-thumb,
+  :root[data-skin="glass"] .color-row,
+  :root[data-skin="glass"] .text-row,
+  :root[data-skin="glass"] .saved-row,
+  :root[data-skin="glass"] .browser-row,
+  :root[data-skin="glass"] .browser-head,
+  :root[data-skin="glass"] .notice,
+  :root[data-skin="glass"] .pick,
+  :root[data-skin="glass"] .icon-btn,
+  :root[data-skin="glass"] .stage-wrap {
+    corner-shape: squircle;
+  }
+}
+
+/* ---------- Cajas medianas ---------- */
+
+:root[data-skin="glass"] .text-input,
+:root[data-skin="glass"] .num-input,
+:root[data-skin="glass"] textarea.text-input {
+  border-radius: var(--radius-sm);
+  padding: 9px 13px;
+}
+
+:root[data-skin="glass"] .text-input.tiny { padding: 5px 9px; border-radius: 10px; }
+:root[data-skin="glass"] .scrub-input { border-radius: 10px; padding: 5px 10px; }
+:root[data-skin="glass"] .ease-cell { border-radius: var(--radius-sm); padding: 7px; }
+:root[data-skin="glass"] .pos-cell,
+:root[data-skin="glass"] .preset-thumb,
+:root[data-skin="glass"] .dropzone,
+:root[data-skin="glass"] .notice,
+:root[data-skin="glass"] .library-search { border-radius: var(--radius-sm); }
+
+:root[data-skin="glass"] .asset-row,
+:root[data-skin="glass"] .color-row,
+:root[data-skin="glass"] .text-row,
+:root[data-skin="glass"] .saved-row,
+:root[data-skin="glass"] .browser-row,
+:root[data-skin="glass"] .browser-head { border-radius: var(--radius-sm); }
+
+:root[data-skin="glass"] .pick { padding: 10px 13px; }
+:root[data-skin="glass"] .pick.on {
+  background-color: var(--green-900);
+  border-color: transparent;
+}
+:root[data-skin="glass"] .pick.on b,
+:root[data-skin="glass"] .pick.on em { color: #fff; }
+:root[data-skin="glass"] .pick.on em { opacity: 0.7; }
+
+:root[data-skin="glass"] .asset-thumb { border-radius: 10px; }
+:root[data-skin="glass"] .icon-btn { border-radius: 10px; }
+:root[data-skin="glass"] .tool-rail-item { border-radius: var(--radius-sm); }
+:root[data-skin="glass"] .stage-wrap { border-radius: 8px; }
+:root[data-skin="glass"] .stage-canvas { border-radius: 7px; }
+
+/* ---------- Cápsulas ---------- */
+/* Botones y sliders pasan a estadio. Con la cápsula el padding lateral tiene
+   que crecer: la curva se come el arranque del texto y si no se compensa el
+   label queda pegado al canto. */
+
+:root[data-skin="glass"] .btn {
+  border-radius: var(--r-pill);
+  padding: 9px 18px;
+}
+
+/* La grilla de ratios baja a DOS columnas. A tres, la píldora medía 102px y el
+   contenido 100: la cápsula quedaba sin un solo píxel de aire a los costados y
+   el texto se leía pegado a las puntas redondeadas. A dos columnas la píldora
+   mide ~155px para el mismo contenido, que es el aire que la forma pide.
+   La de templates se queda en tres: ahí el contenido es una palabra sola. */
+:root[data-skin="glass"] .ratio-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+
+:root[data-skin="glass"] .ratio-grid .btn,
+:root[data-skin="glass"] .template-grid .btn {
+  padding: 10px 14px;
+  gap: 6px;
+  min-width: 0;
+}
+
+:root[data-skin="glass"] .scrub {
+  border-radius: var(--r-pill);
+  padding: 0 17px;
+}
+
+:root[data-skin="glass"] .transport .ratio-switch button {
+  border-radius: var(--r-pill);
+  padding: 6px 14px;
+}
+
+:root[data-skin="glass"] .tag,
+:root[data-skin="glass"] .stage-badge .ok { border-radius: var(--r-pill); }
+
+/* El segmentado de iOS: cápsula afuera, cápsula adentro, y el riel con un poco
+   más de aire para que el activo no toque el borde del contenedor. */
+:root[data-skin="glass"] .segmented {
+  border-radius: var(--r-pill);
+  padding: 3px;
+  gap: 3px;
+}
+
+:root[data-skin="glass"] .segmented button {
+  border-radius: var(--r-pill);
+  padding: 7px 10px;
+}
+
+/* ---------- Cards ---------- */
+/* Con 24px de radio el contenido necesita más margen o los primeros y últimos
+   controles quedan mordidos por la curva. */
+
+:root[data-skin="glass"] .section-head { padding: 15px 18px; border-radius: var(--radius); }
+:root[data-skin="glass"] .section.open .section-head { border-radius: var(--radius) var(--radius) 0 0; }
+:root[data-skin="glass"] .section-body { padding: 2px 18px 18px; }
+:root[data-skin="glass"] .sidebar-head { padding: 16px 18px; }
+:root[data-skin="glass"] .transport { padding: 12px 18px; }
+:root[data-skin="glass"] .tool-rail { padding: 12px 8px; }
+
+/* ============================================================================
+   Movimiento
+   ============================================================================
+   Una sola curva para todo lo que se abre, se desliza o se prende:
+   cubic-bezier(0.32, 0.72, 0, 1). Arranca rápido y frena largo — es la que usa
+   iOS y es la razón de que ahí nada se sienta "programado". Los easings
+   simétricos tipo `ease` dan el efecto contrario: se nota el principio y el
+   final por igual, y eso lee como animación, no como material. */
+
+:root[data-skin="glass"] {
+  --ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.42, 0.52, 1);
+}
+
+/* ---------- El acordeón se abre ---------- */
+/* `interpolate-size` es lo que habilita interpolar hacia `height: auto`. Sin
+   eso hay que medir el contenido con JS y escribir un alto en píxeles, que se
+   desincroniza en cuanto el contenido cambia. */
+
+:root[data-skin="glass"] { interpolate-size: allow-keywords; }
+
+/* Abre y cierra con la misma animación. El nodo está siempre montado, así que
+   la transición corre en los dos sentidos sin `@starting-style`: alcanza con que
+   los dos estados sean reglas normales. `display` entra a la transición con
+   `allow-discrete`, que es lo que difiere el `display: none` hasta que la
+   contracción terminó — sin eso el cierre desaparece en el primer frame.
+
+   El contenido entra desde 10px más arriba mientras la card se estira, para que
+   se lea como una sola cosa que se despliega y no como una caja que crece con
+   algo adentro. */
+:root[data-skin="glass"] .section-body {
+  display: flex;
+  height: auto;
+  overflow: hidden;
+  opacity: 1;
+  translate: 0 0;
+  transition:
+    height 0.44s var(--ease-fluid),
+    padding 0.44s var(--ease-fluid),
+    opacity 0.3s ease 0.08s,
+    translate 0.44s var(--ease-fluid),
+    display 0.44s allow-discrete;
+}
+
+/* Sin esto, cerrar aplasta el contenido en vez de taparlo: el cuerpo es una
+   columna flex y sus hijos se encogen antes de que el overflow los recorte, así
+   que cada slider se convertía en una línea verde de tres píxeles y la
+   transición era una escalerita de rayas. Con flex-shrink en cero el contenido
+   mantiene su alto y lo único que pasa es que la card lo va tapando. */
+:root[data-skin="glass"] .section-body > * { flex-shrink: 0; }
+
+:root[data-skin="glass"] .section:not(.open) .section-body {
+  display: none;
+  height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  opacity: 0;
+  translate: 0 -10px;
+  /* Al cerrar, el contenido se va antes que la card. Abriendo conviene lo
+     contrario —primero se hace lugar y después aparece—, y por eso los dos
+     sentidos llevan tiempos distintos: la transición que manda es siempre la
+     declarada en el estado al que se va. */
+  transition:
+    height 0.44s var(--ease-fluid),
+    padding 0.44s var(--ease-fluid),
+    opacity 0.15s ease,
+    translate 0.44s var(--ease-fluid),
+    display 0.44s allow-discrete;
+}
+
+:root[data-skin="glass"] .section-head .chev {
+  transition: transform 0.44s var(--ease-fluid);
+}
+
+/* ---------- Toggle ---------- */
+/* Medidas de switch de iOS, que además es lo que hace visible la animación: a
+   34×19 el recorrido eran 15px y no daba tiempo a leer nada. La perilla sale
+   con overshoot y el riel cruza de color más lento, así el color llega después
+   del movimiento — el orden importa, al revés se siente adelantado. */
+
+:root[data-skin="glass"] .toggle {
+  width: 44px;
+  height: 26px;
+  padding: 3px;
+  border-radius: 999px;
+  transition:
+    background 0.34s var(--ease-fluid),
+    border-color 0.34s var(--ease-fluid);
+}
+
+:root[data-skin="glass"] .toggle span {
+  width: 18px;
+  height: 18px;
+  box-shadow:
+    0 1px 2px rgba(22, 54, 43, 0.28),
+    0 2px 6px -1px rgba(22, 54, 43, 0.2);
+  transition:
+    transform 0.42s var(--ease-spring),
+    background 0.3s var(--ease-fluid);
+}
+
+:root[data-skin="glass"] .toggle.on span { transform: translateX(18px); }
+
+/* Al mantenerlo apretado la perilla se estira hacia donde va a ir: es el gesto
+   que hace que el switch se sienta agarrable y no un botón con dos estados. */
+:root[data-skin="glass"] .toggle:active span { transform: scaleX(1.25); transform-origin: left center; }
+:root[data-skin="glass"] .toggle.on:active span {
+  transform: translateX(13.5px) scaleX(1.25);
+  transform-origin: right center;
+}
+
+/* ---------- Hover localizado ---------- */
+/* El hover deja de ser un cambio parejo de toda la superficie y pasa a ser una
+   luz chica bajo el cursor. Dos motivos: en un control ancho —un slider de
+   300px, una fila de la biblioteca— pintar el rectángulo entero no dice dónde
+   estás parado; y con superficies de cristal el realce parejo las aplana.
+   El centro lo escribe skin.js en --hx/--hy; la intensidad va en --hover, que
+   está registrada con @property justamente para poder transicionarla: una
+   custom property sin registrar salta de 0 a 1 y no hay transición posible. */
+
+@property --hover {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 0;
+}
+
+:root[data-skin="glass"] .section-head,
+:root[data-skin="glass"] .btn,
+:root[data-skin="glass"] .pick,
+:root[data-skin="glass"] .tool-rail-item,
+:root[data-skin="glass"] .browser-row,
+:root[data-skin="glass"] .browser-head,
+:root[data-skin="glass"] .asset-row,
+:root[data-skin="glass"] .color-row,
+:root[data-skin="glass"] .text-row,
+:root[data-skin="glass"] .saved-row,
+:root[data-skin="glass"] .preset-thumb,
+:root[data-skin="glass"] .ease-cell,
+:root[data-skin="glass"] .pos-cell,
+:root[data-skin="glass"] .icon-btn,
+:root[data-skin="glass"] .segmented button,
+:root[data-skin="glass"] .library-tabs button,
+:root[data-skin="glass"] .transport .ratio-switch button {
+  --hx: 50%;
+  --hy: 150%;
+  background-image: radial-gradient(
+    circle 130px at var(--hx) var(--hy),
+    rgba(255, 255, 255, calc(0.9 * var(--hover))) 0%,
+    rgba(255, 255, 255, calc(0.4 * var(--hover))) 38%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transition:
+    --hover 0.4s var(--ease-fluid),
+    background-color 0.34s var(--ease-fluid),
+    border-color 0.34s var(--ease-fluid),
+    color 0.28s ease;
+}
+
+:root[data-skin="glass"] .section-head:hover,
+:root[data-skin="glass"] .btn:hover,
+:root[data-skin="glass"] .pick:hover,
+:root[data-skin="glass"] .tool-rail-item:hover,
+:root[data-skin="glass"] .browser-row:hover,
+:root[data-skin="glass"] .browser-head:hover,
+:root[data-skin="glass"] .asset-row:hover,
+:root[data-skin="glass"] .color-row:hover,
+:root[data-skin="glass"] .text-row:hover,
+:root[data-skin="glass"] .saved-row:hover,
+:root[data-skin="glass"] .preset-thumb:hover,
+:root[data-skin="glass"] .ease-cell:hover,
+:root[data-skin="glass"] .pos-cell:hover,
+:root[data-skin="glass"] .icon-btn:hover,
+:root[data-skin="glass"] .segmented button:hover,
+:root[data-skin="glass"] .library-tabs button:hover,
+:root[data-skin="glass"] .transport .ratio-switch button:hover { --hover: 1; }
+
+/* Los botones verdes quedan afuera del hover trackeado. Sobre verde profundo la
+   luz bajo el cursor no aporta: el control es chico, ya se lee entero de una, y
+   la mancha blanca moviéndose ahí adentro es ruido. Van con hover plano. */
+:root[data-skin="glass"] .transport .ratio-switch button,
+:root[data-skin="glass"] .transport .btn,
+:root[data-skin="glass"] .btn.primary,
+:root[data-skin="glass"] .segmented button.active,
+:root[data-skin="glass"] .pick.on,
+:root[data-skin="glass"] .tool-rail-item.active {
+  background-image: none;
+}
+
+:root[data-skin="glass"] .transport .btn,
+:root[data-skin="glass"] .transport .ratio-switch button,
+:root[data-skin="glass"] .btn.primary {
+  transition:
+    background-color 0.22s ease,
+    color 0.22s ease;
+}
+
+:root[data-skin="glass"] .btn.primary:hover { background-color: var(--green-800); }
+:root[data-skin="glass"] .pick:hover { --hover: 1; }
+:root[data-skin="glass"] .pick.on:hover { background-color: #005c3e; }
+
+/* Los cambios planos de fondo que había en hover se apagan: ahora el realce lo
+   da la luz y dejar los dos puestos suma y ensucia. */
+:root[data-skin="glass"] .section-head:hover,
+:root[data-skin="glass"] .tool-rail-item:not(.active):hover,
+:root[data-skin="glass"] .icon-btn:hover,
+:root[data-skin="glass"] .btn:hover,
+:root[data-skin="glass"] .pos-cell:hover { background-color: transparent; }
+
+/* El ítem activo se quedaba SIN fondo al pasarle el cursor: la regla de arriba
+   apagaba el color y le ganaba por orden a la del activo. Ahora sostiene el
+   verde y responde aclarándolo. */
+:root[data-skin="glass"] .tool-rail-item.active,
+:root[data-skin="glass"] .tool-rail-item.active:hover {
+  background-color: var(--green-900);
+  color: #fff;
+}
+
+:root[data-skin="glass"] .tool-rail-item.is-toggle:hover { background-color: var(--green-800); }
+
+:root[data-skin="glass"] .btn { background-color: rgba(255, 255, 255, 0.62); }
+:root[data-skin="glass"] .btn:hover { background-color: rgba(255, 255, 255, 0.62); }
+:root[data-skin="glass"] .btn.primary,
+:root[data-skin="glass"] .btn.primary:hover { background-color: var(--green-900); }
+:root[data-skin="glass"] .pos-cell:hover { background-color: rgba(255, 255, 255, 0.6); }
+:root[data-skin="glass"] .pos-cell.active { background-color: var(--green-900); }
+
+@media (prefers-reduced-motion: reduce) {
+  :root[data-skin="glass"] .section-body,
+  :root[data-skin="glass"] .toggle,
+  :root[data-skin="glass"] .toggle span { transition: none; }
+}
+
+
+/* ============================================================================
+   Segmentado: la pastilla se traslada
+   ============================================================================
+   El activo dejaba de pintarse en un botón y aparecía pintado en otro. Ahora el
+   fondo verde es UNA pastilla sola, absoluta, que se corre al slot elegido: el
+   ojo la sigue y entiende que las opciones son un mismo riel y no tres botones
+   sueltos.
+
+   Sin JS. Los botones son todos `flex: 1`, así que un slot mide el ancho útil
+   dividido la cantidad, y `:has()` alcanza para leer del DOM las dos cosas que
+   faltan: cuántas opciones hay y cuál está activa. El `translate` va en
+   múltiplos del 100% de la propia pastilla, que es exactamente un slot. */
+
+:root[data-skin="glass"] .segmented {
+  position: relative;
+  gap: 0;
+  padding: 3px;
+  --n: 3;
+  --i: 0;
+}
+
+:root[data-skin="glass"] .segmented::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 6px) / var(--n));
+  translate: calc(100% * var(--i)) 0;
+  border-radius: 999px;
+  background-color: var(--green-900);
+  box-shadow: 0 1px 3px -1px rgba(0, 72, 49, 0.45);
+  z-index: 0;
+  transition:
+    translate 0.44s var(--ease-fluid),
+    width 0.44s var(--ease-fluid),
+    opacity 0.2s ease;
+}
+
+/* Cuántas opciones: el último botón dice el total. */
+:root[data-skin="glass"] .segmented:has(> button:nth-child(2):last-child) { --n: 2; }
+:root[data-skin="glass"] .segmented:has(> button:nth-child(3):last-child) { --n: 3; }
+:root[data-skin="glass"] .segmented:has(> button:nth-child(4):last-child) { --n: 4; }
+:root[data-skin="glass"] .segmented:has(> button:nth-child(5):last-child) { --n: 5; }
+:root[data-skin="glass"] .segmented:has(> button:nth-child(6):last-child) { --n: 6; }
+
+/* Cuál está activa. */
+:root[data-skin="glass"] .segmented:has(> button:nth-child(1).active) { --i: 0; }
+:root[data-skin="glass"] .segmented:has(> button:nth-child(2).active) { --i: 1; }
+:root[data-skin="glass"] .segmented:has(> button:nth-child(3).active) { --i: 2; }
+:root[data-skin="glass"] .segmented:has(> button:nth-child(4).active) { --i: 3; }
+:root[data-skin="glass"] .segmented:has(> button:nth-child(5).active) { --i: 4; }
+:root[data-skin="glass"] .segmented:has(> button:nth-child(6).active) { --i: 5; }
+
+/* Si no hay ninguna activa la pastilla no puede quedarse en el slot 0
+   fingiendo una selección que no existe. */
+:root[data-skin="glass"] .segmented:not(:has(> button.active))::before { opacity: 0; }
+
+/* Los botones pasan a ser sólo texto: el fondo ahora lo pone la pastilla. */
+:root[data-skin="glass"] .segmented button {
+  position: relative;
+  z-index: 1;
+  background-color: transparent;
+  background-image: none;
+  box-shadow: none;
+  transition: color 0.3s var(--ease-fluid);
+}
+
+:root[data-skin="glass"] .segmented button.active {
+  background-color: transparent;
+  box-shadow: none;
+  color: #fff;
+}
+
+:root[data-skin="glass"] .segmented button:not(.active):hover { color: var(--ink); }
+
+/* ============================================================================
+   Biblioteca: la misma lógica de pastilla que los ratios
+   ============================================================================
+   Las filas de templates eran texto con una barrita verde al costado marcando
+   la activa. Pasan a ser pastillas con la misma jerarquía que los ratios del
+   panel CANVAS: el nombre en tinta plena manda, el número de variantes va en
+   gris, y la elegida es una pastilla verde llena con el texto en blanco.
+
+   Ahí el verde sí significa algo: es selección, no acción. La única acción
+   verde de la interfaz sigue siendo Exportar. */
+
+:root[data-skin="glass"] .browser-row,
+:root[data-skin="glass"] .browser-head {
+  padding: 10px 14px;
+  background-color: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--stroke);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+:root[data-skin="glass"] .browser-row:hover,
+:root[data-skin="glass"] .browser-head:hover {
+  background-color: rgba(255, 255, 255, 0.85);
+  border-color: var(--stroke-strong);
+  color: var(--ink);
+}
+
+:root[data-skin="glass"] .browser-row.active,
+:root[data-skin="glass"] .browser-row.active:hover {
+  background-color: var(--green-900);
+  border-color: transparent;
+  background-image: none;
+  color: #fff;
+}
+
+/* La barrita verde al costado era la marca de "activa". Con la fila entera
+   pintada ya no hace falta, y dos señales para lo mismo ensucian. */
+:root[data-skin="glass"] .browser-row.active::before { display: none; }
+
+/* El contador de variantes es el equivalente del "1080×1350" de los ratios:
+   dato secundario, un escalón por debajo. */
+:root[data-skin="glass"] .browser-row .tag,
+:root[data-skin="glass"] .browser-head .tag {
+  color: var(--muted-2);
+  font-weight: 500;
+}
+
+:root[data-skin="glass"] .browser-row.active .tag,
+:root[data-skin="glass"] .browser-row.active > svg:last-child { color: rgba(255, 255, 255, 0.68); }
+:root[data-skin="glass"] .browser-row > svg:last-child { color: var(--muted-2); }
+
+/* Las pestañas también: cápsula llena para la activa en vez de subrayado. */
+:root[data-skin="glass"] .library-tabs {
+  border-bottom: none;
+  gap: 4px;
+  padding: 4px 4px 0;
+  align-items: center;
+}
+
+:root[data-skin="glass"] .library-tabs button {
+  border-radius: var(--r-pill);
+  border: none;
+  padding: 7px 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+:root[data-skin="glass"] .library-tabs button.active {
+  background-color: var(--green-900);
+  background-image: none;
+  color: #fff;
+}
+
+:root[data-skin="glass"] .library-tabs button.active::after { display: none; }
+
+/* ---------- Pestañas: aire propio ---------- */
+/* La fila de pestañas es lo primero de la card: con 4px arriba la cápsula
+   quedaba pegada al canto redondeado. Va con el mismo margen que el resto. */
+:root[data-skin="glass"] .library-tabs {
+  padding: 10px 10px 6px;
+}
+
+:root[data-skin="glass"] .library-body { padding: 0 10px 10px; }
+:root[data-skin="glass"] .library-search { margin: 0 10px 8px; }
+
+/* ============================================================================
+   El viewport no lleva verde
+   ============================================================================
+   La sombra del canvas estaba tintada con el verde de marca, igual que la de
+   los cristales. Sobre el crema eso se leía como un halo verde alrededor de la
+   pieza y le metía color a lo único que no tiene que tener color propio: lo que
+   se está mirando. Va neutra. */
+
+:root[data-skin="glass"] .stage-wrap {
+  box-shadow:
+    0 2px 6px -2px rgba(28, 28, 30, 0.16),
+    0 26px 60px -34px rgba(28, 28, 30, 0.45);
+}
+
+/* ---------- Condensar la biblioteca ---------- */
+
+.library-collapse {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--muted-2);
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+
+.library-collapse:hover { color: var(--text); background-color: var(--panel-3); }
+
+:root[data-skin="glass"] .library-collapse { color: var(--muted); }
+:root[data-skin="glass"] .library-collapse:hover {
+  color: var(--green-900);
+  background-color: rgba(255, 255, 255, 0.85);
+}
+
+/* La tool activa además abre y cierra su panel, así que tiene que verse
+   apretable: sin esto hereda el `cursor: default` de "ya estás acá". */
+.tool-rail-item.is-toggle { cursor: pointer; }
+
+/* ============================================================================
+   Glass oscuro
+   ============================================================================
+   El mismo diseño, con el suelo en verde profundo en vez de crema. No hay una
+   sola regla de estructura acá abajo: todo el skin ya está escrito contra
+   tokens, así que cambiar el suelo es cambiar los valores y nada más.
+
+   Lo que se invierte es la RELACIÓN, no los colores. En claro el cristal es
+   blanco translúcido sobre crema y queda más claro que el fondo; en oscuro es
+   blanco translúcido sobre verde profundo, y sigue quedando más claro que el
+   fondo. Por eso el material se lee igual en los dos.
+
+   Lo que sí tiene que cambiar de valor es el verde de selección: en claro va
+   más oscuro que su entorno, en oscuro tiene que ir más claro, o "elegido"
+   deja de leerse. Se redefinen los tokens y todas las reglas que ya los usan
+   se acomodan solas.
+
+   `data-theme` lo escribe skin.js con el modo ya resuelto: acá no hace falta
+   preguntar por prefers-color-scheme. */
+
+:root[data-skin="glass"][data-theme="dark"] {
+  --ground: #062219;
+  --bg: var(--ground);
+
+  /* Sobre un suelo oscuro, el cristal es blanco a muy baja opacidad. El verde
+     no se pinta: lo pone el backdrop-filter al desenfocar el fondo. */
+  --panel: rgba(255, 255, 255, 0.075);
+  --panel-2: rgba(255, 255, 255, 0.12);
+  --panel-3: rgba(255, 255, 255, 0.19);
+
+  --stroke: rgba(255, 255, 255, 0.1);
+  --stroke-strong: rgba(255, 255, 255, 0.22);
+
+  --ink: #e9f1ec; /* blanco con una pizca de verde: el blanco puro sobre verde vibra */
+  --text: var(--ink);
+  --muted: #a3b7ae;
+  --muted-2: #7d9188;
+  --label: #6d817a;
+
+  /* Verdes. Más claros que en el tema claro por la misma razón por la que allá
+     eran más oscuros: el elegido tiene que separarse de su entorno. */
+  --green-900: #0e7150; /* relleno de selección y de la acción */
+  --green-800: #16906a; /* hover, y el nivel del slider */
+  --green-500: #35d29a; /* la perilla */
+  --green-rail: #00251a; /* el riel: sigue siendo el punto más oscuro de todo */
+
+  --active: var(--ink);
+  --active-bg: rgba(53, 210, 154, 0.14);
+  --active-stroke: rgba(53, 210, 154, 0.4);
+
+  --accent: #2fbe8c;
+  --accent-soft: rgba(47, 190, 140, 0.16);
+  --accent-line: rgba(47, 190, 140, 0.5);
+
+  --danger: #e6867f;
+}
+
+/* Ambiente: las mismas dos manchas, ahora una que aclara arriba a la izquierda
+   y otra que hunde abajo a la derecha. */
+:root[data-skin="glass"][data-theme="dark"] body {
+  background-color: var(--ground);
+  background-image:
+    radial-gradient(85% 65% at 12% 0%, rgba(36, 104, 80, 0.2) 0%, rgba(36, 104, 80, 0) 62%),
+    radial-gradient(70% 60% at 100% 100%, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0) 64%),
+    radial-gradient(50% 50% at 78% 8%, rgba(53, 210, 154, 0.035) 0%, rgba(53, 210, 154, 0) 70%);
+}
+
+/* El cristal: mismo esquema de tres capas, otros pesos. Sobre oscuro el filo
+   especular es lo único que dibuja el canto —no hay contorno que ayude— así que
+   se sostiene, mientras que el reflejo baja mucho: a plena intensidad sobre
+   verde profundo se convierte en una mancha lechosa. */
+/* El saturate del cristal baja de 1.6 a 1.1. Sobre crema levantaba un fondo
+   casi neutro y se notaba apenas; sobre verde profundo amplifica un color que
+   ya está saturado y convierte la pantalla entera en un lavado verde. */
+:root[data-skin="glass"][data-theme="dark"] .tool-rail,
+:root[data-skin="glass"][data-theme="dark"] .library,
+:root[data-skin="glass"][data-theme="dark"] .sidebar-head,
+:root[data-skin="glass"][data-theme="dark"] .section,
+:root[data-skin="glass"][data-theme="dark"] .transport,
+:root[data-skin="glass"][data-theme="dark"] .float-panel,
+:root[data-skin="glass"][data-theme="dark"] .modal {
+  -webkit-backdrop-filter: blur(26px) saturate(1.1);
+  backdrop-filter: blur(26px) saturate(1.1);
+  box-shadow:
+    inset calc(var(--nx) * -1.3px) calc(var(--ny) * -1.3px) 0 0
+      rgba(255, 255, 255, calc(0.14 + 0.16 * var(--li))),
+    inset 0 -1px 3px -1px rgba(0, 0, 0, 0.28),
+    0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 1px 2px 0 rgba(0, 0, 0, 0.3),
+    calc(var(--nx) * -2px) calc(8px + var(--ny) * -2px) 26px -14px rgba(0, 0, 0, 0.6);
+}
+
+:root[data-skin="glass"][data-theme="dark"] .tool-rail::after,
+:root[data-skin="glass"][data-theme="dark"] .library::after,
+:root[data-skin="glass"][data-theme="dark"] .sidebar-head::after,
+:root[data-skin="glass"][data-theme="dark"] .section::after,
+:root[data-skin="glass"][data-theme="dark"] .transport::after,
+:root[data-skin="glass"][data-theme="dark"] .float-panel::after,
+:root[data-skin="glass"][data-theme="dark"] .modal::after {
+  background:
+    radial-gradient(
+      175% 230% at var(--lx) var(--ly),
+      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.03) 36%,
+      rgba(255, 255, 255, 0) 74%
+    ),
+    radial-gradient(
+      175% 230% at calc(100% - var(--lx)) calc(100% - var(--ly)),
+      rgba(0, 0, 0, 0.14) 0%,
+      rgba(0, 0, 0, 0) 66%
+    );
+}
+
+/* La luz del hover: blanco a un tercio. Sobre superficies casi negras el mismo
+   blanco del tema claro quema. */
+:root[data-skin="glass"][data-theme="dark"] .section-head,
+:root[data-skin="glass"][data-theme="dark"] .btn,
+:root[data-skin="glass"][data-theme="dark"] .pick,
+:root[data-skin="glass"][data-theme="dark"] .tool-rail-item,
+:root[data-skin="glass"][data-theme="dark"] .browser-row,
+:root[data-skin="glass"][data-theme="dark"] .browser-head,
+:root[data-skin="glass"][data-theme="dark"] .asset-row,
+:root[data-skin="glass"][data-theme="dark"] .color-row,
+:root[data-skin="glass"][data-theme="dark"] .text-row,
+:root[data-skin="glass"][data-theme="dark"] .saved-row,
+:root[data-skin="glass"][data-theme="dark"] .preset-thumb,
+:root[data-skin="glass"][data-theme="dark"] .ease-cell,
+:root[data-skin="glass"][data-theme="dark"] .pos-cell,
+:root[data-skin="glass"][data-theme="dark"] .icon-btn,
+:root[data-skin="glass"][data-theme="dark"] .library-tabs button {
+  background-image: radial-gradient(
+    circle 130px at var(--hx) var(--hy),
+    rgba(255, 255, 255, calc(0.22 * var(--hover))) 0%,
+    rgba(255, 255, 255, calc(0.08 * var(--hover))) 38%,
+    rgba(255, 255, 255, 0) 100%
+  );
+}
+
+/* Superficies que en claro eran blanco translúcido. Escritas como una sola
+   familia para que no se escape ninguna: sobre oscuro, un rgba(255,255,255,.6)
+   olvidado es una caja blanca en el medio de la pantalla. */
+/* El `:not` no es prolijidad: sin él esta regla le gana por orden a la del
+   estado elegido —misma especificidad, va después— y la fila activa de la
+   biblioteca terminaba igual que las inactivas. */
+:root[data-skin="glass"][data-theme="dark"] .btn:not(.primary):not(.accent),
+:root[data-skin="glass"][data-theme="dark"] .transport .btn:not(.primary):not(.accent),
+:root[data-skin="glass"][data-theme="dark"] .transport .ratio-switch button:not(.active),
+:root[data-skin="glass"][data-theme="dark"] .asset-row,
+:root[data-skin="glass"][data-theme="dark"] .color-row,
+:root[data-skin="glass"][data-theme="dark"] .text-row:not(.active),
+:root[data-skin="glass"][data-theme="dark"] .saved-row,
+:root[data-skin="glass"][data-theme="dark"] .browser-row:not(.active),
+:root[data-skin="glass"][data-theme="dark"] .browser-head,
+:root[data-skin="glass"][data-theme="dark"] .preset-thumb:not(.active),
+:root[data-skin="glass"][data-theme="dark"] .ease-cell:not(.active),
+:root[data-skin="glass"][data-theme="dark"] .pos-cell:not(.active),
+:root[data-skin="glass"][data-theme="dark"] .pick:not(.on),
+:root[data-skin="glass"][data-theme="dark"] .notice,
+:root[data-skin="glass"][data-theme="dark"] .segmented,
+:root[data-skin="glass"][data-theme="dark"] .dropzone {
+  background-color: rgba(255, 255, 255, 0.06);
+  border-color: var(--stroke);
+  color: var(--ink);
+}
+
+/* Elegido: relleno verde claro y texto blanco, la misma señal que en claro. */
+:root[data-skin="glass"][data-theme="dark"] .browser-row.active,
+:root[data-skin="glass"][data-theme="dark"] .browser-row.active:hover,
+:root[data-skin="glass"][data-theme="dark"] .pos-cell.active,
+:root[data-skin="glass"][data-theme="dark"] .pick.on,
+:root[data-skin="glass"][data-theme="dark"] .ease-cell.active,
+:root[data-skin="glass"][data-theme="dark"] .btn.primary,
+:root[data-skin="glass"][data-theme="dark"] .transport .btn.primary,
+:root[data-skin="glass"][data-theme="dark"] .transport .btn.accent,
+:root[data-skin="glass"][data-theme="dark"] .library-tabs button.active,
+:root[data-skin="glass"][data-theme="dark"] .tool-rail-item.active {
+  background-color: var(--green-900);
+  border-color: transparent;
+  color: #fff;
+}
+
+:root[data-skin="glass"][data-theme="dark"] .btn.primary:hover,
+:root[data-skin="glass"][data-theme="dark"] .transport .btn.primary:hover,
+:root[data-skin="glass"][data-theme="dark"] .tool-rail-item.is-toggle:hover {
+  background-color: var(--green-800);
+}
+
+:root[data-skin="glass"][data-theme="dark"] .preset-thumb.active { border-color: var(--green-500); }
+:root[data-skin="glass"][data-theme="dark"] .preset-thumb.active span { color: var(--green-500); }
+:root[data-skin="glass"][data-theme="dark"] .ease-cell.active .curve { stroke: #fff; }
+
+:root[data-skin="glass"][data-theme="dark"] .transport .btn:hover,
+:root[data-skin="glass"][data-theme="dark"] .transport .ratio-switch button:hover,
+:root[data-skin="glass"][data-theme="dark"] .browser-row:hover,
+:root[data-skin="glass"][data-theme="dark"] .browser-head:hover,
+:root[data-skin="glass"][data-theme="dark"] .pos-cell:hover,
+:root[data-skin="glass"][data-theme="dark"] .dropzone:hover,
+:root[data-skin="glass"][data-theme="dark"] .dropzone.over {
+  background-color: rgba(255, 255, 255, 0.13);
+  border-color: var(--stroke-strong);
+}
+
+:root[data-skin="glass"][data-theme="dark"] .text-input,
+:root[data-skin="glass"][data-theme="dark"] .num-input,
+:root[data-skin="glass"][data-theme="dark"] textarea.text-input,
+:root[data-skin="glass"][data-theme="dark"] .library-search {
+  background-color: rgba(0, 0, 0, 0.25);
+  border-color: var(--stroke);
+  color: var(--ink);
+}
+
+:root[data-skin="glass"][data-theme="dark"] .text-input:focus,
+:root[data-skin="glass"][data-theme="dark"] .num-input:focus {
+  background-color: rgba(0, 0, 0, 0.35);
+  border-color: var(--accent-line);
+}
+
+:root[data-skin="glass"][data-theme="dark"] .scrub-input {
+  background-color: #0b2c22;
+  border-color: var(--stroke-strong);
+  color: var(--ink);
+}
+
+/* El play sigue siendo el punto de más peso de la barra, pero en oscuro la
+   tinta se pierde contra el fondo: el que contrasta es el claro. */
+:root[data-skin="glass"][data-theme="dark"] .transport .play {
+  background-color: var(--ink);
+  color: #062219;
+  box-shadow: 0 2px 10px -4px rgba(0, 0, 0, 0.7);
+}
+:root[data-skin="glass"][data-theme="dark"] .transport .play:hover { background-color: #fff; }
+
+/* El ratio elegido de la barra: contorno, igual que en claro, pero en el verde
+   claro que sí se ve sobre oscuro. */
+:root[data-skin="glass"][data-theme="dark"] .transport .ratio-switch button.active,
+:root[data-skin="glass"][data-theme="dark"] .transport .ratio-switch button.active:hover {
+  background-color: rgba(53, 210, 154, 0.1);
+  border-color: var(--green-500);
+  box-shadow: inset 0 0 0 1px var(--green-500);
+  color: var(--green-500);
+}
+:root[data-skin="glass"][data-theme="dark"] .transport .ratio-switch button.active .ratio-dims {
+  color: var(--green-500);
+  opacity: 0.7;
+}
+
+:root[data-skin="glass"][data-theme="dark"] .library-collapse:hover,
+:root[data-skin="glass"][data-theme="dark"] .tool-rail-item:not(.active):hover {
+  color: var(--ink);
+}
+:root[data-skin="glass"][data-theme="dark"] .library-collapse:hover { background-color: var(--panel-2); }
+
+:root[data-skin="glass"][data-theme="dark"] .brand,
+:root[data-skin="glass"][data-theme="dark"] .section-head,
+:root[data-skin="glass"][data-theme="dark"] .library-tabs button.active,
+:root[data-skin="glass"][data-theme="dark"] .modal-head b,
+:root[data-skin="glass"][data-theme="dark"] .float-panel-head { color: var(--ink); }
+
+:root[data-skin="glass"][data-theme="dark"] .tool-rail-mark,
+:root[data-skin="glass"][data-theme="dark"] .skin-toggle { color: var(--green-500); }
+
+:root[data-skin="glass"][data-theme="dark"] .segmented button.active { color: #fff; }
+:root[data-skin="glass"][data-theme="dark"] .segmented button:not(.active):hover { color: var(--ink); }
+
+:root[data-skin="glass"][data-theme="dark"] .scrim { background-color: rgba(0, 0, 0, 0.55); }
+:root[data-skin="glass"][data-theme="dark"] .modal { background-color: rgba(18, 44, 36, 0.88); }
+:root[data-skin="glass"][data-theme="dark"] .float-panel { background-color: rgba(18, 44, 36, 0.72); }
+:root[data-skin="glass"][data-theme="dark"] .export-preview { background-color: rgba(0, 0, 0, 0.25); }
+:root[data-skin="glass"][data-theme="dark"] .asset-thumb { background-color: rgba(0, 0, 0, 0.28); }
+
+:root[data-skin="glass"][data-theme="dark"] .slider { background-color: rgba(255, 255, 255, 0.18); }
+:root[data-skin="glass"][data-theme="dark"] .slider::-webkit-slider-thumb { background: var(--ink); }
+:root[data-skin="glass"][data-theme="dark"] .slider::-moz-range-thumb { background: var(--ink); }
+:root[data-skin="glass"][data-theme="dark"] .phase-bar { background-color: rgba(255, 255, 255, 0.14); }
+:root[data-skin="glass"][data-theme="dark"] .phase-seg { border-right-color: rgba(6, 34, 25, 0.9); }
+:root[data-skin="glass"][data-theme="dark"] .progress { background-color: rgba(255, 255, 255, 0.14); }
+:root[data-skin="glass"][data-theme="dark"] .progress > div { background: var(--green-500); }
+:root[data-skin="glass"][data-theme="dark"] .divider { background: var(--stroke); }
+
+/* El canvas ya no necesita despegarse de un fondo claro: sobre oscuro lo que
+   lo separa es el filo, no la sombra. */
+:root[data-skin="glass"][data-theme="dark"] .stage-wrap {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.07),
+    0 26px 60px -30px rgba(0, 0, 0, 0.8);
+}
+
+:root[data-skin="glass"][data-theme="dark"] .sidebar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  background-clip: content-box;
+}
+:root[data-skin="glass"][data-theme="dark"] .sidebar:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.28);
+  background-clip: content-box;
+}
+:root[data-skin="glass"][data-theme="dark"] .rail-panel::after,
+:root[data-skin="glass"][data-theme="dark"] .skin-toggle::after { background: var(--stroke); }
+
+/* El nivel del slider va aparte del verde de selección. Comparten token en
+   claro porque ahí los dos son oscuros, pero en oscuro el verde de selección
+   subió para poder leerse sobre el fondo, y usarlo como nivel deja una barra
+   fluorescente adentro de cada slider: el control que menos tiene que gritar
+   pasaba a ser el más ruidoso de la pantalla. El nivel se queda apenas por
+   encima del riel, que es todo lo que necesita para leerse. */
+:root[data-skin="glass"][data-theme="dark"] .scrub-fill { background: #0e5842; }
+:root[data-skin="glass"][data-theme="dark"] .scrub:hover .scrub-fill { background: #11674d; }
+:root[data-skin="glass"][data-theme="dark"] .scrub.dragging .scrub-fill { background: #15765a; }

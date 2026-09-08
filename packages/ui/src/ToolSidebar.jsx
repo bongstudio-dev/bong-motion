@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { TOOLS, toolHref } from "./tools.js";
+import { cycleMode, getMode, getSkin, toggleSkin } from "./skin.js";
 
 // Isotipo de Bong. Va con currentColor para que tome el verde del tema y no
 // arrastre un hex propio.
@@ -49,7 +51,94 @@ const GLYPHS = {
   ),
 };
 
-export function ToolSidebar({ current, isDev = false }) {
+// Medio círculo lleno: el glifo clásico de contraste. Dice "cambia el material
+// de la interfaz" sin prometer una función concreta.
+const SkinGlyph = () => (
+  <svg viewBox="0 0 18 18" width="16" height="16" aria-hidden="true">
+    <circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" strokeWidth="1.4" />
+    <path d="M9 2a7 7 0 0 1 0 14z" fill="currentColor" />
+  </svg>
+);
+
+// Auto sigue al sistema; los otros dos lo pisan. El glifo cuenta cuál está: el
+// círculo partido para Auto —el mismo que dice "depende del contraste"—, sol y
+// luna para los overrides.
+const MODE_GLYPH = {
+  system: (
+    <svg viewBox="0 0 18 18" width="16" height="16" aria-hidden="true">
+      <circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" strokeWidth="1.4" />
+      <path d="M9 2a7 7 0 0 1 0 14z" fill="currentColor" />
+    </svg>
+  ),
+  light: (
+    <svg viewBox="0 0 18 18" width="16" height="16" aria-hidden="true">
+      <circle cx="9" cy="9" r="3.5" fill="currentColor" />
+      <path
+        d="M9 1.2v2M9 14.8v2M1.2 9h2M14.8 9h2M3.5 3.5l1.4 1.4M13.1 13.1l1.4 1.4M14.5 3.5l-1.4 1.4M4.9 13.1l-1.4 1.4"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  ),
+  dark: (
+    <svg viewBox="0 0 18 18" width="16" height="16" aria-hidden="true">
+      <path
+        d="M15 11.2A6.6 6.6 0 0 1 6.8 3a6.9 6.9 0 1 0 8.2 8.2z"
+        fill="currentColor"
+      />
+    </svg>
+  ),
+};
+
+const MODE_LABEL = { system: "Auto", light: "Claro", dark: "Oscuro" };
+const MODE_TITLE = {
+  system: "Claro / oscuro: sigue al sistema — click para forzar claro",
+  light: "Claro / oscuro: forzado en claro — click para forzar oscuro",
+  dark: "Claro / oscuro: forzado en oscuro — click para volver a seguir al sistema",
+};
+
+// El skin es de la plataforma, no de la tool: por eso los dos interruptores
+// viven en el rail y no en el sidebar de ajustes de la pieza.
+//
+// Van con la misma forma y la misma etiqueta que las tools. Un ícono suelto sin
+// texto acá abajo no se encuentra: el rail entrenó al ojo a leer glifo + palabra.
+function RailSettings() {
+  const [skin, setSkinLocal] = useState(getSkin);
+  const [mode, setModeLocal] = useState(getMode);
+  const glass = skin === "glass";
+
+  return (
+    <>
+      {/* Claro/oscuro sólo tiene sentido dentro de Glass: el chasis viejo es
+          oscuro y punto. */}
+      {glass && (
+        <button
+          type="button"
+          className="tool-rail-item mode-toggle"
+          onClick={() => setModeLocal(cycleMode())}
+          title={MODE_TITLE[mode]}
+        >
+          {MODE_GLYPH[mode]}
+          <span>{MODE_LABEL[mode]}</span>
+        </button>
+      )}
+
+      <button
+        type="button"
+        className="tool-rail-item skin-toggle"
+        onClick={() => setSkinLocal(toggleSkin())}
+        title={glass ? "Skin Glass — click para volver al chasis oscuro" : "Chasis oscuro — click para pasar a Glass"}
+        aria-pressed={glass}
+      >
+        <SkinGlyph />
+        <span>{glass ? "Glass" : "Skin"}</span>
+      </button>
+    </>
+  );
+}
+
+export function ToolSidebar({ current, isDev = false, library = null }) {
   return (
     <nav className="tool-rail" aria-label="Herramientas">
       <a className="tool-rail-mark" href="../" title="Bong Motion">
@@ -58,6 +147,27 @@ export function ToolSidebar({ current, isDev = false }) {
 
       {TOOLS.map((tool) => {
         const active = tool.id === current;
+
+        // Sobre la tool en la que ya estás, el rail no tiene a dónde llevarte:
+        // ese click queda libre y lo usa la biblioteca. Es el gesto de barra
+        // lateral de siempre — volver a tocar el ítem en el que estás muestra y
+        // esconde su panel.
+        if (active && library) {
+          return (
+            <button
+              key={tool.id}
+              type="button"
+              className="tool-rail-item active is-toggle"
+              onClick={library.onToggle}
+              title={library.open ? "Esconder la biblioteca" : "Mostrar la biblioteca"}
+              aria-pressed={library.open}
+            >
+              {GLYPHS[tool.id]}
+              <span>{tool.name}</span>
+            </button>
+          );
+        }
+
         return (
           <a
             key={tool.id}
@@ -71,6 +181,8 @@ export function ToolSidebar({ current, isDev = false }) {
           </a>
         );
       })}
+
+      <RailSettings />
     </nav>
   );
 }
