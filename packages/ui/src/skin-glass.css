@@ -91,6 +91,13 @@
   --g-parallax: 2px; /* cuánto se corre la sombra en contra de la luz */
   --g-speed: 1; /* multiplicador de todas las transiciones */
 
+  /* El hover de las cards es un sistema aparte del motor de luz: no lo mueve
+     una fuente en la sala sino el cursor, y sólo sobre el control apuntado.
+     Por eso tiene sus propias perillas. */
+  --g-glow: 0.9; /* pico de la luz bajo el cursor */
+  --g-glow-size: 130px; /* radio de esa luz */
+  --g-glow-time: 0.4s; /* cuánto tarda en prender y apagar */
+
   /* Luz por defecto: cenital. Es lo que se ve sin mover el cursor y lo que
      queda si el usuario pide reduced-motion. skin.js las pisa por elemento. */
   --lx: 50%;
@@ -1077,13 +1084,13 @@
   --hx: 50%;
   --hy: 150%;
   background-image: radial-gradient(
-    circle 130px at var(--hx) var(--hy),
-    rgba(255, 255, 255, calc(0.9 * var(--hover))) 0%,
-    rgba(255, 255, 255, calc(0.4 * var(--hover))) 38%,
+    circle var(--g-glow-size) at var(--hx) var(--hy),
+    rgba(255, 255, 255, calc(var(--g-glow) * var(--hover))) 0%,
+    rgba(255, 255, 255, calc(var(--g-glow) * 0.44 * var(--hover))) 38%,
     rgba(255, 255, 255, 0) 100%
   );
   transition:
-    --hover calc(0.4s * var(--g-speed)) var(--ease-fluid),
+    --hover calc(var(--g-glow-time) * var(--g-speed)) var(--ease-fluid),
     background-color calc(0.34s * var(--g-speed)) var(--ease-fluid),
     border-color calc(0.34s * var(--g-speed)) var(--ease-fluid),
     color 0.28s ease;
@@ -1431,6 +1438,8 @@
      cuarto y el filo a un tercio. */
   --g-light: 0.13;
   --g-contrast: 0.16;
+  /* Sobre superficies casi negras el mismo blanco del tema claro quema. */
+  --g-glow: 0.22;
   --g-edge: 0.3;
   --g-sat: 1.1;
   --g-opacity: 0.075;
@@ -1511,9 +1520,9 @@
 :root[data-skin="glass"][data-theme="dark"] .icon-btn,
 :root[data-skin="glass"][data-theme="dark"] .library-tabs button {
   background-image: radial-gradient(
-    circle 130px at var(--hx) var(--hy),
-    rgba(255, 255, 255, calc(0.22 * var(--hover))) 0%,
-    rgba(255, 255, 255, calc(0.08 * var(--hover))) 38%,
+    circle var(--g-glow-size) at var(--hx) var(--hy),
+    rgba(255, 255, 255, calc(var(--g-glow) * var(--hover))) 0%,
+    rgba(255, 255, 255, calc(var(--g-glow) * 0.36 * var(--hover))) 38%,
     rgba(255, 255, 255, 0) 100%
   );
 }

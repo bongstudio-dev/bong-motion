@@ -175,6 +175,17 @@ export const GLASS_PARAMS = [
   { group: "Profundidad", key: "lift", label: "Elevación", min: 0, max: 3, step: 0.02, where: "css" },
   { group: "Profundidad", key: "parallax", label: "Paralaje", min: 0, max: 14, step: 0.5, where: "css", unit: "px" },
 
+  /* Grupo aparte porque es un sistema aparte: el reflejo de los paneles lo
+     mueve una fuente de luz en la sala, esto es una luz local que sólo existe
+     sobre el control apuntado y que prende y apaga con el hover. */
+  { group: "Hover", key: "glow", label: "Intensidad", step: 0.01, where: "css",
+    range: { light: [0, 1.6], dark: [0, 0.6] },
+    hint: "El pico de la luz bajo el cursor. Sobre superficies casi negras el mismo blanco del tema claro quema, por eso el rango es distinto." },
+  { group: "Hover", key: "glow-size", label: "Tamaño", min: 20, max: 400, step: 5, where: "css", unit: "px",
+    hint: "Radio de la luz. Chico marca el punto exacto; grande realza el control entero y deja de decir dónde estás parado." },
+  { group: "Hover", key: "glow-time", label: "Entrada", min: 0, max: 1.2, step: 0.02, where: "css", unit: "s",
+    hint: "Cuánto tarda en prender y apagar. Se multiplica por Velocidad." },
+
   { group: "Movimiento", key: "speed", label: "Velocidad", min: 0.2, max: 3, step: 0.05, where: "css",
     hint: "Multiplica la duración de todas las transiciones del skin." },
 ];
@@ -188,7 +199,7 @@ export function glassRange(key) {
 }
 
 const BY_KEY = Object.fromEntries(GLASS_PARAMS.map((p) => [p.key, p]));
-const CSS_UNIT = { blur: "px", parallax: "px" };
+const CSS_UNIT = { blur: "px", parallax: "px", "glow-size": "px", "glow-time": "s" };
 
 // Defaults del motor de luz. Los del CSS se leen del stylesheet.
 const JS_DEFAULTS = { follow: 1, lag: 110, warp: 0.5, reach: 1100, rate: 60 };
