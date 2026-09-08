@@ -28,7 +28,7 @@
 
   /* Superficies de cristal. La opacidad sube con la jerarquía: la card es la
      más translúcida, el control apoyado encima es más sólido. */
-  --panel: rgba(255, 255, 255, 0.5);
+  --panel: rgba(255, 255, 255, var(--g-opacity));
   --panel-2: rgba(255, 255, 255, 0.68);
   --panel-3: rgba(255, 255, 255, 0.88);
 
@@ -68,6 +68,23 @@
   /* Separación entre piezas flotantes. Sube con el radio: una esquina de 24px
      necesita más aire alrededor o las curvas de dos cards vecinas se tocan. */
   --float-gap: 12px;
+
+  /* ---- Perillas del cristal ----
+     Todo lo que define el material está acá y en ningún otro lado: el tweaker
+     las pisa en línea sobre <html> y con eso alcanza. Estos son los defaults
+     del tema claro; el bloque oscuro redefine los que cambian. */
+  --g-light: 0.42; /* pico del reflejo */
+  --g-contrast: 0.055; /* la contraparte oscura, del otro lado del panel */
+  --g-spread: 1; /* qué tan abierto es el degradado */
+  --g-edge: 1; /* brillo del filo especular */
+  --g-rim: 1.3px; /* cuánto se corre ese filo */
+  --g-blur: 26px;
+  --g-sat: 1.6;
+  --g-opacity: 0.5; /* opacidad del vidrio */
+  --g-shadow: 1; /* peso de la sombra */
+  --g-lift: 1; /* cuánto flota */
+  --g-parallax: 2px; /* cuánto se corre la sombra en contra de la luz */
+  --g-speed: 1; /* multiplicador de todas las transiciones */
 
   /* Luz por defecto: cenital. Es lo que se ve sin mover el cursor y lo que
      queda si el usuario pide reduced-motion. skin.js las pisa por elemento. */
@@ -157,21 +174,23 @@
   border: none;
   border-radius: var(--radius);
   background-color: var(--panel);
-  -webkit-backdrop-filter: blur(26px) saturate(1.6);
-  backdrop-filter: blur(26px) saturate(1.6);
+  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
+  backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
   box-shadow:
     /* filo especular, del lado que mira a la luz */
-    inset calc(var(--nx) * -1.3px) calc(var(--ny) * -1.3px) 0 0
-      rgba(255, 255, 255, calc(0.55 + 0.45 * var(--li))),
+    inset calc(var(--nx) * var(--g-rim) * -1) calc(var(--ny) * var(--g-rim) * -1) 0 0
+      rgba(255, 255, 255, calc(var(--g-edge) * (0.55 + 0.45 * var(--li)))),
     /* espesor: el canto de abajo devuelve un poco de sombra hacia adentro, que
        es lo que hace que el cristal tenga cuerpo y no sea una lámina */
-    inset 0 -1px 3px -1px rgba(22, 54, 43, 0.1),
+    inset 0 -1px 3px -1px rgba(22, 54, 43, calc(0.1 * var(--g-shadow))),
     /* contorno propio, para que no se pierda contra el crema */
     0 0 0 1px rgba(22, 54, 43, 0.06),
     /* contacto */
-    0 1px 2px 0 rgba(22, 54, 43, 0.05),
+    0 1px 2px 0 rgba(22, 54, 43, calc(0.05 * var(--g-shadow))),
     /* peso, corrido en contra de la luz */
-    calc(var(--nx) * -2px) calc(8px + var(--ny) * -2px) 26px -14px rgba(22, 54, 43, 0.32);
+    calc(var(--nx) * var(--g-parallax) * -1)
+      calc(8px * var(--g-lift) + var(--ny) * var(--g-parallax) * -1)
+      calc(26px * var(--g-lift)) -14px rgba(22, 54, 43, calc(0.32 * var(--g-shadow)));
 }
 
 /* El ::after del reflejo necesita un contenedor posicionado. Se lo damos sólo
@@ -199,15 +218,17 @@
   z-index: 0;
   border-radius: inherit;
   pointer-events: none;
-  background-color: radial-gradient(
-      175% 230% at var(--lx) var(--ly),
-      rgba(255, 255, 255, 0.42) 0%,
-      rgba(255, 255, 255, 0.12) 36%,
+  background: radial-gradient(
+      calc(175% * var(--g-spread) * var(--lwx, 1)) calc(230% * var(--g-spread) * var(--lwy, 1))
+        at var(--lx) var(--ly),
+      rgba(255, 255, 255, var(--g-light)) 0%,
+      rgba(255, 255, 255, calc(var(--g-light) * 0.29)) 36%,
       rgba(255, 255, 255, 0) 74%
     ),
     radial-gradient(
-      175% 230% at calc(100% - var(--lx)) calc(100% - var(--ly)),
-      rgba(22, 54, 43, 0.055) 0%,
+      calc(175% * var(--g-spread)) calc(230% * var(--g-spread))
+        at calc(100% - var(--lx)) calc(100% - var(--ly)),
+      rgba(22, 54, 43, var(--g-contrast)) 0%,
       rgba(22, 54, 43, 0) 66%
     );
 }
@@ -675,8 +696,22 @@
 /* Hereda .tool-rail-item: forma, tamaño y etiqueta iguales a los de las tools.
    Lo único propio es que se va al pie y que lleva un filete arriba, para que se
    lea como "esto no es una tool más". */
-.mode-toggle { margin-top: auto; position: relative; border: none; background: none; }
+/* El grupo de ajustes se va al pie y lleva UN filete arriba, en el primero que
+   exista. Cuáles hay depende del skin, así que el filete no puede estar clavado
+   en un botón concreto. */
+.glass-toggle,
+.mode-toggle {
+  position: relative;
+  border: none;
+  background: none;
+}
+
+.glass-toggle { margin-top: auto; }
+.glass-toggle ~ .mode-toggle,
+.glass-toggle ~ .skin-toggle,
 .mode-toggle + .skin-toggle { margin-top: 0; }
+.glass-toggle ~ .mode-toggle::after,
+.glass-toggle ~ .skin-toggle::after,
 .mode-toggle + .skin-toggle::after { display: none; }
 
 .skin-toggle {
@@ -686,6 +721,7 @@
   position: relative;
 }
 
+.glass-toggle::after,
 .mode-toggle::after,
 .skin-toggle::after {
   content: "";
@@ -697,7 +733,12 @@
   background-color: var(--stroke);
 }
 
-:root[data-skin="glass"] .skin-toggle { color: var(--green-900); }
+:root[data-skin="glass"] .skin-toggle,
+:root[data-skin="glass"] .glass-toggle { color: var(--green-900); }
+:root[data-skin="glass"] .glass-toggle.on {
+  background-color: var(--green-900);
+  color: #fff;
+}
 :root[data-skin="glass"] .skin-toggle::after { background-color: rgba(22, 54, 43, 0.14); }
 :root[data-skin="glass"] .skin-toggle:hover { background-color: rgba(255, 255, 255, 0.75); }
 
@@ -889,10 +930,10 @@
   opacity: 1;
   translate: 0 0;
   transition:
-    height 0.44s var(--ease-fluid),
-    padding 0.44s var(--ease-fluid),
+    height calc(0.44s * var(--g-speed)) var(--ease-fluid),
+    padding calc(0.44s * var(--g-speed)) var(--ease-fluid),
     opacity 0.3s ease 0.08s,
-    translate 0.44s var(--ease-fluid),
+    translate calc(0.44s * var(--g-speed)) var(--ease-fluid),
     display 0.44s allow-discrete;
 }
 
@@ -915,15 +956,15 @@
      sentidos llevan tiempos distintos: la transición que manda es siempre la
      declarada en el estado al que se va. */
   transition:
-    height 0.44s var(--ease-fluid),
-    padding 0.44s var(--ease-fluid),
+    height calc(0.44s * var(--g-speed)) var(--ease-fluid),
+    padding calc(0.44s * var(--g-speed)) var(--ease-fluid),
     opacity 0.15s ease,
-    translate 0.44s var(--ease-fluid),
+    translate calc(0.44s * var(--g-speed)) var(--ease-fluid),
     display 0.44s allow-discrete;
 }
 
 :root[data-skin="glass"] .section-head .chev {
-  transition: transform 0.44s var(--ease-fluid);
+  transition: transform calc(0.44s * var(--g-speed)) var(--ease-fluid);
 }
 
 /* ---------- Toggle ---------- */
@@ -938,8 +979,8 @@
   padding: 3px;
   border-radius: 999px;
   transition:
-    background 0.34s var(--ease-fluid),
-    border-color 0.34s var(--ease-fluid);
+    background calc(0.34s * var(--g-speed)) var(--ease-fluid),
+    border-color calc(0.34s * var(--g-speed)) var(--ease-fluid);
 }
 
 :root[data-skin="glass"] .toggle span {
@@ -949,8 +990,8 @@
     0 1px 2px rgba(22, 54, 43, 0.28),
     0 2px 6px -1px rgba(22, 54, 43, 0.2);
   transition:
-    transform 0.42s var(--ease-spring),
-    background 0.3s var(--ease-fluid);
+    transform calc(0.42s * var(--g-speed)) var(--ease-spring),
+    background calc(0.3s * var(--g-speed)) var(--ease-fluid);
 }
 
 :root[data-skin="glass"] .toggle.on span { transform: translateX(18px); }
@@ -1004,9 +1045,9 @@
     rgba(255, 255, 255, 0) 100%
   );
   transition:
-    --hover 0.4s var(--ease-fluid),
-    background-color 0.34s var(--ease-fluid),
-    border-color 0.34s var(--ease-fluid),
+    --hover calc(0.4s * var(--g-speed)) var(--ease-fluid),
+    background-color calc(0.34s * var(--g-speed)) var(--ease-fluid),
+    border-color calc(0.34s * var(--g-speed)) var(--ease-fluid),
     color 0.28s ease;
 }
 
@@ -1119,8 +1160,8 @@
   box-shadow: 0 1px 3px -1px rgba(0, 72, 49, 0.45);
   z-index: 0;
   transition:
-    translate 0.44s var(--ease-fluid),
-    width 0.44s var(--ease-fluid),
+    translate calc(0.44s * var(--g-speed)) var(--ease-fluid),
+    width calc(0.44s * var(--g-speed)) var(--ease-fluid),
     opacity 0.2s ease;
 }
 
@@ -1150,7 +1191,7 @@
   background-color: transparent;
   background-image: none;
   box-shadow: none;
-  transition: color 0.3s var(--ease-fluid);
+  transition: color calc(0.3s * var(--g-speed)) var(--ease-fluid);
 }
 
 :root[data-skin="glass"] .segmented button.active {
@@ -1315,7 +1356,7 @@
 
   /* Sobre un suelo oscuro, el cristal es blanco a muy baja opacidad. El verde
      no se pinta: lo pone el backdrop-filter al desenfocar el fondo. */
-  --panel: rgba(255, 255, 255, 0.075);
+  --panel: rgba(255, 255, 255, var(--g-opacity));
   --panel-2: rgba(255, 255, 255, 0.12);
   --panel-3: rgba(255, 255, 255, 0.19);
 
@@ -1344,6 +1385,15 @@
   --accent-line: rgba(47, 190, 140, 0.5);
 
   --danger: #e6867f;
+
+  /* Perillas del cristal en oscuro. Sobre un suelo verde profundo el mismo
+     reflejo del tema claro se vuelve una mancha lechosa: la luz entra a un
+     cuarto y el filo a un tercio. */
+  --g-light: 0.1;
+  --g-contrast: 0.14;
+  --g-edge: 0.3;
+  --g-sat: 1.1;
+  --g-opacity: 0.075;
 }
 
 /* Ambiente: las mismas dos manchas, ahora una que aclara arriba a la izquierda
@@ -1370,15 +1420,17 @@
 :root[data-skin="glass"][data-theme="dark"] .transport,
 :root[data-skin="glass"][data-theme="dark"] .float-panel,
 :root[data-skin="glass"][data-theme="dark"] .modal {
-  -webkit-backdrop-filter: blur(26px) saturate(1.1);
-  backdrop-filter: blur(26px) saturate(1.1);
+  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
+  backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
   box-shadow:
-    inset calc(var(--nx) * -1.3px) calc(var(--ny) * -1.3px) 0 0
-      rgba(255, 255, 255, calc(0.14 + 0.16 * var(--li))),
-    inset 0 -1px 3px -1px rgba(0, 0, 0, 0.28),
+    inset calc(var(--nx) * var(--g-rim) * -1) calc(var(--ny) * var(--g-rim) * -1) 0 0
+      rgba(255, 255, 255, calc(var(--g-edge) * (0.47 + 0.53 * var(--li)))),
+    inset 0 -1px 3px -1px rgba(0, 0, 0, calc(0.28 * var(--g-shadow))),
     0 0 0 1px rgba(255, 255, 255, 0.05),
-    0 1px 2px 0 rgba(0, 0, 0, 0.3),
-    calc(var(--nx) * -2px) calc(8px + var(--ny) * -2px) 26px -14px rgba(0, 0, 0, 0.6);
+    0 1px 2px 0 rgba(0, 0, 0, calc(0.3 * var(--g-shadow))),
+    calc(var(--nx) * var(--g-parallax) * -1)
+      calc(8px * var(--g-lift) + var(--ny) * var(--g-parallax) * -1)
+      calc(26px * var(--g-lift)) -14px rgba(0, 0, 0, calc(0.6 * var(--g-shadow)));
 }
 
 :root[data-skin="glass"][data-theme="dark"] .tool-rail::after,
@@ -1390,14 +1442,16 @@
 :root[data-skin="glass"][data-theme="dark"] .modal::after {
   background:
     radial-gradient(
-      175% 230% at var(--lx) var(--ly),
-      rgba(255, 255, 255, 0.1) 0%,
-      rgba(255, 255, 255, 0.03) 36%,
+      calc(175% * var(--g-spread) * var(--lwx, 1)) calc(230% * var(--g-spread) * var(--lwy, 1))
+        at var(--lx) var(--ly),
+      rgba(255, 255, 255, var(--g-light)) 0%,
+      rgba(255, 255, 255, calc(var(--g-light) * 0.3)) 36%,
       rgba(255, 255, 255, 0) 74%
     ),
     radial-gradient(
-      175% 230% at calc(100% - var(--lx)) calc(100% - var(--ly)),
-      rgba(0, 0, 0, 0.14) 0%,
+      calc(175% * var(--g-spread)) calc(230% * var(--g-spread))
+        at calc(100% - var(--lx)) calc(100% - var(--ly)),
+      rgba(0, 0, 0, var(--g-contrast)) 0%,
       rgba(0, 0, 0, 0) 66%
     );
 }
@@ -1596,3 +1650,73 @@
 :root[data-skin="glass"][data-theme="dark"] .scrub-fill { background: #0e5842; }
 :root[data-skin="glass"][data-theme="dark"] .scrub:hover .scrub-fill { background: #11674d; }
 :root[data-skin="glass"][data-theme="dark"] .scrub.dragging .scrub-fill { background: #15765a; }
+
+
+/* ============================================================================
+   Panel de perillas del cristal
+   ============================================================================
+   Angosto a propósito: se usa contra la interfaz, no en lugar de ella. Y como
+   es un `.float-panel`, está hecho del mismo cristal que se está ajustando —
+   se ve el efecto sobre el propio control que lo mueve. */
+
+/* `position: fixed` explícito, aunque .float-panel ya lo traiga: el panel es lo
+   único que se monta fuera del árbol donde nació, y una regla `> *` de cualquier
+   contenedor lo devolvería al flujo sin que se note hasta verlo mal puesto. */
+.glass-tweaker {
+  position: fixed;
+  z-index: 40;
+}
+
+.glass-tweaker .float-panel-body {
+  gap: 12px;
+  max-height: min(72vh, 620px);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.glass-tweaker .float-panel-title em {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--muted-2);
+  margin-left: 4px;
+}
+
+.glass-tweaker .group { gap: 6px; }
+.glass-tweaker .group-title { margin-top: 0; }
+.glass-tweaker .hint { margin: 0; }
+.glass-tweaker .btn-row .btn { flex: 1; }
+
+/* Cada perilla, con el punto de "esto está fuera del default" pisado sobre el
+   canto derecho de la píldora. Va encima y no al lado para no robarle ancho al
+   scrub, que es lo que se está arrastrando. */
+.knob { position: relative; }
+
+.glass-dump {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.5;
+  resize: vertical;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+.knob-reset {
+  position: absolute;
+  top: 50%;
+  right: -3px;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 2px solid var(--panel);
+  border-radius: 50%;
+  background: var(--green-500);
+  cursor: pointer;
+  transition: transform 0.15s var(--ease-fluid);
+}
+
+.knob-reset:hover { transform: translateY(-50%) scale(1.35); }
+
+:root[data-skin="glass"] .glass-tweaker .float-panel-title { color: var(--green-900); }
+:root[data-skin="glass"][data-theme="dark"] .glass-tweaker .float-panel-title { color: var(--ink); }
