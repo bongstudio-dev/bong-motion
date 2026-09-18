@@ -130,9 +130,6 @@ export function placeholderTexture(n, aspect = 1) {
   const g = c.getContext("2d");
   g.fillStyle = "#26272c";
   g.fillRect(0, 0, w, h);
-  g.strokeStyle = "#3a3b42";
-  g.lineWidth = 6;
-  g.strokeRect(3, 3, w - 6, h - 6);
   g.fillStyle = "#63646b";
   // El cuerpo sale del lado menor: el número tiene que entrar en un plano
   // angosto igual que en uno cuadrado.
