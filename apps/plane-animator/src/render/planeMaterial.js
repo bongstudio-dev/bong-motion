@@ -46,16 +46,25 @@ const fragmentShader = /* glsl */ `
 
     // Las dos muestras se toman siempre: ramificar alrededor de texture2D deja
     // las derivadas indefinidas y arruina los mipmaps en el borde.
+    // Las texturas vienen PREMULTIPLICADAS (ver assetStore): un píxel
+    // transparente es (0,0,0,0) y el filtrado no arrastra negro al borde de un
+    // PNG. Todo el mezclado se hace premultiplicado y se despremultiplica al final.
     vec4 img = mix(texture2D(uMap, t), texture2D(uBackMap, t), useBack);
 
     // Fuera de [0,1] estamos en el letterbox de 'contain' → color de fondo.
+    // El antialias cae AFUERA de [0,1]: dentro de la imagen inside = 1 exacto.
+    // Si cayera adentro, en 'cover' (t toca 0 y 1 en el borde del plano) el
+    // fondo se colaba en el borde y en las zonas transparentes de un PNG
+    // dibujaba una línea.
     vec2 w = fwidth(t) + 1e-5;
-    vec2 lo = smoothstep(vec2(0.0), w, t);
-    vec2 hi = smoothstep(vec2(0.0), w, 1.0 - t);
+    vec2 lo = smoothstep(-w, vec2(0.0), t);
+    vec2 hi = smoothstep(-w, vec2(0.0), 1.0 - t);
     float inside = lo.x * lo.y * hi.x * hi.y;
 
-    vec3 rgb = mix(uBg.rgb, img.rgb, inside);
-    float alpha = mix(uBg.a, img.a, inside);
+    vec4 bg = vec4(uBg.rgb * uBg.a, uBg.a);
+    vec4 col = mix(bg, img, inside);
+    float alpha = col.a;
+    vec3 rgb = col.rgb / max(alpha, 1e-5);
 
     // Corner radius: SDF de rounded box sobre las UV, en px. Crocante y sin
     // geometría extra. fwidth da el ancho de antialias correcto a cualquier

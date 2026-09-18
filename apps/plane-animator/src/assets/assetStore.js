@@ -36,7 +36,10 @@ export async function ingestFile(file) {
     throw new Error(`${file.name}: no es una imagen`);
   }
 
-  const src = await createImageBitmap(file);
+  // Premultiplicado explícito: si el navegador despremultiplica al subir, los
+  // píxeles transparentes de un PNG quedan con RGB negro y el filtrado los
+  // mezcla con el borde (línea oscura). El shader trabaja premultiplicado.
+  const src = await createImageBitmap(file, { premultiplyAlpha: "premultiply" });
   const srcW = src.width;
   const srcH = src.height;
 
@@ -52,6 +55,7 @@ export async function ingestFile(file) {
     resizeHeight: h,
     resizeQuality: "high",
     imageOrientation: "flipY",
+    premultiplyAlpha: "premultiply",
   });
   src.close?.();
 
