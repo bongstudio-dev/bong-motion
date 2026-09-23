@@ -384,6 +384,26 @@ export const LIBRARY = [
         timing: timing(1.4, 5, EASE_SNAP),
       },
       {
+        // Explorar un canvas: la cámara viaja de card en card sobre una grilla
+        // más grande que el cuadro, se detiene en cada una y se aleja un poco
+        // en el tránsito. Pensado para piezas de sistema (patrones, páginas de
+        // manual) en cards apaisadas.
+        //
+        // 6×6 con zigzag: una vuelta del recorrido corre 2 columnas, así que
+        // la grilla vuelve a ser idéntica a los 6 ciclos. Sin fade: la grilla
+        // cubre el cuadro también en el punto más alejado del viaje.
+        id: "wall-canvas",
+        name: "Canvas",
+        fov: 45,
+        params: {
+          rows: 6, cols: 6, planeSize: 0.56, planeRatio: "16:9", gap: 0.035,
+          motion: "tour", path: "zigzag", zoomDip: 0.14, drift: 1,
+          rowDir: "uniform", tiltX: 0, tiltY: 0, centerScale: 0,
+          edgeFade: 0, cornerRadius: 0,
+        },
+        timing: timing(1.6, 6, EASE_SNAP),
+      },
+      {
         // Muy inclinado y con la fila del medio agrandada: el muro se lee como
         // una pared vista de costado.
         id: "wall-pared",

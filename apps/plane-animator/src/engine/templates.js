@@ -17,7 +17,7 @@
 // y devuelve `assetSlot`, un entero de la secuencia. El compositor resuelve
 // `assetIndex = mod(assetSlot, M)`.
 
-import { clamp, lerp, frac, mod, hash01, gcd } from "../utils/math.js";
+import { clamp, lerp, frac, mod, hash01, gcd, lcm } from "../utils/math.js";
 
 const TAU = Math.PI * 2;
 const DEG = Math.PI / 180;
@@ -687,6 +687,47 @@ const tunnel = {
 // la grilla por defecto cae fuera de cuadro y nadie lo nota.
 const WALL_WRAP_GUARD = 0.06; // fracción del ancho de la fila
 
+// Recorridos de cámara del modo "canvas": la grilla se mueve de a un tile por
+// ciclo siguiendo esta secuencia de pasos, en unidades de tile [dx, dy] con y
+// hacia abajo. El ease global moldea cada paso: con EASE_SNAP la cámara se
+// detiene en cada card y viaja a la siguiente, como explorar un canvas.
+const WALL_PATHS = {
+  diagonal: [[1, 1]],
+  zigzag: [[1, 1], [1, -1]],
+  escalera: [[1, 0], [0, 1]],
+  vuelta: [[1, 0], [0, 1], [-1, 0], [0, -1]],
+};
+const WALL_PATH_OPTIONS = [
+  { value: "zigzag", label: "Zigzag" },
+  { value: "diagonal", label: "Diagonal" },
+  { value: "escalera", label: "Escalera" },
+  { value: "vuelta", label: "Vuelta" },
+];
+const wallPath = (p) => WALL_PATHS[p.path] ?? WALL_PATHS.zigzag;
+
+// Offset acumulado en tiles a tiempo t. floor(t) pasos completos + el paso en
+// curso moldeado por el ease. Como ease(0)=0 y ease(1)=1, al cierre de cada
+// ciclo el offset es entero y la cámara queda centrada en una card.
+function tourOffset(t, ease, steps) {
+  const L = steps.length;
+  const c = Math.floor(t);
+  const f = t - c;
+  const laps = Math.floor(c / L);
+  let ox = 0;
+  let oy = 0;
+  for (const [dx, dy] of steps) {
+    ox += dx * laps;
+    oy += dy * laps;
+  }
+  for (let k = 0; k < mod(c, L); k++) {
+    ox += steps[k][0];
+    oy += steps[k][1];
+  }
+  const e = ease(f);
+  const [sx, sy] = steps[mod(c, L)];
+  return { ox: ox + sx * e, oy: oy + sy * e, e };
+}
+
 const wall = {
   id: "wall",
   name: "Wall",
@@ -705,6 +746,18 @@ const wall = {
   // haría que el badge diga que cierra algo que no cierra.
   cycleUnit: (p) => {
     const cols = Math.max(1, Math.round(p.cols));
+    if (p.motion === "tour") {
+      // Una vuelta del recorrido desplaza la grilla (Sx, Sy) tiles. El muro
+      // vuelve a ser idéntico —con cada imagen en su lugar— cuando el
+      // desplazamiento acumulado es múltiplo de cols en X y de rows en Y.
+      const rows = Math.max(1, Math.round(p.rows));
+      const steps = wallPath(p);
+      const Sx = Math.abs(steps.reduce((a, s) => a + s[0], 0));
+      const Sy = Math.abs(steps.reduce((a, s) => a + s[1], 0));
+      const kx = Sx ? cols / gcd(cols, Sx) : 1;
+      const ky = Sy ? rows / gcd(rows, Sy) : 1;
+      return steps.length * lcm(kx, ky);
+    }
     return cols / gcd(cols, Math.max(1, Math.round(p.drift)));
   },
   params: {
@@ -713,8 +766,11 @@ const wall = {
     planeSize: 0.3,
     planeRatio: "4:5",
     gap: 0.03,
+    motion: "drift",
     drift: 1,
     rowDir: "alternate",
+    path: "zigzag",
+    zoomDip: 0.14,
     tiltX: 12,
     tiltY: -18,
     centerScale: 0.25,
@@ -728,9 +784,22 @@ const wall = {
     { group: "Composición", key: "planeRatio", label: "Aspect del plano", type: "select", options: PLANE_RATIOS },
     { group: "Composición", key: "gap", label: "Gap", min: 0, max: 0.2, step: 0.005, pct: true },
 
-    { group: "Movimiento", key: "drift", label: "Deriva por ciclo", min: 1, max: 6, step: 1, unit: " tiles" },
     {
       group: "Movimiento",
+      key: "motion",
+      label: "Movimiento",
+      type: "select",
+      options: [
+        { value: "drift", label: "Deriva por filas" },
+        { value: "tour", label: "Canvas (card a card)" },
+      ],
+    },
+    { group: "Movimiento", key: "drift", label: "Deriva por ciclo", min: 1, max: 6, step: 1, unit: " tiles", when: (p) => p.motion !== "tour" },
+    { group: "Movimiento", key: "path", label: "Recorrido", type: "select", options: WALL_PATH_OPTIONS, when: (p) => p.motion === "tour" },
+    { group: "Movimiento", key: "zoomDip", label: "Alejamiento en el viaje", min: 0, max: 0.5, step: 0.01, pct: true, when: (p) => p.motion === "tour" },
+    {
+      group: "Movimiento",
+      when: (p) => p.motion !== "tour",
       key: "rowDir",
       label: "Sentido por fila",
       type: "select",
@@ -742,7 +811,7 @@ const wall = {
 
     { group: "Forma", key: "tiltX", label: "Inclinación en X", min: -60, max: 60, step: 1, unit: "°" },
     { group: "Forma", key: "tiltY", label: "Inclinación en Y", min: -60, max: 60, step: 1, unit: "°" },
-    { group: "Forma", key: "centerScale", label: "Escala de la fila central", min: 0, max: 1.5, step: 0.01 },
+    { group: "Forma", key: "centerScale", label: "Escala de la fila central", min: 0, max: 1.5, step: 0.01, when: (p) => p.motion !== "tour" },
     { group: "Forma", key: "cornerRadius", label: "Corner radius", min: 0, max: 0.1, step: 0.002, pct: true },
 
     { group: "Profundidad", key: "edgeFade", label: "Fade en los bordes", min: 0, max: 1, step: 0.01, pct: true },
@@ -760,6 +829,8 @@ const wall = {
     const tileW = cardW + gap;
     const tileH = cardH + gap;
     const rowW = cols * tileW;
+
+    if (p.motion === "tour") return placeTour(t, i, p, ease, geom, { r, c, rows, cols, cardW, cardH, tileW, tileH, S });
 
     // Filas alternas en sentido contrario: es el rasgo del muro.
     const sign = p.rowDir === "alternate" && r % 2 ? -1 : 1;
@@ -807,6 +878,61 @@ const wall = {
     };
   },
 };
+
+// Rotación del muro entero, compartida por los dos modos: misma matriz que
+// three le aplica al plano (Euler XYZ = RX·RY), así las cards quedan coplanares.
+function tiltWall(x, y, p) {
+  const tx = p.tiltX * DEG;
+  const ty = p.tiltY * DEG;
+  const sx = Math.sin(ty);
+  return {
+    pos: [
+      x * Math.cos(ty),
+      y * Math.cos(tx) + x * sx * Math.sin(tx),
+      y * Math.sin(tx) - x * sx * Math.cos(tx),
+    ],
+    rot: [tx, ty, 0],
+  };
+}
+
+// Modo canvas: la grilla entera se traslada en X e Y (la cámara "viaja" sobre
+// ella) y envuelve en los dos ejes, como un toro. La grilla queda centrada en
+// una card —no en un gap— para que en cada pausa haya una card al medio.
+// El alejamiento en el viaje escala la grilla alrededor del centro del cuadro
+// con sin(π·e): vale 0 en las pausas, así que no toca el cierre del loop.
+function placeTour(t, i, p, ease, geom, g) {
+  const { r, c, rows, cols, cardW, cardH, tileW, tileH, S } = g;
+  const rowW = cols * tileW;
+  const colH = rows * tileH;
+  const { ox, oy, e } = tourOffset(t, ease, wallPath(p));
+
+  const x0 = (c - Math.floor(cols / 2) - ox) * tileW;
+  const y0 = (r - Math.floor(rows / 2) - oy) * tileH; // y hacia abajo
+  const xw = mod(x0 + rowW / 2, rowW) - rowW / 2;
+  const yw = mod(y0 + colH / 2, colH) - colH / 2;
+
+  const zk = 1 - clamp(p.zoomDip, 0, 0.9) * Math.sin(Math.PI * clamp(e));
+  const { pos, rot } = tiltWall(xw * zk, -yw * zk, p);
+
+  const view = geom.visible(pos[2]);
+  const ux = view.w > 0 ? Math.abs(pos[0]) / (view.w / 2) : 0;
+  const uy = view.h > 0 ? Math.abs(pos[1]) / (view.h / 2) : 0;
+  const u = Math.max(ux, uy);
+  const edge = p.edgeFade > 0 ? 1 - smooth((u - (1 - p.edgeFade)) / p.edgeFade) : 1;
+  // Seguro del wrap en los dos ejes: el salto de borde a borde nunca se ve.
+  const guard =
+    smooth((1 - Math.abs(xw) / (rowW / 2)) / WALL_WRAP_GUARD) *
+    smooth((1 - Math.abs(yw) / (colH / 2)) / WALL_WRAP_GUARD);
+
+  return {
+    pos,
+    rot,
+    size: [cardW * zk, cardH * zk],
+    opacity: edge * guard,
+    radius: p.cornerRadius * S * zk,
+    assetSlot: i,
+  };
+}
 
 /* ------------------------------------------------------------------ */
 /* 8. HERO — una card grande que se sostiene y la reemplaza la que sube */
