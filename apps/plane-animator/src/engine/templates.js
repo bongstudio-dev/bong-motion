@@ -33,8 +33,11 @@ export const PLANE_RATIOS = [
   { value: "5:4", label: "5:4" },
   { value: "16:9", label: "16:9" },
   { value: "9:16", label: "9:16" },
+  { value: "source", label: "Imagen" },
 ];
 
+// "source" no es un número: lo resuelve el compositor con el aspect de la
+// primera imagen visible (ver planeRatioOf en getScene.js). Acá cae al default.
 export const ratioWH = (s) => {
   const [a, b] = String(s).split(":").map(Number);
   return a > 0 && b > 0 ? a / b : 0.8;

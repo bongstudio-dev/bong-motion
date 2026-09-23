@@ -416,6 +416,38 @@ console.log("\n== 12c. Wall: la deriva recorre tiles enteros ==");
   ok(uni[0] * uni[1] > 0, `uniforme: las dos filas van para el mismo lado (${uni[0].toFixed(1)} vs ${uni[1].toFixed(1)})`);
 }
 
+console.log("\n== 12c2. Aspect \"Imagen\": el plano abraza a la fuente ==");
+{
+  // Un patrón de 1.6:1 en modo canvas con gap 0: las cards tienen que tomar
+  // el aspect de la imagen (sin recorte ni fondo) y ser todas iguales, así el
+  // loop sigue cerrando aunque wall no admita tamaños por card.
+  const s = withAssets(4, [1.6]);
+  s.template.id = "wall";
+  s.template.params = { wall: { motion: "tour", planeRatio: "source", gap: 0, tiltX: 0, tiltY: 0 } };
+  const planes = getScene(0, s).planes;
+  const r = planes.map((p) => p.size[0] / p.size[1]);
+  ok(r.every((x) => Math.abs(x - 1.6) < 1e-6), `todas las cards miden 1.6:1 (dio ${r[0].toFixed(3)})`);
+  const crops = planes.map((p) => p.crop ?? p.uv).filter(Boolean);
+  ok(crops.every((c) => Math.abs(c[0] - 1) < 1e-6 && Math.abs(c[1] - 1) < 1e-6), "cover no recorta nada");
+  s.timing.cycles = minCyclesFor(s);
+  ok(loopClosure(s).status === "ok", `con ${s.timing.cycles} ciclos cierra`);
+
+  // Aspects mixtos: manda la primera imagen visible, igual para todas.
+  const mix = withAssets(3, [0.8, 1.6]);
+  mix.assets[0].visible = false;
+  mix.template.id = "wall";
+  mix.template.params = { wall: { planeRatio: "source" } };
+  const m = getScene(0, mix).planes;
+  ok(m.every((p) => Math.abs(p.size[0] / p.size[1] - 1.6) < 1e-6), "con aspects mixtos manda la primera visible");
+
+  // Sin imágenes cae a 4:5, como los placeholders de siempre.
+  const vacio = defaultState();
+  vacio.template.id = "wall";
+  vacio.template.params = { wall: { planeRatio: "source" } };
+  const v = getScene(0, vacio).planes[0];
+  ok(Math.abs(v.size[0] / v.size[1] - 0.8) < 1e-6, "sin imágenes cae a 4:5");
+}
+
 console.log("\n== 12d. Hero: la vuelta entera por todos los slots ==");
 {
   const base = () => {

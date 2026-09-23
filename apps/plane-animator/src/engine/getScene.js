@@ -105,6 +105,20 @@ function makeBelt(size, P, gap, axis) {
   };
 }
 
+// Aspect del plano. Con "source" todas las cards toman el aspect de la primera
+// imagen visible: el plano abraza a la fuente, así un patrón pensado para
+// repetirse se toca borde con borde sin recorte ni fondo. Es UNO solo para toda
+// la grilla —a diferencia de fitToAsset, que es por card— así que los templates
+// que no admiten tamaños mixtos (wall) lo pueden usar y el loop sigue cerrando.
+// Sin imágenes cae a 4:5, que es lo que ven los placeholders.
+export function planeRatioOf(planeRatio, assets) {
+  if (planeRatio === "source") {
+    const a = assets.find((x) => x.aspect > 0);
+    return a ? a.aspect : ratioWH("4:5");
+  }
+  return ratioWH(planeRatio ?? "4:5");
+}
+
 function makeGeom({ stage, camera, tpl, p, N, assets, fit }) {
   const M = assets.length;
   const supports = tpl.supportsFitToAsset !== false;
@@ -114,7 +128,7 @@ function makeGeom({ stage, camera, tpl, p, N, assets, fit }) {
   // saber de la unidad: el resto de la conversión la hace cada template.
   const unit = tpl.relativeUnits ? SHORT : 1;
   const baseW = (p.planeSize ?? 600) * unit;
-  const baseH = baseW / ratioWH(p.planeRatio ?? "4:5");
+  const baseH = baseW / planeRatioOf(p.planeRatio, assets);
   const area = baseW * baseH;
 
   const effFit = (a) => {
