@@ -1,11 +1,14 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.jsx";
+import DesktopOnly from "./components/DesktopOnly.jsx";
 import "@bong/ui/theme.css";
 import "@bong/ui/skin-glass.css";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App />
+    <DesktopOnly>
+      <App />
+    </DesktopOnly>
   </StrictMode>,
 );
