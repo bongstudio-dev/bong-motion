@@ -4,6 +4,7 @@
 //   /plane-animator/         → build del workspace
 //   /palette-animator/       → build del workspace
 //   /particle-visualizer/    → build del workspace
+//   /floss-tween/            → build del workspace
 //
 // Cada app tiene `base: "./"` en su vite.config, así que sus assets resuelven
 // bien desde el subpath sin acoplar el nombre del repo.
@@ -15,7 +16,7 @@ import { fileURLToPath } from "node:url";
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const dist = resolve(root, "dist");
 
-const APPS = ["plane-animator", "palette-animator", "particle-visualizer"];
+const APPS = ["plane-animator", "palette-animator", "particle-visualizer", "floss-tween"];
 
 const exists = async (p) => {
   try {
