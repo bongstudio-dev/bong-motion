@@ -17,6 +17,10 @@ hace falta del After ya está acá o en `fixtures/`.
   px. Render del motor contra cuadros de After en 8 tiempos: diferencia media de 0.01 a
   0.35 sobre 255 (ver `fixtures/frames/comparacion.png`).
 
+- Fase 2 (hecha, 19/10/2026, Sonnet): editor React en `src/App.jsx` y `src/components/`.
+  `npm run dev:floss` (puerto 5176). Hecho con el celular como uso principal: la grilla es
+  una columna (vista, transporte y timeline, panel inferior) y pasa a dos columnas desde 900 px.
+
 ## Archivos
 
 | Archivo | Qué es |
@@ -27,6 +31,11 @@ hace falta del After ya está acá o en `fixtures/`.
 | `src/dibujo.js` | `primitivas(geo, doc, linea, t, ancho, alto)`: paths y textos en px, de atrás hacia adelante. `aSVG()` los vuelve un SVG. **La UI pinta esto y nada más** |
 | `scripts/export.mjs` | `node scripts/export.mjs --after` corre `export.jsx` en After y regenera la geometría y los tramos de líneas (sin `--after`, reconvierte el último volcado) |
 | `scripts/verificar.mjs` + `comparar.py` | Render del motor (Chrome headless) contra `saveFrameToPng` de After en los mismos tiempos; `python3 scripts/comparar.py` da la diferencia y la hoja `fixtures/frames/comparacion.png` |
+| `src/docops.js` | Operaciones puras de edición (escenas, transiciones, tramos) y `efectos()`, que arma las pastillas de la timeline. `scripts/docops-test.mjs` las prueba |
+| `src/state.js` | `useDoc()`: documento con deshacer/rehacer (los gestos se juntan en una entrada) y autoguardado en `localStorage` (`floss-tween:doc:v1`) |
+| `src/clock.js` | Reloj en segundos (play, pausa, loop, scrub) |
+| `src/components/` | `Stage` (vista y gestos de cámara), `Timeline`, `Panels` (escena, viaje, efecto), `CurveEditor` |
+| `src/floss.css` | Layout propio, con los tokens y controles de `@bong/ui` |
 | `scripts/engine-test.mjs` | Compara el motor contra `fixtures/after-samples.txt`. Corre en CI con `npm test` |
 | `scripts/dump.jsx` | Vuelca capas, keys y expresiones de After a `fixtures/rig.txt` y `fixtures/paths.txt` |
 | `scripts/sample.jsx` | Muestrea cuadro a cuadro cámara y posiciones en pantalla a `fixtures/after-samples.txt` |
@@ -175,7 +184,28 @@ Recorre las capas **habilitadas** de la comp `base` hijas del NULL CONTROL y pas
 - Hecho cuando: el JSON se genera de punta a punta con un comando y un render SVG estático
   rápido del logo en t=0 se superpone con `comp.saveFrameToPng(0, ...)` de la comp 312.
 
-### Fase 2 - Editor (Sonnet)
+### Fase 2 - Editor (hecha)
+
+Cómo quedó, para quien siga:
+- **Gestos de cámara**: arrastrar mueve el foco y pellizcar/rueda cambia el zoom **de la escena
+  elegida** (o de la que esté en pantalla si no hay ninguna). Al empezar el gesto se pausa y se
+  salta al inicio de esa escena, donde la cámara coincide con lo guardado. El punto del mundo
+  bajo los dedos se queda bajo los dedos.
+- **Timeline**: bloque por escena (parada) y por viaje; el borde derecho de cada uno cambia su
+  duración; las pastillas (eventos y grupos de líneas) se arrastran para moverlas y se estiran
+  del borde. Las líneas se agrupan por cercanía (<= 1.2 s entre arranques) y se mueven juntas.
+  Toda duración es relativa a escenas: alargar una parada corre todo lo que sigue.
+- **Panel**: chips de escena, `Escena | Viaje a la siguiente`, y en el celu tres tamaños
+  (normal, amplio para curvas, cerrado). Editor de curva con 5 presets y manejadores de 44 px
+  de zona táctil.
+- **Mobile**: `100dvh`, safe areas, inputs de 16 px, `touch-action` por zona. Probado en el
+  navegador con tamaño de iPhone y eventos de puntero sintéticos (arrastre, pellizco, borde de
+  timeline, manejador de curva). **No probado en un teléfono real.**
+- Pendientes menores: el gesto sobre un evento no tiene vista previa del "antes"; no hay
+  agregar/borrar eventos ni líneas (solo moverlos); el tema compartido deja `:hover` pegado en
+  táctil (afecta a `.scrub` y `.btn` de `@bong/ui`).
+
+Brief original:
 
 App React + Vite en este workspace, sobre `@bong/ui` (ScrubField, Section, ToolSidebar,
 transport, skin Glass). Copiar la estructura de `apps/plane-animator`.
@@ -198,9 +228,10 @@ transport, skin Glass). Copiar la estructura de `apps/plane-animator`.
 - Hecho cuando: con `escenas-floss.json` sin tocar se ve lo mismo que el render de After,
   y cambiar una duración corre todo lo que sigue.
 
-### Fase 3 - Celular (Sonnet)
+### Fase 3 - Celular (Sonnet, ahora mucho más corta)
 
-Con la skill `mobile-native`: panel inferior en vez de sidebar, timeline con scroll
+La estructura ya está (ver fase 2). Queda probar en un teléfono real y corregir lo que aparezca,
+más los `:hover` pegados. Brief original, con la skill `mobile-native`: panel inferior en vez de sidebar, timeline con scroll
 horizontal y bloques de 44 px mínimo, pellizcar para zoom de cámara, `100dvh`, sin zoom de
 inputs, safe areas. Probar en el teléfono de verdad.
 

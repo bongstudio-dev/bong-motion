@@ -1,0 +1,155 @@
+/* Floss Tween: layout propio, pensado primero para el celular. Usa los tokens y los
+   controles de @bong/ui (theme.css); acá solo viven la grilla, la timeline y el editor de curva. */
+
+html, body, #root { height: 100%; margin: 0; }
+body { overscroll-behavior: none; -webkit-tap-highlight-color: transparent; -webkit-text-size-adjust: 100%; }
+
+.ft {
+  height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(120px, 1fr) auto auto;
+  grid-template-areas: "top" "stage" "dock" "panel";
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  overflow: hidden;
+}
+.ft > * { min-width: 0; }
+.ft > .ft-top { grid-area: top; }
+.ft > .ft-stage { grid-area: stage; }
+.ft > .ft-dock { grid-area: dock; }
+.ft > .ft-panel { grid-area: panel; }
+
+/* En el celu los inputs tienen que medir 16px o iOS hace zoom al tocarlos. Los campos que se
+   arrastran no deben dejar que el navegador interprete el gesto como scroll. */
+.ft input, .ft select, .ft textarea { font-size: 16px; }
+.ft .scrub, .ft .segmented button, .ft .play { touch-action: none; }
+.ft .scrub { min-height: 40px; }
+.ft .segmented button, .ft .btn { min-height: 38px; }
+
+/* ---------- barra superior ---------- */
+.ft-top {
+  display: flex; align-items: center; gap: 10px;
+  padding: calc(8px + env(safe-area-inset-top)) 12px 8px;
+  border-bottom: 1px solid var(--stroke);
+  background: var(--panel);
+}
+.ft-marca-app { font-size: 13px; font-weight: 700; letter-spacing: .02em; white-space: nowrap; flex: 0 0 auto; }
+.ft-marca-app span { color: var(--muted-2); font-weight: 500; }
+.ft-top .segmented { flex: 0 0 150px; width: 150px; }
+.ft-top .segmented button { min-height: 32px; padding: 0; font-size: 12px; }
+.ft-espacio { flex: 1; }
+.ft-boton {
+  min-width: 40px; height: 36px; padding: 0 12px; border-radius: 10px;
+  background: var(--panel-2); border: 1px solid var(--stroke); color: var(--text);
+  font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+}
+.ft-boton.on { background: var(--active-bg); border-color: var(--active-stroke); }
+.ft-boton:disabled { opacity: .4; }
+.ft-solo-cel { display: inline-flex; }
+.ft-solo-pc { display: none; }
+
+/* ---------- vista ---------- */
+.ft-stage {
+  position: relative; min-height: 0; min-width: 0;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.ft-canvas {
+  display: block; border-radius: 3px; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none;
+  box-shadow: 0 24px 80px -40px rgba(0, 0, 0, .9);
+}
+.ft-canvas:active { cursor: grabbing; }
+.ft-badge {
+  position: absolute; left: 12px; top: 10px; display: flex; gap: 8px; align-items: baseline; pointer-events: none;
+  font-size: 11px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase;
+}
+.ft-badge b { color: var(--text); font-weight: 700; }
+
+/* ---------- transporte + timeline ---------- */
+.ft-dock { border-top: 1px solid var(--stroke); background: var(--panel); min-width: 0; }
+.ft-transporte { display: flex; align-items: center; gap: 6px; padding: 8px 12px; }
+.ft-transporte .ft-boton { min-width: 36px; padding: 0 10px; }
+.ft-transporte .play {
+  width: 44px; height: 44px; border-radius: 50%; flex: 0 0 auto; border: none;
+  display: inline-flex; align-items: center; justify-content: center; background: var(--active); color: #0b0b0c;
+}
+.ft-tiempo { font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+.ft-tiempo span { color: var(--muted-2); }
+
+.ft-tl { overflow-x: auto; overflow-y: hidden; touch-action: pan-x; border-top: 1px solid var(--stroke); background: var(--bg); overscroll-behavior-x: contain; }
+.ft-tl-in { position: relative; }
+.ft-regla { position: absolute; left: 0; right: 0; top: 0; border-bottom: 1px solid var(--stroke); cursor: col-resize; touch-action: none; }
+.ft-marca { position: absolute; top: 5px; transform: translateX(-1px); padding-left: 4px; font-size: 10px; color: var(--muted-2); border-left: 1px solid var(--stroke-strong); height: 14px; line-height: 14px; pointer-events: none; font-family: var(--mono); }
+.ft-fila { position: absolute; left: 0; right: 0; }
+
+.ft-bloque, .ft-pastilla, .ft-punto {
+  position: absolute; display: flex; align-items: center; touch-action: none; user-select: none; -webkit-user-select: none;
+  font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden;
+}
+.ft-bloque { top: 6px; bottom: 6px; padding: 0 22px 0 8px; border-radius: 8px; background: var(--panel-3); border: 1px solid var(--stroke-strong); color: var(--text); cursor: pointer; }
+.ft-bloque.trans { background: repeating-linear-gradient(135deg, var(--panel-2) 0 6px, var(--panel-3) 6px 12px); color: var(--muted); padding-right: 14px; }
+.ft-bloque.sel, .ft-pastilla.sel, .ft-punto.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-line); }
+.ft-punto { top: 6px; bottom: 6px; width: 28px; margin-left: -14px; padding: 0; border-radius: 8px; background: var(--panel-3); border: 1px solid var(--stroke-strong); }
+.ft-punto span { display: none; }
+.ft-pastilla { border-radius: 8px; padding: 0 20px 0 8px; background: var(--accent-soft); border: 1px solid var(--accent-line); color: var(--text); cursor: grab; }
+.ft-pastilla.lineas { background: rgba(255, 255, 255, .08); border-color: var(--stroke-strong); }
+/* Borde de arrastre: 24px de ancho aunque se vea fino, para que se pueda agarrar con el dedo. */
+.ft-borde { position: absolute; top: 0; bottom: 0; right: 0; width: 24px; cursor: ew-resize; touch-action: none; }
+.ft-borde::after { content: ""; position: absolute; top: 25%; bottom: 25%; right: 6px; width: 3px; border-radius: 2px; background: currentColor; opacity: .45; }
+.ft-punto .ft-borde { width: 100%; }
+.ft-cabezal { position: absolute; top: 0; bottom: 0; left: 0; width: 2px; margin-left: -1px; background: var(--accent); pointer-events: none; z-index: 3; }
+.ft-cabezal::before { content: ""; position: absolute; top: 0; left: -5px; width: 12px; height: 8px; background: var(--accent); clip-path: polygon(0 0, 100% 0, 50% 100%); }
+
+/* ---------- panel ---------- */
+.ft-panel { border-top: 1px solid var(--stroke); background: var(--panel); min-height: 0; display: flex; flex-direction: column; max-height: 36dvh; padding-bottom: env(safe-area-inset-bottom); }
+.ft-panel.amplio { max-height: 74dvh; }
+.ft-panel.cerrado { max-height: none; }
+.ft-panel-cab { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--stroke); }
+.ft-panel.cerrado .ft-panel-cab { border-bottom: none; }
+.ft-chips { display: flex; gap: 6px; overflow-x: auto; flex: 1; scrollbar-width: none; }
+.ft-chips::-webkit-scrollbar { display: none; }
+.ft-chip { flex: 0 0 auto; height: 34px; padding: 0 12px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--stroke); color: var(--muted); font-size: 12px; font-weight: 600; }
+.ft-chip.on { background: var(--active-bg); color: var(--text); border-color: var(--active-stroke); }
+.ft-panel-scroll { overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 12px; min-height: 0; overscroll-behavior: contain; }
+.ft-panel-cuerpo { display: flex; flex-direction: column; gap: 12px; }
+.ft-nombre { width: 100%; }
+.ft-sub { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.ft-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+.ft-pie { padding-top: 4px; }
+
+/* ---------- editor de curva ---------- */
+.ft-curva { display: flex; flex-direction: column; gap: 10px; }
+.ft-presets { display: flex; gap: 6px; flex-wrap: wrap; }
+.ft-curva-svg { width: 100%; max-width: 280px; aspect-ratio: 1; align-self: center; touch-action: none; background: var(--panel-2); border: 1px solid var(--stroke); border-radius: 12px; }
+.ft-curva-caja { fill: none; stroke: var(--stroke-strong); stroke-dasharray: 3 4; }
+.ft-curva-diag { stroke: var(--stroke); stroke-width: 1; }
+.ft-curva-brazo { stroke: var(--muted-2); stroke-width: 1.2; }
+.ft-curva-trazo { fill: none; stroke: var(--text); stroke-width: 2.4; stroke-linecap: round; }
+.ft-curva-mango { cursor: grab; touch-action: none; }
+.ft-curva-mango circle:last-child { fill: var(--accent); stroke: var(--bg); stroke-width: 2; }
+.ft-curva-nums { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+/* ---------- pantalla ancha ---------- */
+@media (min-width: 900px) {
+  .ft {
+    grid-template-columns: minmax(0, 1fr) 380px;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    grid-template-areas: "top top" "stage panel" "dock panel";
+  }
+  .ft-panel { max-height: none; border-top: none; border-left: 1px solid var(--stroke); }
+  .ft-panel.cerrado, .ft-panel.amplio { max-height: none; }
+  .ft-solo-cel { display: none; }
+  .ft-solo-pc { display: inline-flex; }
+  .ft-pie { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) { .ft * { transition: none !important; animation: none !important; } }
+
+@media (max-width: 520px) {
+  .ft-marca-app span { display: none; }
+  .ft-top { gap: 8px; padding-left: 10px; padding-right: 10px; }
+  .ft-tiempo span { display: none; }
+}
