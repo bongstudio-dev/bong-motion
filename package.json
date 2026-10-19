@@ -15,6 +15,7 @@
     "dev:particle": "npm run dev -w particle-visualizer",
     "build": "npm run build --workspaces --if-present",
     "build:site": "node scripts/build-site.mjs",
-    "test": "node apps/plane-animator/scripts/engine-test.mjs && node apps/plane-animator/scripts/library-test.mjs && node apps/particle-visualizer/scripts/videofit-test.mjs"
+    "test": "node apps/plane-animator/scripts/engine-test.mjs && node apps/plane-animator/scripts/library-test.mjs && node apps/particle-visualizer/scripts/videofit-test.mjs && node apps/floss-tween/scripts/engine-test.mjs",
+    "dev:floss": "npm run dev -w floss-tween"
   }
 }

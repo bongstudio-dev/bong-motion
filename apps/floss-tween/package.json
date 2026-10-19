@@ -1,0 +1,10 @@
+{
+  "name": "floss-tween",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Bong Studio — editor de escenas para la animación del logo Floss (caso de estudio).",
+  "scripts": {
+    "test": "node scripts/engine-test.mjs"
+  }
+}

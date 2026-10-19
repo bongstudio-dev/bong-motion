@@ -1,0 +1,667 @@
+PROJECT /Users/marcoscousseau/Documents/Bong/WEB/2026/Floss/Caso de Estudio/Editables/Flos log v7 empujes.aep
+ITEM 15 Solids (Folder)
+ITEM 16 Deep Royal Blue Solid 1 (Footage)
+ITEM 308 Deep Royal Blue Solid 2 (Footage)
+ITEM 56 Null 1 (Footage)
+ITEM 133 Null 2 (Footage)
+ITEM 226 Null 3 (Footage)
+ITEM 233 Null 4 (Footage)
+ITEM 264 Null 5 (Footage)
+ITEM 310 Null 6 (Footage)
+ITEM 334 Null 7 (Footage)
+ITEM 338 Null 8 (Footage)
+
+=== COMP id=1 'base' 6045x4000 fps=29.9700012207031 dur=30.03 workArea=0+30.03 bg=[0,0.2314,0.6431]
+-- L1 id=330 'COORD S2' OTHER parent=50 in=0 out=30.03 enabled=true collapse
+   > Text > Source Text = 578.144  [expr on]
+    EXPR: var L=thisComp.layer("Floss logo"); var g=L.content("Group 2"); var v=g.content("Path 1").path.points()[21]; var gp=g.transform.position; var q=[v[0]+gp[0]-L.transform.anchorPoint[0]+L.transform.position[0], v[1]+gp[1]-L.transform.anchorPoint[1]+L.transform.position[1]]; ⏎ (q[0]+303.3).toFixed(3)
+   > Transform > Position = [283.844,50.9114,0]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ var L=thisComp.layer("Floss logo"); var g=L.content("Group 2"); var v=g.content("Path 1").path.points()[21]; var gp=g.transform.position; var q=[v[0]+gp[0]-L.transform.anchorPoint[0]+L.transform.position[0], v[1]+gp[1]-L.transform.anchorPoint[1]+L.transform.position[1]]; ⏎ [q[0]+9*k,q[1]-9*k,0];
+   > Transform > Scale = [100,100,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ [100*k,100*k];
+   > Transform > Opacity = 0  [expr on]
+    EXPR: var A=comp("Floss Logo 1920x1080").layer("CONTROL").effect("Ajuste S2")(1); var t0=A.key(1).time, t1=A.key(A.numKeys).time; ⏎ var a=linear(time,t0-0.25,t0,0,1)*linear(time,t1+0.2,t1+0.35,1,0); ⏎ a*100
+-- L2 id=333 'ORIGINAL S2' SHAPE parent=50 in=0 out=30.03 enabled=false collapse
+   > Contents > Group 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Group 1 > Contents > Stroke 1 > Dashes > Dash = 5  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)*0.5
+   > Contents > Group 1 > Contents > Stroke 1 > Dashes > Gap = 5  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)*0.5
+   > Transform > Opacity = 0
+    k1 t=6.9 v=0 in=L out=L easeIn=0/60 easeOut=0/60
+    k2 t=7.1 v=85 in=L out=L easeIn=0/60 easeOut=0/60
+    k3 t=9.85 v=85 in=L out=L easeIn=0/60 easeOut=0/60
+    k4 t=10.15 v=0 in=L out=L easeIn=0/60 easeOut=0/60
+-- L3 id=329 'COORD S1' OTHER parent=50 in=0 out=30.03 enabled=true collapse
+   > Text > Source Text = 432.103  [expr on]
+    EXPR: var L=thisComp.layer("Floss logo"); var g=L.content("Group 1"); var v=g.content("Path 1").path.points()[21]; var gp=g.transform.position; var q=[v[0]+gp[0]-L.transform.anchorPoint[0]+L.transform.position[0], v[1]+gp[1]-L.transform.anchorPoint[1]+L.transform.position[1]]; ⏎ (q[0]+303.3).toFixed(3)
+   > Transform > Position = [137.8029,50.191,0]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ var L=thisComp.layer("Floss logo"); var g=L.content("Group 1"); var v=g.content("Path 1").path.points()[21]; var gp=g.transform.position; var q=[v[0]+gp[0]-L.transform.anchorPoint[0]+L.transform.position[0], v[1]+gp[1]-L.transform.anchorPoint[1]+L.transform.position[1]]; ⏎ [q[0]+9*k,q[1]-9*k,0];
+   > Transform > Scale = [100,100,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ [100*k,100*k];
+   > Transform > Opacity = 0  [expr on]
+    EXPR: var A=comp("Floss Logo 1920x1080").layer("CONTROL").effect("Ajuste S1")(1); var t0=A.key(1).time, t1=A.key(A.numKeys).time; ⏎ var a=linear(time,t0-0.25,t0,0,1)*linear(time,t1+0.2,t1+0.35,1,0); ⏎ a*100
+-- L4 id=332 'ORIGINAL S1' SHAPE parent=50 in=0 out=30.03 enabled=false collapse
+   > Contents > Group 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Group 1 > Contents > Stroke 1 > Dashes > Dash = 5  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)*0.5
+   > Contents > Group 1 > Contents > Stroke 1 > Dashes > Gap = 5  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)*0.5
+   > Transform > Opacity = 0
+    k1 t=5.25 v=0 in=L out=L easeIn=0/60 easeOut=0/60
+    k2 t=5.45 v=85 in=L out=L easeIn=0/60 easeOut=0/60
+    k3 t=9.85 v=85 in=L out=L easeIn=0/60 easeOut=0/60
+    k4 t=10.15 v=0 in=L out=L easeIn=0/60 easeOut=0/60
+-- L5 id=328 'COORD F' OTHER parent=50 in=0 out=30.03 enabled=true collapse
+   > Text > Source Text = 113.930  [expr on]
+    EXPR: var L=thisComp.layer("Floss logo"); var g=L.content("Group 5"); var v=g.content("Path 1").path.points()[6]; var gp=g.transform.position; var q=[v[0]+gp[0]-L.transform.anchorPoint[0]+L.transform.position[0], v[1]+gp[1]-L.transform.anchorPoint[1]+L.transform.position[1]]; ⏎ (q[0]+303.3).toFixed(3)
+   > Transform > Position = [-180.3701,-34.618,0]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ var L=thisComp.layer("Floss logo"); var g=L.content("Group 5"); var v=g.content("Path 1").path.points()[6]; var gp=g.transform.position; var q=[v[0]+gp[0]-L.transform.anchorPoint[0]+L.transform.position[0], v[1]+gp[1]-L.transform.anchorPoint[1]+L.transform.position[1]]; ⏎ [q[0]+9*k,q[1]-9*k,0];
+   > Transform > Scale = [100,100,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ [100*k,100*k];
+   > Transform > Opacity = 0  [expr on]
+    EXPR: var A=comp("Floss Logo 1920x1080").layer("CONTROL").effect("Ajuste F")(1); var t0=A.key(1).time, t1=A.key(A.numKeys).time; ⏎ var a=linear(time,t0-0.25,t0,0,1)*linear(time,t1+0.2,t1+0.35,1,0); ⏎ a*100
+-- L6 id=331 'ORIGINAL F' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Group 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Group 1 > Contents > Stroke 1 > Dashes > Dash = 5  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)*0.5
+   > Contents > Group 1 > Contents > Stroke 1 > Dashes > Gap = 5  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)*0.5
+   > Transform > Opacity = 0  [expr on]
+    EXPR: var A=comp("Floss Logo 1920x1080").layer("CONTROL").effect("Ajuste F")(1); var t0=A.key(1).time, t1=A.key(A.numKeys).time; ⏎ value*ease(time,t0-0.25,t0-0.05,0,1);
+    k1 t=9.85 v=85 in=L out=L easeIn=0/60 easeOut=0/60
+    k2 t=10.15 v=0 in=L out=L easeIn=0/60 easeOut=0/60
+-- L7 id=234 'CTRL_DASHES' NULL parent=- in=0 out=30.03 enabled=true
+   > Effects > WIDTH > Slider = 1  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value*k
+   > Effects > WIDTH > Compositing Options > Effect Opacity = 100
+   > Effects > WIDTH > Compositing Options > GPU Rendering = 1
+   > Effects > DASH > Slider = 10  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value*k
+   > Effects > DASH > Compositing Options > Effect Opacity = 100
+   > Effects > DASH > Compositing Options > GPU Rendering = 1
+   > Effects > GAP > Slider = 10  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value*k
+   > Effects > GAP > Compositing Options > Effect Opacity = 100
+   > Effects > GAP > Compositing Options > GPU Rendering = 1
+   > Effects > OFFSET > Slider = 0
+   > Effects > OFFSET > Compositing Options > Effect Opacity = 100
+   > Effects > OFFSET > Compositing Options > GPU Rendering = 1
+-- L8 id=60 'Shape Layer 22' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L9 id=68 'Shape Layer 30' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L10 id=67 'Shape Layer 29' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L11 id=66 'Shape Layer 28' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L12 id=65 'Shape Layer 27' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L13 id=72 'Shape Layer 34' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L14 id=70 'Shape Layer 32' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L15 id=64 'Shape Layer 26' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L16 id=74 'Shape Layer 36' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L17 id=73 'Shape Layer 35' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L18 id=78 'Shape Layer 40' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L19 id=80 'Shape Layer 42' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L20 id=79 'Shape Layer 41' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L21 id=76 'Shape Layer 38' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L22 id=77 'Shape Layer 39' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L23 id=132 'Shape Layer 62' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L24 id=90 'Shape Layer 52' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L25 id=131 'Shape Layer 61' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L26 id=89 'Shape Layer 51' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L27 id=130 'Shape Layer 60' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L28 id=88 'Shape Layer 50' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L29 id=129 'Shape Layer 59' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L30 id=87 'Shape Layer 49' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L31 id=128 'Shape Layer 58' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L32 id=86 'Shape Layer 48' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L33 id=127 'Shape Layer 57' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L34 id=85 'Shape Layer 47' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L35 id=126 'Shape Layer 56' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L36 id=84 'Shape Layer 46' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L37 id=125 'Shape Layer 55' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L38 id=83 'Shape Layer 45' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L39 id=124 'Shape Layer 54' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L40 id=82 'Shape Layer 44' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L41 id=123 'Shape Layer 53' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Position = [282.1462,59.9346,0]
+    k1 t=7.15 v=[282.1462,59.9346,0] in=L out=L easeIn=0/16.6667 easeOut=10.2655/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+    k2 t=7.85 v=[282.1462,59.9346,0] in=L out=L easeIn=10.2655/16.6667 easeOut=0/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+   > Transform > X Position = 274.96  [expr on]
+    EXPR: var p=comp("Floss Logo 1920x1080").layer("CONTROL").effect("Ajuste S2")(1)/100; ⏎ 274.959991455078+(7.12429809570312)*p;
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ var A=comp("Floss Logo 1920x1080").layer("CONTROL").effect("Ajuste S2")(1); var t0=A.key(1).time, t1=A.key(A.numKeys).time; ⏎ var a=linear(time,t0-0.25,t0,0,1)*linear(time,t1+0.2,t1+0.35,1,0); ⏎ k=k*(1+0.35*a); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L42 id=81 'Shape Layer 43' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Position = [135.7463,59.9346,0]
+    k1 t=5.5 v=[135.7463,59.9346,0] in=L out=L easeIn=0/16.6667 easeOut=10.0001/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+    k2 t=6.2 v=[135.7463,59.9346,0] in=L out=L easeIn=10.0001/16.6667 easeOut=0/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+   > Transform > X Position = 128.7463  [expr on]
+    EXPR: var p=comp("Floss Logo 1920x1080").layer("CONTROL").effect("Ajuste S1")(1)/100; ⏎ 128.74626159668+(7.17643737792969)*p;
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ var A=comp("Floss Logo 1920x1080").layer("CONTROL").effect("Ajuste S1")(1); var t0=A.key(1).time, t1=A.key(A.numKeys).time; ⏎ var a=linear(time,t0-0.25,t0,0,1)*linear(time,t1+0.2,t1+0.35,1,0); ⏎ k=k*(1+0.35*a); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L43 id=75 'Shape Layer 37' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L44 id=71 'Shape Layer 33' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L45 id=69 'Shape Layer 31' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L46 id=63 'Shape Layer 25' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L47 id=62 'Shape Layer 24' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L48 id=61 'Shape Layer 23' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L49 id=58 'Shape Layer 21' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Rectangle 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Transform > Position = [-195.9618,-25.8863,0]
+    k1 t=2.8 v=[-195.9618,-25.8863,0] in=L out=L easeIn=0/16.6667 easeOut=8.5715/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+    k2 t=3.5 v=[-195.9618,-25.8863,0] in=L out=L easeIn=8.5715/16.6667 easeOut=0/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+   > Transform > X Position = -189.9618  [expr on]
+    EXPR: var p=comp("Floss Logo 1920x1080").layer("CONTROL").effect("Ajuste F")(1)/100; ⏎ -189.961822509766+(-6.40275573730469)*p;
+   > Transform > Scale = [66.7986,66.7986,100]  [expr on]
+    EXPR: var cs=comp("Floss Logo 1920x1080").layer("NULL CONTROL ").transform.scale[0]; var k=Math.min(1,221/cs); ⏎ var A=comp("Floss Logo 1920x1080").layer("CONTROL").effect("Ajuste F")(1); var t0=A.key(1).time, t1=A.key(A.numKeys).time; ⏎ var a=linear(time,t0-0.25,t0,0,1)*linear(time,t1+0.2,t1+0.35,1,0); ⏎ k=k*(1+0.35*a); ⏎ value.length>2?[value[0]*k,value[1]*k,value[2]]:[value[0]*k,value[1]*k];
+-- L50 id=57 'NULL CONTROL ' NULL parent=- in=0 out=33.7004 enabled=true
+-- L51 id=232 'Shape Layer 66' SHAPE parent=50 in=9.0157 out=44.7515 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=9.0491 v=100 in=L out=L easeIn=0/100 easeOut=0/6.2998
+    k2 t=9.3494 v=0 in=L out=L easeIn=0/100 easeOut=0/17.201
+    k3 t=10.8509 v=0 in=L out=L easeIn=0/37.495 easeOut=0/16.6667
+    k4 t=11.0845 v=100 in=L out=L easeIn=0/33.9517 easeOut=0/16.6667
+-- L52 id=231 'Shape Layer 65' SHAPE parent=50 in=8.8823 out=44.4845 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=8.9156 v=100 in=L out=L easeIn=0/100 easeOut=0/6.5287
+    k2 t=9.1826 v=0 in=L out=L easeIn=0/100 easeOut=0/17.1732
+    k3 t=10.951 v=0 in=L out=L easeIn=0/38.1582 easeOut=0/16.6667
+    k4 t=11.1846 v=100 in=L out=L easeIn=0/33.9198 easeOut=0/16.6667
+-- L53 id=229 'Shape Layer 64' SHAPE parent=50 in=8.7822 out=44.2843 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=8.8155 v=100 in=L out=L easeIn=0/100 easeOut=0/6.6627
+    k2 t=9.0825 v=0 in=L out=L easeIn=0/100 easeOut=0/17.1572
+    k3 t=11.0177 v=0 in=L out=L easeIn=0/38.5378 easeOut=0/16.6667
+    k4 t=11.2513 v=100 in=L out=L easeIn=0/33.9014 easeOut=0/16.6667
+-- L54 id=30 'Shape Layer 6' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+-- L55 id=53 'Shape Layer 18' SHAPE parent=50 in=2.1688 out=32.1989 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=1.9353 v=100 in=L out=L easeIn=0/16.6667 easeOut=0/37.4823
+    k2 t=3.9996 v=0 in=L out=L easeIn=0/76.3999 easeOut=0/16.2994
+    k3 t=9.8499 v=0 in=L out=L easeIn=0/19.6624 easeOut=0/16.6667
+    k4 t=10.0501 v=100 in=L out=L easeIn=0/29.1059 easeOut=0/16.6667
+-- L56 id=52 'Shape Layer 17' SHAPE parent=50 in=0.8342 out=30.8642 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=0.8675 v=100 in=L out=L easeIn=0/100 easeOut=0/5
+    k2 t=1.368 v=0 in=L out=L easeIn=0/100 easeOut=0/4.9123
+    k3 t=9.9166 v=0 in=L out=L easeIn=0/16.6667 easeOut=0/16.6667
+    k4 t=10.1168 v=100 in=L out=L easeIn=0/29.1444 easeOut=0/16.6667
+-- L57 id=51 'Shape Layer 16' SHAPE parent=50 in=0.4671 out=30.4972 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=0.5005 v=100 in=L out=L easeIn=0/100 easeOut=0/5
+    k2 t=1.001 v=0 in=L out=L easeIn=0/100 easeOut=0/4.9146
+    k3 t=9.8499 v=0 in=L out=L easeIn=0/16.6667 easeOut=0/16.6667
+    k4 t=10.0501 v=100 in=L out=L easeIn=0/29.2502 easeOut=0/16.6667
+-- L58 id=41 'Shape Layer 15' SHAPE parent=50 in=0.7007 out=30.7307 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=0.7341 v=100 in=L out=L easeIn=0/100 easeOut=0/5
+    k2 t=1.2346 v=0 in=L out=L easeIn=0/100 easeOut=0/4.9139
+    k3 t=9.9834 v=0 in=L out=L easeIn=0/16.6667 easeOut=0/16.6667
+    k4 t=10.1836 v=100 in=L out=L easeIn=0/29.2156 easeOut=0/16.6667
+-- L59 id=40 'Shape Layer 14' SHAPE parent=50 in=0.3337 out=30.3637 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=0.367 v=100 in=L out=L easeIn=0/100 easeOut=0/5
+    k2 t=0.8675 v=0 in=L out=L easeIn=0/100 easeOut=0/4.9174
+    k3 t=10.1168 v=0 in=L out=L easeIn=0/16.6667 easeOut=0/16.6667
+    k4 t=10.317 v=100 in=L out=L easeIn=0/29.3832 easeOut=0/16.6667
+-- L60 id=39 'Shape Layer 13' SHAPE parent=50 in=0.5672 out=30.5973 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=0.6006 v=100 in=L out=L easeIn=0/100 easeOut=0/5
+    k2 t=1.1011 v=0 in=L out=L easeIn=0/100 easeOut=0/4.9139
+    k3 t=9.8499 v=0 in=L out=L easeIn=0/16.6667 easeOut=0/16.6667
+    k4 t=10.0501 v=100 in=L out=L easeIn=0/29.2156 easeOut=0/16.6667
+-- L61 id=38 'Shape Layer 12' SHAPE parent=50 in=0.2002 out=30.2302 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=0.2336 v=100 in=L out=L easeIn=0/100 easeOut=0/5
+    k2 t=0.7341 v=0 in=L out=L easeIn=0/100 easeOut=0/4.9165
+    k3 t=9.8499 v=0 in=L out=L easeIn=0/16.6667 easeOut=0/16.6667
+    k4 t=10.0501 v=100 in=L out=L easeIn=0/29.3399 easeOut=0/16.6667
+-- L62 id=37 'Shape Layer 11' SHAPE parent=50 in=0.4338 out=30.4638 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=0.4671 v=100 in=L out=L easeIn=0/100 easeOut=0/5
+    k2 t=0.9676 v=0 in=L out=L easeIn=0/100 easeOut=0/4.9156
+    k3 t=9.95 v=0 in=L out=L easeIn=0/16.6667 easeOut=0/16.6667
+    k4 t=10.1502 v=100 in=L out=L easeIn=0/29.2956 easeOut=0/16.6667
+-- L63 id=36 'Shape Layer 10' SHAPE parent=50 in=0.0667 out=30.0968 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=0.1001 v=100 in=L out=L easeIn=0/100 easeOut=0/5
+    k2 t=0.6006 v=0 in=L out=L easeIn=0/100 easeOut=0/4.9179
+    k3 t=9.9166 v=0 in=L out=L easeIn=0/16.6667 easeOut=0/16.6667
+    k4 t=10.1168 v=100 in=L out=L easeIn=0/29.4046 easeOut=0/16.6667
+-- L64 id=34 'Shape Layer 9' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=0.0334 v=100 in=L out=L easeIn=0/100 easeOut=0/5
+    k2 t=0.5339 v=0 in=L out=L easeIn=0/100 easeOut=0/4.9243
+    k3 t=10.8843 v=0 in=L out=L easeIn=0/16.6667 easeOut=0/16.6667
+    k4 t=11.0845 v=100 in=L out=L easeIn=0/29.7074 easeOut=0/16.6667
+-- L65 id=32 'Shape Layer 8' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=0.0334 v=100 in=L out=L easeIn=0/100 easeOut=0/5
+    k2 t=0.5339 v=0 in=L out=L easeIn=0/100 easeOut=0/4.9179
+    k3 t=9.8499 v=0 in=L out=L easeIn=0/16.6667 easeOut=0/16.6667
+    k4 t=10.0501 v=100 in=L out=L easeIn=0/29.4046 easeOut=0/16.6667
+-- L66 id=31 'Shape Layer 7' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=0.0334 v=100 in=L out=L easeIn=0/100 easeOut=0/5
+    k2 t=0.5339 v=0 in=L out=L easeIn=0/100 easeOut=0/4.9256
+    k3 t=11.1178 v=0 in=L out=L easeIn=0/16.6667 easeOut=0/16.6667
+    k4 t=11.318 v=100 in=L out=L easeIn=0/29.7694 easeOut=0/16.6667
+-- L67 id=29 'Shape Layer 5' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Dash = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("DASH")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Gap = 10  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("GAP")(1)
+   > Contents > Shape 1 > Contents > Stroke 1 > Dashes > Offset = 0  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("OFFSET")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=0.0334 v=100 in=L out=L easeIn=0/100 easeOut=0/5
+    k2 t=0.5339 v=0 in=L out=L easeIn=0/100 easeOut=0/4.9264
+    k3 t=11.2513 v=0 in=L out=L easeIn=0/16.6667 easeOut=0/16.6667
+    k4 t=11.4515 v=100 in=L out=L easeIn=0/29.8038 easeOut=0/16.6667
+-- L68 id=28 'Shape Layer 4' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+-- L69 id=26 'Shape Layer 3' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+-- L70 id=25 'Shape Layer 2' SHAPE parent=50 in=0 out=30.03 enabled=false collapse
+-- L71 id=24 'Shape Layer 1' SHAPE parent=50 in=0 out=30.03 enabled=false collapse
+   > Contents > Shape 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Trim Paths 1 > Start = 100
+    k1 t=1.001 v=100 in=L out=L easeIn=0/16.6667 easeOut=0/89.5028
+    k2 t=2.002 v=0 in=L out=L easeIn=0/95.5601 easeOut=0/16.6667
+-- L72 id=18 'Floss logo' SHAPE parent=50 in=0 out=30.03 enabled=true collapse
+   > Contents > Group 1 > Contents > Path 1 > Path = <shape 35pts closed=true>  [expr on]
+    EXPR: var p=comp("Floss Logo 1920x1080").layer("CONTROL").effect("Ajuste S1")(1)/100; var k1=thisProperty.key(1).time, k2=thisProperty.key(thisProperty.numKeys).time; ⏎ thisProperty.valueAtTime(k1+(k2-k1)*p);
+    k1 t=5.372 v=<shape 35pts closed=true> in=L out=L easeIn=0/16.6667 easeOut=1/16.6667
+    k2 t=6.2 v=<shape 35pts closed=true> in=L out=L easeIn=1/16.6667 easeOut=0/16.6667
+   > Contents > Group 1 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Group 2 > Contents > Path 1 > Path = <shape 35pts closed=true>  [expr on]
+    EXPR: var p=comp("Floss Logo 1920x1080").layer("CONTROL").effect("Ajuste S2")(1)/100; var k1=thisProperty.key(1).time, k2=thisProperty.key(thisProperty.numKeys).time; ⏎ thisProperty.valueAtTime(k1+(k2-k1)*p);
+    k1 t=7.007 v=<shape 35pts closed=true> in=L out=L easeIn=0/16.6667 easeOut=1/16.6667
+    k2 t=7.85 v=<shape 35pts closed=true> in=L out=L easeIn=1/16.6667 easeOut=0/16.6667
+   > Contents > Group 2 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Group 3 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Group 4 > Contents > Stroke 1 > Stroke Width = 1  [expr on]
+    EXPR: thisComp.layer("CTRL_DASHES").effect("WIDTH")(1)
+   > Contents > Group 5 > Contents > Path 1 > Path = <shape 10pts closed=true>  [expr on]
+    EXPR: var p=comp("Floss Logo 1920x1080").layer("CONTROL").effect("Ajuste F")(1)/100; var k1=thisProperty.key(1).time, k2=thisProperty.key(thisProperty.numKeys).time; ⏎ thisProperty.valueAtTime(k1+(k2-k1)*p);
+    k1 t=2.8 v=<shape 10pts closed=true> in=L out=L easeIn=0/16.6667 easeOut=1/16.6667
+    k2 t=3.5 v=<shape 10pts closed=true> in=L out=L easeIn=1/16.6667 easeOut=0/16.6667
+   > Transform > Opacity = 35
+    k1 t=0 v=35 in=L out=L easeIn=0/16.6667 easeOut=0/16.6667
+    k2 t=11.6517 v=35 in=L out=L easeIn=0/16.6667 easeOut=0/16.6667
+
+=== COMP id=237 'Comp 1' 1920x1080 fps=29.9700012207031 dur=30.03 workArea=0+8.5419 bg=[0,0.2314,0.6431]
+-- L1 id=249 'base' AV src=base#1 parent=- in=0 out=30.03 enabled=true
+
+=== COMP id=135 'Floss Logo 1080x1350' 1080x1350 fps=29.9700012207031 dur=30.03 workArea=0+12.1455 bg=[0,0.2314,0.6431]
+-- L1 id=311 'NULL CONTROL 1' NULL parent=- in=-0.2669 out=29.7631 enabled=true
+-- L2 id=227 'NULL CONTROL ' NULL parent=1 in=-0.2669 out=29.7631 enabled=true
+   > Transform > Position = [48,50,0]
+    k1 t=0 v=[48,50,0] in=L out=L easeIn=0/16.6667 easeOut=0/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+    k2 t=0.7341 v=[48,50,0] in=L out=L easeIn=0/16.6667 easeOut=577.0819/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+    k3 t=2.3023 v=[48,50,0] in=L out=L easeIn=577.0819/16.6667 easeOut=0/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+    k4 t=2.7027 v=[48,50,0] in=L out=L easeIn=0/16.6667 easeOut=1226.0387/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+    k5 t=4.1041 v=[48,50,0] in=L out=L easeIn=1226.0387/16.6667 easeOut=0/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+    k6 t=5.0384 v=[48,50,0] in=L out=L easeIn=0/16.6667 easeOut=1218.5387/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+    k7 t=5.7057 v=[48,50,0] in=L out=L easeIn=1218.5387/16.6667 easeOut=0/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+   > Transform > X Position = 48.7318  [expr on]
+    EXPR: var C=comp("Floss Logo 1920x1080").layer("CONTROL"); var z=C.effect("Zoom")(1); ⏎ function zs(){var v=z.value,n=z.numKeys; if(n<2) return v; var k=z.nearestKey(time).index; if(z.key(k).time>time) k--; if(k<1) return z.key(1).value; if(k>=n) return z.key(n).value; var a=z.key(k).value,b=z.key(k+1).value; if(Math.abs(b-a)<1e-6||a<=0||b<=0) return v; var u=(v-a)/(b-a); return a*Math.pow(b/a,u);} ⏎ var s=zs(); var L=C.effect("Foco")(1); var nb=comp("base").layer("NULL CONTROL ").transform.position; var f=[nb[0]+2.42*(L[0]-303.3-50), nb[1]+2.42*(L[1]-177.9-50)]; ⏎ 70.5-0.0065*s*(f[0]-3022.5);
+   > Transform > Y Position = 63.1877  [expr on]
+    EXPR: var C=comp("Floss Logo 1920x1080").layer("CONTROL"); var z=C.effect("Zoom")(1); ⏎ function zs(){var v=z.value,n=z.numKeys; if(n<2) return v; var k=z.nearestKey(time).index; if(z.key(k).time>time) k--; if(k<1) return z.key(1).value; if(k>=n) return z.key(n).value; var a=z.key(k).value,b=z.key(k+1).value; if(Math.abs(b-a)<1e-6||a<=0||b<=0) return v; var u=(v-a)/(b-a); return a*Math.pow(b/a,u);} ⏎ var s=zs(); var L=C.effect("Foco")(1); var nb=comp("base").layer("NULL CONTROL ").transform.position; var f=[nb[0]+2.42*(L[0]-303.3-50), nb[1]+2.42*(L[1]-177.9-50)]; ⏎ 37-0.0065*s*(f[1]-2000);
+   > Transform > Scale = [72.3842,72.3842,100]  [expr on]
+    EXPR: var C=comp("Floss Logo 1920x1080").layer("CONTROL"); var z=C.effect("Zoom")(1); ⏎ function zs(){var v=z.value,n=z.numKeys; if(n<2) return v; var k=z.nearestKey(time).index; if(z.key(k).time>time) k--; if(k<1) return z.key(1).value; if(k>=n) return z.key(n).value; var a=z.key(k).value,b=z.key(k+1).value; if(Math.abs(b-a)<1e-6||a<=0||b<=0) return v; var u=(v-a)/(b-a); return a*Math.pow(b/a,u);} ⏎ var s=zs(); var L=C.effect("Foco")(1); var nb=comp("base").layer("NULL CONTROL ").transform.position; var f=[nb[0]+2.42*(L[0]-303.3-50), nb[1]+2.42*(L[1]-177.9-50)]; ⏎ [s,s,100];
+-- L3 id=224 'base' AV src=base#1 parent=2 in=0 out=30.03 enabled=true collapse 3D
+-- L4 id=309 'Deep Royal Blue Solid 2' AV src=Deep Royal Blue Solid 2#308 parent=- in=0 out=30.03 enabled=true
+
+=== COMP id=312 'Floss Logo 1920x1080' 1920x1080 fps=29.9700012207031 dur=30.03 workArea=0+12.2789 bg=[0,0.2314,0.6431]
+-- L1 id=339 'CONTROL' NULL parent=- in=0 out=30.03 enabled=true
+   > Effects > Zoom > Slider = 72
+    k1 t=0 v=72 in=L out=L easeIn=0/33 easeOut=0/33
+    k2 t=1.2679 v=72 in=L out=L easeIn=0/93.3846 easeOut=0/93.3846
+    k3 t=2.8362 v=403.4288 in=L out=L easeIn=0/100 easeOut=0/100
+    k4 t=3.95 v=585.0001 in=L out=L easeIn=0/100 easeOut=0/100
+    k5 t=4.7381 v=443.0001 in=L out=L easeIn=0/100 easeOut=0/100
+    k6 t=6.3397 v=585.0001 in=L out=L easeIn=0/100 easeOut=0/100
+    k7 t=7.15 v=550.0001 in=L out=L easeIn=0/100 easeOut=0/100
+    k8 t=8.0414 v=799.0001 in=L out=L easeIn=0/100 easeOut=0/100
+    k9 t=8.85 v=72 in=L out=L easeIn=0/100 easeOut=0/100
+    k10 t=10.72 v=72 in=L out=L easeIn=0/100 easeOut=0/100
+    k11 t=11.75 v=61 in=L out=L easeIn=0/100 easeOut=0/100
+    k12 t=12.32 v=72 in=L out=L easeIn=0/100 easeOut=0/100
+   > Effects > Zoom > Compositing Options > Effect Opacity = 100
+   > Effects > Zoom > Compositing Options > GPU Rendering = 1
+   > Effects > Foco > Point = [355.7171,113.6198]
+    k1 t=0 v=[355.7171,113.6198] in=L out=L easeIn=0/33 easeOut=0/33 spIn=[0,0] spOut=[0,0]
+    k2 t=1.2679 v=[355.7171,113.6198] in=L out=L easeIn=0/93.3846 easeOut=0/93.3846 spIn=[0,0] spOut=[0,0]
+    k3 t=2.8362 v=[110.3452,105.628] in=L out=L easeIn=0/100 easeOut=0/100 spIn=[0,0] spOut=[0,0]
+    k4 t=3.9373 v=[110.3452,139.6115] in=L out=L easeIn=0/100 easeOut=0/100 spIn=[0,0] spOut=[0,0]
+    k5 t=4.7381 v=[438.5518,207.752] in=L out=L easeIn=0/88 easeOut=0/33 spIn=[0,0] spOut=[0,0]
+    k6 t=6.3397 v=[438.5518,207.752] in=L out=L easeIn=0/100 easeOut=0/100 spIn=[0,0] spOut=[0,0]
+    k7 t=7.1405 v=[581.83,207.752] in=L out=L easeIn=0/100 easeOut=0/100 spIn=[0,0] spOut=[0,0]
+    k8 t=8.0414 v=[581.8328,207.752] in=L out=L easeIn=0/100 easeOut=0/100 spIn=[0,0] spOut=[0,0]
+    k9 t=8.85 v=[355.7171,113.6198] in=L out=L easeIn=0/100 easeOut=0/100 spIn=[0,0] spOut=[0,0]
+   > Effects > Foco > Compositing Options > Effect Opacity = 100
+   > Effects > Foco > Compositing Options > GPU Rendering = 1
+   > Effects > Ajuste F > Slider = 0
+    k1 t=2.8 v=0 in=L out=L easeIn=0/33 easeOut=0/100
+    k2 t=3.5 v=100 in=L out=L easeIn=0/100 easeOut=0/33
+   > Effects > Ajuste F > Compositing Options > Effect Opacity = 100
+   > Effects > Ajuste F > Compositing Options > GPU Rendering = 1
+   > Effects > Ajuste S1 > Slider = 0
+    k1 t=5.2448 v=0 in=L out=L easeIn=0/16.6667 easeOut=0/100
+    k2 t=5.8058 v=100 in=L out=L easeIn=0/100 easeOut=0/16.6667
+   > Effects > Ajuste S1 > Compositing Options > Effect Opacity = 100
+   > Effects > Ajuste S1 > Compositing Options > GPU Rendering = 1
+   > Effects > Ajuste S2 > Slider = 0
+    k1 t=7.2406 v=0 in=L out=L easeIn=0/100 easeOut=0/100
+    k2 t=7.85 v=100 in=L out=L easeIn=0/100 easeOut=0/100
+   > Effects > Ajuste S2 > Compositing Options > Effect Opacity = 100
+   > Effects > Ajuste S2 > Compositing Options > GPU Rendering = 1
+-- L2 id=317 'NULL CONTROL 1' NULL parent=- in=-0.2669 out=29.7631 enabled=true
+-- L3 id=316 'NULL CONTROL ' NULL parent=2 in=-0.2669 out=29.7631 enabled=true
+   > Transform > Position = [48,63,0]
+    k1 t=0 v=[48,63,0] in=L out=L easeIn=0/16.6667 easeOut=0/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+    k2 t=0.7341 v=[48,63,0] in=L out=L easeIn=0/16.6667 easeOut=577.3021/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+    k3 t=2.3023 v=[48,63,0] in=L out=L easeIn=577.3021/16.6667 easeOut=0/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+    k4 t=2.7027 v=[48,63,0] in=L out=L easeIn=0/16.6667 easeOut=1226.0387/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+    k5 t=4.1041 v=[48,63,0] in=L out=L easeIn=1226.0387/16.6667 easeOut=0/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+    k6 t=5.0384 v=[48,63,0] in=L out=L easeIn=0/16.6667 easeOut=1219.1144/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+    k7 t=5.7057 v=[48,63,0] in=L out=L easeIn=1219.1144/16.6667 easeOut=0/16.6667 spIn=[0,0,0] spOut=[0,0,0]
+   > Transform > X Position = 47.9892  [expr on]
+    EXPR: var C=comp("Floss Logo 1920x1080").layer("CONTROL"); var z=C.effect("Zoom")(1); ⏎ function zs(){var v=z.value,n=z.numKeys; if(n<2) return v; var k=z.nearestKey(time).index; if(z.key(k).time>time) k--; if(k<1) return z.key(1).value; if(k>=n) return z.key(n).value; var a=z.key(k).value,b=z.key(k+1).value; if(Math.abs(b-a)<1e-6||a<=0||b<=0) return v; var u=(v-a)/(b-a); return a*Math.pow(b/a,u);} ⏎ var s=zs(); var L=C.effect("Foco")(1); var nb=comp("base").layer("NULL CONTROL ").transform.position; var f=[nb[0]+2.42*(L[0]-303.3-50), nb[1]+2.42*(L[1]-177.9-50)]; ⏎ 70.5-0.0065*s*(f[0]-3022.5);
+   > Transform > Y Position = 63.0208  [expr on]
+    EXPR: var C=comp("Floss Logo 1920x1080").layer("CONTROL"); var z=C.effect("Zoom")(1); ⏎ function zs(){var v=z.value,n=z.numKeys; if(n<2) return v; var k=z.nearestKey(time).index; if(z.key(k).time>time) k--; if(k<1) return z.key(1).value; if(k>=n) return z.key(n).value; var a=z.key(k).value,b=z.key(k+1).value; if(Math.abs(b-a)<1e-6||a<=0||b<=0) return v; var u=(v-a)/(b-a); return a*Math.pow(b/a,u);} ⏎ var s=zs(); var L=C.effect("Foco")(1); var nb=comp("base").layer("NULL CONTROL ").transform.position; var f=[nb[0]+2.42*(L[0]-303.3-50), nb[1]+2.42*(L[1]-177.9-50)]; ⏎ 37-0.0065*s*(f[1]-2000);
+   > Transform > Scale = [72,72,100]  [expr on]
+    EXPR: var C=comp("Floss Logo 1920x1080").layer("CONTROL"); var z=C.effect("Zoom")(1); ⏎ function zs(){var v=z.value,n=z.numKeys; if(n<2) return v; var k=z.nearestKey(time).index; if(z.key(k).time>time) k--; if(k<1) return z.key(1).value; if(k>=n) return z.key(n).value; var a=z.key(k).value,b=z.key(k+1).value; if(Math.abs(b-a)<1e-6||a<=0||b<=0) return v; var u=(v-a)/(b-a); return a*Math.pow(b/a,u);} ⏎ var s=zs(); var L=C.effect("Foco")(1); var nb=comp("base").layer("NULL CONTROL ").transform.position; var f=[nb[0]+2.42*(L[0]-303.3-50), nb[1]+2.42*(L[1]-177.9-50)]; ⏎ [s,s,100];
+-- L4 id=315 'base' AV src=base#1 parent=3 in=0 out=30.03 enabled=true collapse 3D
+-- L5 id=314 'Deep Royal Blue Solid 2' AV src=Deep Royal Blue Solid 2#308 parent=- in=0 out=30.03 enabled=true
+ITEM 13 Capa 1.svg (Footage) file=/Users/marcoscousseau/Downloads/Capa 1.svg
