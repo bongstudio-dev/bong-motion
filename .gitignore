@@ -5,3 +5,5 @@ dist
 
 # WASM de MediaPipe: se copia desde node_modules en predev/prebuild
 apps/particle-visualizer/public/mediapipe/wasm/
+apps/floss-tween/fixtures/frames/*
+!apps/floss-tween/fixtures/frames/comparacion.png

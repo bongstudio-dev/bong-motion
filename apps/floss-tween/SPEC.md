@@ -12,6 +12,10 @@ hace falta del After ya está acá o en `fixtures/`.
   la comp `base` (id 1, 6045x4000). Buscar comps por id, no por nombre.
 - Fase 0 (hecha, 19/10/2026): rig relevado, motor en `src/engine.js`, escenas actuales en
   `src/escenas-floss.json`, validado contra After con `npm test`.
+- Fase 1 (hecha, 19/10/2026): geometría exportada a `src/geometria-floss.json`, tramos de
+  las líneas en `escenas-floss.json`, y `src/dibujo.js`, que pasa el estado a primitivas en
+  px. Render del motor contra cuadros de After en 8 tiempos: diferencia media de 0.01 a
+  0.35 sobre 255 (ver `fixtures/frames/comparacion.png`).
 
 ## Archivos
 
@@ -19,7 +23,10 @@ hace falta del After ya está acá o en `fixtures/`.
 |---|---|
 | `src/engine.js` | Motor puro, sin DOM. Toda la matemática. No duplicarla en la UI |
 | `src/escenas-floss.json` | El documento editable: escenas, eventos, líneas. Es lo que guarda/abre la herramienta |
-| `src/geometria-floss.json` | (fase 1) Dibujo del logo y la grilla en unidades de mundo. No se edita en la herramienta |
+| `src/geometria-floss.json` | Dibujo del logo y la grilla en unidades de mundo. Lo genera el exportador; no se edita en la herramienta |
+| `src/dibujo.js` | `primitivas(geo, doc, linea, t, ancho, alto)`: paths y textos en px, de atrás hacia adelante. `aSVG()` los vuelve un SVG. **La UI pinta esto y nada más** |
+| `scripts/export.mjs` | `node scripts/export.mjs --after` corre `export.jsx` en After y regenera la geometría y los tramos de líneas (sin `--after`, reconvierte el último volcado) |
+| `scripts/verificar.mjs` + `comparar.py` | Render del motor (Chrome headless) contra `saveFrameToPng` de After en los mismos tiempos; `python3 scripts/comparar.py` da la diferencia y la hoja `fixtures/frames/comparacion.png` |
 | `scripts/engine-test.mjs` | Compara el motor contra `fixtures/after-samples.txt`. Corre en CI con `npm test` |
 | `scripts/dump.jsx` | Vuelca capas, keys y expresiones de After a `fixtures/rig.txt` y `fixtures/paths.txt` |
 | `scripts/sample.jsx` | Muestrea cuadro a cuadro cámara y posiciones en pantalla a `fixtures/after-samples.txt` |
@@ -120,7 +127,21 @@ separada", apagada por defecto: separar paneo y zoom tiende a que el logo "se co
 Cada fase es una sesión nueva de **Sonnet** que lee esta spec, salvo donde dice Opus.
 Rama de trabajo: `feat/floss-tween`. No mergear a `main` hasta la fase 4 (main despliega).
 
-### Fase 1 - Exportador de geometría (Sonnet)
+### Fase 1 - Exportador de geometría (hecha)
+
+Lo que quedó distinto de lo planeado, para tenerlo presente:
+- Hay capas rotadas (las diagonales del cierre, ±7°): el pasaje a U usa la matriz completa.
+- Los ids son `ly<id de capa en After>`: no cambian si Marcos renombra o reordena capas.
+- Los marcadores de las letras se dibujan donde dice su expresión de X, no donde dice el
+  valor guardado (que quedó viejo, 6 unidades corrido). El exportador toma la expresión.
+- La forma de la letra avanza **lineal** con el ajuste (medido en After); `curvaMorph` es null.
+- El punteado arranca en el inicio recortado por el trim (el patrón "camina" mientras la
+  línea se dibuja), igual que After. Verificado en t=0.3.
+- Un tramo que arranca durante un traslado se ata a la escena de destino con offset negativo.
+- Ignoradas por no dibujar nada: Shape Layer 18 (Trim animado sin path), Shape Layer 3 y 4
+  (path de un solo vértice). ORIGINAL S1/S2 van con `visible: false`.
+
+El brief original, como referencia:
 
 `scripts/export.jsx` corre en After y escribe `src/geometria-floss.json` +
 completa `lineas` en `escenas-floss.json` (escribir un `export-datos.txt` simple desde el
@@ -159,10 +180,11 @@ Recorre las capas **habilitadas** de la comp `base` hijas del NULL CONTROL y pas
 App React + Vite en este workspace, sobre `@bong/ui` (ScrubField, Section, ToolSidebar,
 transport, skin Glass). Copiar la estructura de `apps/plane-animator`.
 
-- **Vista**: SVG a pantalla completa. Cada cuadro: `estadoEn(doc, linea, t)` y se proyecta
-  la geometría con `proyectar()`. Sin `vector-effect: non-scaling-stroke`: el ancho sale del factor de
-  trazo en U * escala. Líneas con `stroke-dasharray` + `stroke-dashoffset` para el trim.
-  Aspectos 16:9, 4:5, 9:16 elegibles (el motor ya resuelve por lado corto).
+- **Vista**: SVG a pantalla completa. Cada cuadro: `primitivas(geo, doc, armarLinea(doc), t, ancho, alto)`
+  y se pintan tal cual (path: `d`, `fill`, `fillRule`, `stroke`, `strokeWidth`,
+  `strokeDasharray` = `dash`, `strokeDashoffset`, `opacity`; texto: Satoshi Medium).
+  No recalcular trazos, trims ni etiquetas en la UI. `armarLinea` se recalcula solo cuando
+  cambia el documento. Aspectos 16:9, 4:5, 9:16 elegibles (el motor resuelve por lado corto).
 - **Escena** (panel): foco X/Y, zoom, parada, deriva on/off con su foco/zoom. Botón
   "tomar foco de la vista": arrastrar/pellizcar la vista mueve la cámara y se guarda en la
   escena seleccionada. Agregar, duplicar, borrar, reordenar escenas.

@@ -56,3 +56,15 @@ console.log(`  ajustes F/S1/S2: peor desvío ${fmt(peorAjuste)} puntos de 100`);
 // duración; el modelo las unifica (son ~1.4 unidades de mundo con zoom 540).
 const ok = sumaErr / n < 1 && peor.err < 15 && peorAjuste < 1;
 if (!ok) { console.error('floss-tween: el motor se aleja del After'); process.exit(1); }
+
+// La geometría exportada se dibuja entera, cuadro a cuadro, sin errores ni NaN.
+import { primitivas } from '../src/dibujo.js';
+const geo = JSON.parse(readFileSync(new URL('src/geometria-floss.json', aqui), 'utf8'));
+let prims = 0;
+for (let t = 0; t <= linea.duracion; t += 1 / doc.fps) {
+  for (const p of primitivas(geo, doc, linea, t, 1080, 1350).prims) {
+    prims++;
+    if (/NaN|undefined/.test(p.d ?? '') || Number.isNaN(p.opacity)) { console.error(`floss-tween: primitiva rota en t=${t.toFixed(3)}`); process.exit(1); }
+  }
+}
+console.log(`  dibujo: ${prims} primitivas en vertical 1080x1350, sin errores`);
