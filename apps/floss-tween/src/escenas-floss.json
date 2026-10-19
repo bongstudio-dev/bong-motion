@@ -1,0 +1,603 @@
+{
+  "version": 1,
+  "nombre": "Floss logo v7 empujes",
+  "fps": 29.97,
+  "fondo": "#003BA4",
+  "escenas": [
+    {
+      "id": "general",
+      "nombre": "General",
+      "foco": [
+        355.7171,
+        113.6198
+      ],
+      "zoom": 72,
+      "parada": 1.2679,
+      "deriva": null,
+      "transicion": {
+        "dur": 1.5683,
+        "curva": [
+          0.9338,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "id": "f",
+      "nombre": "F",
+      "foco": [
+        110.3452,
+        105.628
+      ],
+      "zoom": 403.4288,
+      "parada": 1.1138,
+      "deriva": {
+        "foco": [
+          110.3452,
+          139.6115
+        ],
+        "zoom": 585,
+        "curva": [
+          1,
+          0,
+          0,
+          1
+        ]
+      },
+      "transicion": {
+        "dur": 0.7881,
+        "curva": [
+          1,
+          0,
+          0,
+          1
+        ],
+        "curvaFoco": [
+          1,
+          0,
+          0.12,
+          1
+        ]
+      }
+    },
+    {
+      "id": "s1",
+      "nombre": "S1",
+      "foco": [
+        438.5518,
+        207.752
+      ],
+      "zoom": 443,
+      "parada": 1.6016,
+      "deriva": {
+        "zoom": 585,
+        "curva": [
+          1,
+          0,
+          0,
+          1
+        ]
+      },
+      "transicion": {
+        "dur": 0.8103,
+        "curva": [
+          1,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "id": "s2",
+      "nombre": "S2",
+      "foco": [
+        581.83,
+        207.752
+      ],
+      "zoom": 550,
+      "parada": 0.8914,
+      "deriva": {
+        "zoom": 799,
+        "curva": [
+          1,
+          0,
+          0,
+          1
+        ]
+      },
+      "transicion": {
+        "dur": 0.8086,
+        "curva": [
+          1,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "id": "cierre",
+      "nombre": "Cierre",
+      "foco": [
+        355.7171,
+        113.6198
+      ],
+      "zoom": 72,
+      "parada": 1.87,
+      "deriva": null,
+      "transicion": {
+        "dur": 1.03,
+        "curva": [
+          1,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "id": "respiro",
+      "nombre": "Respiro",
+      "foco": [
+        355.7171,
+        113.6198
+      ],
+      "zoom": 61,
+      "parada": 0,
+      "deriva": null,
+      "transicion": {
+        "dur": 0.57,
+        "curva": [
+          1,
+          0,
+          0,
+          1
+        ]
+      }
+    },
+    {
+      "id": "final",
+      "nombre": "Final",
+      "foco": [
+        355.7171,
+        113.6198
+      ],
+      "zoom": 72,
+      "parada": 0,
+      "deriva": null
+    }
+  ],
+  "eventos": [
+    {
+      "tipo": "ajuste",
+      "letra": "F",
+      "escena": "f",
+      "offset": -0.0362,
+      "dur": 0.7,
+      "curva": [
+        1,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "tipo": "ajuste",
+      "letra": "S1",
+      "escena": "s1",
+      "offset": 0.5067,
+      "dur": 0.561,
+      "curva": [
+        1,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "tipo": "ajuste",
+      "letra": "S2",
+      "escena": "s2",
+      "offset": 0.0906,
+      "dur": 0.6094,
+      "curva": [
+        1,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "tipo": "salidaOriginales",
+      "escena": "cierre",
+      "offset": 1,
+      "dur": 0.3,
+      "curva": [
+        0.6,
+        0,
+        0.4,
+        1
+      ]
+    }
+  ],
+  "lineas": {
+    "ly232": {
+      "nombre": "Shape Layer 66",
+      "entra": {
+        "escena": "cierre",
+        "offset": 0.1991,
+        "dur": 0.3003,
+        "curva": [
+          0.063,
+          0,
+          0,
+          1
+        ]
+      },
+      "sale": {
+        "escena": "respiro",
+        "offset": -0.8991,
+        "dur": 0.2336,
+        "curva": [
+          0.1667,
+          0,
+          0.6605,
+          1
+        ]
+      }
+    },
+    "ly231": {
+      "nombre": "Shape Layer 65",
+      "entra": {
+        "escena": "cierre",
+        "offset": 0.0656,
+        "dur": 0.2669,
+        "curva": [
+          0.0653,
+          0,
+          0,
+          1
+        ]
+      },
+      "sale": {
+        "escena": "respiro",
+        "offset": -0.799,
+        "dur": 0.2336,
+        "curva": [
+          0.1667,
+          0,
+          0.6608,
+          1
+        ]
+      }
+    },
+    "ly229": {
+      "nombre": "Shape Layer 64",
+      "entra": {
+        "escena": "cierre",
+        "offset": -0.0345,
+        "dur": 0.2669,
+        "curva": [
+          0.0666,
+          0,
+          0,
+          1
+        ]
+      },
+      "sale": {
+        "escena": "respiro",
+        "offset": -0.7323,
+        "dur": 0.2336,
+        "curva": [
+          0.1667,
+          0,
+          0.661,
+          1
+        ]
+      }
+    },
+    "ly52": {
+      "nombre": "Shape Layer 17",
+      "entra": {
+        "escena": "general",
+        "offset": 0.8675,
+        "dur": 0.5005,
+        "curva": [
+          0.05,
+          0,
+          0,
+          1
+        ]
+      },
+      "sale": {
+        "escena": "cierre",
+        "offset": 1.0666,
+        "dur": 0.2002,
+        "curva": [
+          0.1667,
+          0,
+          0.7086,
+          1
+        ]
+      }
+    },
+    "ly51": {
+      "nombre": "Shape Layer 16",
+      "entra": {
+        "escena": "general",
+        "offset": 0.5005,
+        "dur": 0.5005,
+        "curva": [
+          0.05,
+          0,
+          0,
+          1
+        ]
+      },
+      "sale": {
+        "escena": "cierre",
+        "offset": 0.9999,
+        "dur": 0.2002,
+        "curva": [
+          0.1667,
+          0,
+          0.7075,
+          1
+        ]
+      }
+    },
+    "ly41": {
+      "nombre": "Shape Layer 15",
+      "entra": {
+        "escena": "general",
+        "offset": 0.7341,
+        "dur": 0.5005,
+        "curva": [
+          0.05,
+          0,
+          0,
+          1
+        ]
+      },
+      "sale": {
+        "escena": "cierre",
+        "offset": 1.1334,
+        "dur": 0.2002,
+        "curva": [
+          0.1667,
+          0,
+          0.7078,
+          1
+        ]
+      }
+    },
+    "ly40": {
+      "nombre": "Shape Layer 14",
+      "entra": {
+        "escena": "general",
+        "offset": 0.367,
+        "dur": 0.5005,
+        "curva": [
+          0.05,
+          0,
+          0,
+          1
+        ]
+      },
+      "sale": {
+        "escena": "cierre",
+        "offset": 1.2668,
+        "dur": 0.2002,
+        "curva": [
+          0.1667,
+          0,
+          0.7062,
+          1
+        ]
+      }
+    },
+    "ly39": {
+      "nombre": "Shape Layer 13",
+      "entra": {
+        "escena": "general",
+        "offset": 0.6006,
+        "dur": 0.5005,
+        "curva": [
+          0.05,
+          0,
+          0,
+          1
+        ]
+      },
+      "sale": {
+        "escena": "cierre",
+        "offset": 0.9999,
+        "dur": 0.2002,
+        "curva": [
+          0.1667,
+          0,
+          0.7078,
+          1
+        ]
+      }
+    },
+    "ly38": {
+      "nombre": "Shape Layer 12",
+      "entra": {
+        "escena": "general",
+        "offset": 0.2336,
+        "dur": 0.5005,
+        "curva": [
+          0.05,
+          0,
+          0,
+          1
+        ]
+      },
+      "sale": {
+        "escena": "cierre",
+        "offset": 0.9999,
+        "dur": 0.2002,
+        "curva": [
+          0.1667,
+          0,
+          0.7066,
+          1
+        ]
+      }
+    },
+    "ly37": {
+      "nombre": "Shape Layer 11",
+      "entra": {
+        "escena": "general",
+        "offset": 0.4671,
+        "dur": 0.5005,
+        "curva": [
+          0.05,
+          0,
+          0,
+          1
+        ]
+      },
+      "sale": {
+        "escena": "cierre",
+        "offset": 1.1,
+        "dur": 0.2002,
+        "curva": [
+          0.1667,
+          0,
+          0.707,
+          1
+        ]
+      }
+    },
+    "ly36": {
+      "nombre": "Shape Layer 10",
+      "entra": {
+        "escena": "general",
+        "offset": 0.1001,
+        "dur": 0.5005,
+        "curva": [
+          0.05,
+          0,
+          0,
+          1
+        ]
+      },
+      "sale": {
+        "escena": "cierre",
+        "offset": 1.0666,
+        "dur": 0.2002,
+        "curva": [
+          0.1667,
+          0,
+          0.706,
+          1
+        ]
+      }
+    },
+    "ly34": {
+      "nombre": "Shape Layer 9",
+      "entra": {
+        "escena": "general",
+        "offset": 0.0334,
+        "dur": 0.5005,
+        "curva": [
+          0.05,
+          0,
+          0,
+          1
+        ]
+      },
+      "sale": {
+        "escena": "respiro",
+        "offset": -0.8657,
+        "dur": 0.2002,
+        "curva": [
+          0.1667,
+          0,
+          0.7029,
+          1
+        ]
+      }
+    },
+    "ly32": {
+      "nombre": "Shape Layer 8",
+      "entra": {
+        "escena": "general",
+        "offset": 0.0334,
+        "dur": 0.5005,
+        "curva": [
+          0.05,
+          0,
+          0,
+          1
+        ]
+      },
+      "sale": {
+        "escena": "cierre",
+        "offset": 0.9999,
+        "dur": 0.2002,
+        "curva": [
+          0.1667,
+          0,
+          0.706,
+          1
+        ]
+      }
+    },
+    "ly31": {
+      "nombre": "Shape Layer 7",
+      "entra": {
+        "escena": "general",
+        "offset": 0.0334,
+        "dur": 0.5005,
+        "curva": [
+          0.05,
+          0,
+          0,
+          1
+        ]
+      },
+      "sale": {
+        "escena": "respiro",
+        "offset": -0.6322,
+        "dur": 0.2002,
+        "curva": [
+          0.1667,
+          0,
+          0.7023,
+          1
+        ]
+      }
+    },
+    "ly29": {
+      "nombre": "Shape Layer 5",
+      "entra": {
+        "escena": "general",
+        "offset": 0.0334,
+        "dur": 0.5005,
+        "curva": [
+          0.05,
+          0,
+          0,
+          1
+        ]
+      },
+      "sale": {
+        "escena": "respiro",
+        "offset": -0.4987,
+        "dur": 0.2002,
+        "curva": [
+          0.1667,
+          0,
+          0.702,
+          1
+        ]
+      }
+    }
+  }
+}
