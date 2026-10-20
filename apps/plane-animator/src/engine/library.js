@@ -464,44 +464,47 @@ export const LIBRARY = [
     template: "trail",
     variants: [
       {
-        // La referencia: cinta diagonal de imágenes con ecos escalonados que
-        // crecen al pasar por el centro, y polvo de fragmentos alrededor.
-        id: "trail-diagonal",
-        name: "Diagonal",
+        // La referencia: un flujo continuo que sube desde abajo, el punto focal
+        // agranda las imágenes que pasan, y la orientación del camino gira.
+        id: "trail-flujo",
+        name: "Flujo",
         fov: 45,
         params: {
-          groups: 4, repeat: 3, planeSize: 0.36, planeRatio: "4:5", sizeVar: 0.3,
-          step: 0.095, pathAngle: -38, curve: 0.12, edgeScale: 0.12, falloff: 1.6, jitter: 0.02, cornerRadius: 0,
+          groups: 10, repeat: 1, planeSize: 0.4, planeRatio: "4:5", sizeVar: 0.45,
+          step: 0.1, pathAngle: 70, swing: 30, swingCycles: 2, curve: 0.1,
+          edgeScale: 0.1, falloff: 1.5, jitter: 0.03, cornerRadius: 0,
           fragments: 26, fragSize: 0.04, fragSpread: 0.5, fragMotion: "drift",
           fragTravel: 0.4, fragOpacity: 1,
         },
-        timing: timing(2.4, 5, EASE_SOFT),
+        timing: timing(3.6, 6, EASE_LINEAR),
       },
       {
-        // Camino horizontal y recto, más ecos: una regla de imágenes.
+        // Camino horizontal fijo y más parejo: una regla de imágenes.
         id: "trail-regla",
         name: "Regla",
         fov: 40,
         params: {
-          groups: 5, repeat: 4, planeSize: 0.34, planeRatio: "4:5", sizeVar: 0.15,
-          step: 0.07, pathAngle: 0, curve: 0, edgeScale: 0.2, falloff: 1.8, jitter: 0.01, cornerRadius: 0.01,
+          groups: 8, repeat: 1, planeSize: 0.34, planeRatio: "4:5", sizeVar: 0.2,
+          step: 0.12, pathAngle: 0, swing: 0, swingCycles: 1, curve: 0,
+          edgeScale: 0.2, falloff: 1.8, jitter: 0.01, cornerRadius: 0.01,
           fragments: 16, fragSize: 0.035, fragSpread: 0.45, fragMotion: "drift",
           fragTravel: 0.3, fragOpacity: 0.9,
         },
-        timing: timing(2.2, 5, EASE_LINEAR),
+        timing: timing(3, 6, EASE_LINEAR),
       },
       {
-        // Camino en arco, con el polvo saliendo en estallido.
+        // Camino curvo con ecos y el polvo saliendo en estallido.
         id: "trail-arco",
         name: "Arco",
         fov: 50,
         params: {
-          groups: 6, repeat: 3, planeSize: 0.38, planeRatio: "1:1", sizeVar: 0.25,
-          step: 0.08, pathAngle: -20, curve: 0.34, edgeScale: 0.1, falloff: 1.2, jitter: 0.02, cornerRadius: 0.012,
+          groups: 7, repeat: 2, planeSize: 0.38, planeRatio: "1:1", sizeVar: 0.3,
+          step: 0.09, pathAngle: 50, swing: 18, swingCycles: 1, curve: 0.32,
+          edgeScale: 0.1, falloff: 1.3, jitter: 0.02, cornerRadius: 0.012,
           fragments: 34, fragSize: 0.038, fragSpread: 0.7, fragMotion: "burst",
           fragTravel: 0.5, fragOpacity: 1,
         },
-        timing: timing(2.6, 6, EASE_SOFT),
+        timing: timing(3.2, 6, EASE_LINEAR),
       },
     ],
   },

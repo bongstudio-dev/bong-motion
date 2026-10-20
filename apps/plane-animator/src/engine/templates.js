@@ -1122,19 +1122,24 @@ const trail = {
   slotsPerCycle: () => 1,
   // Los ecos repiten número de placeholder: el test de placeholders distintos
   // descuenta estos planos.
+  // El camino oscila con periodo `swingCycles`: el loop tiene que cerrar también
+  // para él, así que se pide como múltiplo de ciclos.
+  cycleUnit: (p) => (p.swing > 0 ? Math.max(1, Math.round(p.swingCycles)) : 1),
   echoCount: (p) => Math.round(p.groups) * (Math.round(p.repeat) - 1),
   params: {
-    groups: 4,
-    repeat: 3,
-    planeSize: 0.36,
+    groups: 10,
+    repeat: 1,
+    planeSize: 0.4,
     planeRatio: "4:5",
-    sizeVar: 0.3,
-    step: 0.095,
-    pathAngle: -38,
-    curve: 0.12,
-    edgeScale: 0.12,
-    falloff: 1.6,
-    jitter: 0.02,
+    sizeVar: 0.45,
+    step: 0.1,
+    pathAngle: 70,
+    swing: 30,
+    swingCycles: 2,
+    curve: 0.1,
+    edgeScale: 0.1,
+    falloff: 1.5,
+    jitter: 0.03,
     cornerRadius: 0,
     fragments: 26,
     fragSize: 0.04,
@@ -1144,10 +1149,12 @@ const trail = {
     fragOpacity: 1,
   },
   schema: [
-    { group: "Cinta", key: "groups", label: "Imágenes en cinta", min: 2, max: 10, step: 1 },
+    { group: "Cinta", key: "groups", label: "Imágenes en cinta", min: 2, max: 16, step: 1 },
     { group: "Cinta", key: "repeat", label: "Ecos por imagen", min: 1, max: 6, step: 1 },
     { group: "Cinta", key: "step", label: "Paso entre ecos", min: 0.01, max: 0.3, step: 0.005, pct: true },
-    { group: "Cinta", key: "pathAngle", label: "Ángulo del camino", min: -90, max: 90, step: 1, unit: "°" },
+    { group: "Cinta", key: "pathAngle", label: "Ángulo del camino", min: -180, max: 180, step: 1, unit: "°" },
+    { group: "Cinta", key: "swing", label: "Giro del camino", min: 0, max: 90, step: 1, unit: "°" },
+    { group: "Cinta", key: "swingCycles", label: "Ciclos por giro", min: 1, max: 6, step: 1, when: (p) => p.swing > 0 },
     { group: "Cinta", key: "curve", label: "Curvatura", min: -0.6, max: 0.6, step: 0.01, pct: true },
 
     { group: "Cards", key: "planeSize", label: "Tamaño en el centro", min: 0.15, max: 1, step: 0.01, pct: true },
@@ -1183,7 +1190,9 @@ const trail = {
     const Nc = G * R; // planos de la cinta; el resto son fragmentos
 
     // Eje del camino (y hacia arriba) y su normal.
-    const ang = p.pathAngle * DEG;
+    // La orientación del camino oscila (periódico en `swingCycles` ciclos).
+    const ang =
+      (p.pathAngle + p.swing * Math.sin((TAU * t) / Math.max(1, Math.round(p.swingCycles)))) * DEG;
     const d = [Math.cos(ang), Math.sin(ang)];
     const nrm = [-d[1], d[0]];
 
@@ -1237,7 +1246,7 @@ const trail = {
         size: [w, w * wh],
         opacity: env * edgeFade * p.fragOpacity,
         radius: 0,
-        assetSlot: G + (i - Nc) + k,
+        assetSlot: Math.ceil(G / 2) + (i - Nc) + k,
         // Detrás de la cinta, sin tocar el eje Z.
         order: -1,
       };
