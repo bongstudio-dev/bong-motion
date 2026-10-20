@@ -17,7 +17,7 @@ import { uid } from "../utils/math.js";
 // hace falta guardar el original.
 export const MAX_SIDE = 2160;
 
-const store = new Map(); // id → { texture, bitmap, thumbUrl, w, h, srcW, srcH }
+const store = new Map(); // id → { texture, bitmap, file, thumbUrl, w, h, srcW, srcH }
 const placeholders = new Map();
 
 function configure(texture) {
@@ -31,7 +31,10 @@ function configure(texture) {
   return texture;
 }
 
-export async function ingestFile(file) {
+// `preset` (opcional) es el meta de un asset guardado: se reusa su id y sus
+// ajustes en vez de generar unos nuevos, para que al recargar la tool el asset
+// vuelva a ser el mismo.
+export async function ingestFile(file, preset = null) {
   if (!file.type.startsWith("image/")) {
     throw new Error(`${file.name}: no es una imagen`);
   }
@@ -62,10 +65,11 @@ export async function ingestFile(file) {
   const texture = configure(new THREE.Texture(bitmap));
   texture.flipY = false;
 
-  const id = uid("a");
+  const id = preset?.id ?? uid("a");
   store.set(id, {
     texture,
     bitmap,
+    file,
     thumbUrl: URL.createObjectURL(file),
     w,
     h,
@@ -75,19 +79,20 @@ export async function ingestFile(file) {
 
   return {
     id,
-    name: file.name,
+    name: preset?.name ?? file.name,
     w,
     h,
     srcW,
     srcH,
-    visible: true,
-    focal: [0, 0], // −0.5..0.5, punto de interés para el crop en `cover`
-    fit: "auto", // 'auto' hereda el modo global
+    visible: preset?.visible ?? true,
+    focal: preset?.focal ?? [0, 0], // −0.5..0.5, punto de interés para el crop en `cover`
+    fit: preset?.fit ?? "auto", // 'auto' hereda el modo global
   };
 }
 
 export const getEntry = (id) => store.get(id) ?? null;
 export const getTexture = (id) => store.get(id)?.texture ?? null;
+export const getFile = (id) => store.get(id)?.file ?? null;
 export const getThumb = (id) => store.get(id)?.thumbUrl ?? null;
 
 export function release(id) {

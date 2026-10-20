@@ -15,7 +15,27 @@ import { createClock } from "./clock.js";
 import { defaultState } from "./state/defaults.js";
 import { resolveParams } from "./engine/getScene.js";
 import { loadState, saveState } from "./state/storage.js";
-import { releaseAll } from "./assets/assetStore.js";
+import { releaseAll, ingestFile, getFile } from "./assets/assetStore.js";
+import { loadSavedAssets, syncAssets, markPersisted } from "./assets/assetDb.js";
+
+// Los assets guardados se recuperan UNA vez por carga de página (el modo
+// estricto de React monta dos veces en desarrollo y duplicaría las texturas).
+let hydration = null;
+function hydrateAssets() {
+  hydration ??= (async () => {
+    const out = [];
+    for (const rec of await loadSavedAssets()) {
+      try {
+        out.push(await ingestFile(rec.file, rec));
+      } catch {
+        /* un archivo roto no tiene que frenar a los demás */
+      }
+    }
+    markPersisted(out.map((a) => a.id));
+    return out;
+  })();
+  return hydration;
+}
 
 export default function App() {
   const [state, setState] = useState(loadState);
@@ -57,6 +77,27 @@ export default function App() {
     const id = setTimeout(() => saveState(state), 250);
     return () => clearTimeout(id);
   }, [state]);
+
+  // Los assets (imágenes, orden, recorte) viven en IndexedDB: al abrir la tool
+  // vuelven solos, y cada cambio se guarda. No se sincroniza nada hasta que
+  // terminó de leerse lo guardado, para no borrarlo por error.
+  const [assetsReady, setAssetsReady] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    hydrateAssets().then((saved) => {
+      if (!alive) return;
+      setState((s) => (s.assets.length ? s : { ...s, assets: saved }));
+      setAssetsReady(true);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (!assetsReady) return undefined;
+    const id = setTimeout(() => syncAssets(state.assets, getFile), 400);
+    return () => clearTimeout(id);
+  }, [state.assets, assetsReady]);
 
   // Barra espaciadora = play/pausa (salvo escribiendo en un input).
   useEffect(() => {

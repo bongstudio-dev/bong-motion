@@ -50,8 +50,9 @@ export default function ProjectPanel({ state, setState, onReset }) {
         />
       </Field>
       <p className="hint">
-        Guarda la receta —template, params, timing, cámara, encuadre— no las
-        imágenes. Los assets son de la sesión.
+        El JSON guarda la receta —template, params, timing, cámara, encuadre—.
+        Las imágenes (con su orden y recorte) se guardan solas en este
+        navegador y vuelven al abrir la tool; "Reset" las borra.
       </p>
       {message && <p className="hint">{message}</p>}
 
