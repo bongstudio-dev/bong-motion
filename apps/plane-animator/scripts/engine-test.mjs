@@ -314,9 +314,10 @@ for (const id of NUEVAS) {
     .planes.filter((p) => p.tint === undefined)
     .map((p) => p.size[0]);
   ok(
-    // Piso en 15px: el cluster tiene fragmentos chicos a propósito. Sigue
-    // atrapando unidades relativas sin convertir (que darían < 5px).
-    Math.min(...anchos) > 15 && Math.max(...anchos) < 4000,
+    // Piso en 2px: el cluster y el trail tienen fragmentos/migajas chicos a
+    // propósito. Sigue atrapando unidades relativas sin convertir (que darían
+    // menos de 1px: 0.03 de 1080 son 0.03px).
+    Math.min(...anchos) > 2 && Math.max(...anchos) < 4000,
     `${id}: los planos miden px de verdad (${Math.round(Math.min(...anchos))}–${Math.round(Math.max(...anchos))}px)`,
   );
 

@@ -1139,6 +1139,8 @@ const trail = {
     sizeVar: 0.4,
     step: 0.045,
     jitter: 0.13,
+    scatterAlong: 1.4,
+    crumbs: 0.4,
     curve: 0.04,
     cornerRadius: 0,
 
@@ -1162,6 +1164,8 @@ const trail = {
     { group: "Riel", key: "sizeVar", label: "Variación de tamaño", min: 0, max: 0.8, step: 0.01, pct: true },
     { group: "Riel", key: "step", label: "Separación", min: 0.03, max: 0.3, step: 0.005, pct: true },
     { group: "Riel", key: "jitter", label: "Dispersión lateral", min: 0, max: 0.3, step: 0.005, pct: true },
+    { group: "Riel", key: "scatterAlong", label: "Desorden a lo largo", min: 0, max: 3, step: 0.05 },
+    { group: "Riel", key: "crumbs", label: "Migajas", min: 0, max: 0.7, step: 0.01, pct: true },
     { group: "Riel", key: "curve", label: "Curvatura", min: -0.4, max: 0.4, step: 0.01, pct: true },
     { group: "Riel", key: "cornerRadius", label: "Corner radius", min: 0, max: 0.2, step: 0.005, pct: true },
 
@@ -1198,14 +1202,25 @@ const trail = {
     const c = -(c0 - N * kk);
     const j = i - N * kk; // posición en la cinta de assets
 
-    // Semillas por imagen de la cinta, nunca por plano: así el frame final
-    // iguala al inicial. mod M para que repitan cuando se repite el asset.
-    const sd = mod(j, geom.M > 0 ? geom.M : N);
+    // Semillas por imagen de la cinta, nunca por plano. Se toman módulo el
+    // avance TOTAL de la pieza (`ciclos x perCycle`), que es justo lo que tarda
+    // el loop en cerrar: cada imagen de la pieza tiene su propio desvío y su
+    // propio tamaño (no se repite el patrón cada `M` imágenes, que es lo que
+    // hacía ver el riel ordenado) y el frame final igual iguala al inicial.
+    const sd = mod(j, geom.M > 0 ? geom.M : N); // por asset: capa fija
+    const sj = mod(j, Math.max(1, cycles * P)); // por imagen de la pieza
     const base = geom.size(j);
-    const sv = 1 + p.sizeVar * (hash01(sd * 2.9 + 0.2) * 2 - 1);
-    const lat = (hash01(sd * 5.3 + 0.8) * 2 - 1) * p.jitter * S;
 
-    const along = c * p.step * S;
+    // Migajas: una parte del riel son astillas de ~1/5 del tamaño normal. En la
+    // referencia el 26% de lo que cruza el riel mide menos de 8 px.
+    const crumb = hash01(sj * 7.1 + 0.3) < p.crumbs ? 0.2 + 0.2 * hash01(sj * 3.3 + 0.6) : 1;
+    const sv = (1 + p.sizeVar * (hash01(sj * 2.9 + 0.2) * 2 - 1)) * crumb;
+    const lat = (hash01(sj * 5.3 + 0.8) * 2 - 1) * p.jitter * S;
+    // Espaciado irregular: en la referencia la separación entre imágenes del
+    // riel varía como en una distribución al azar (CV ~0.9), con montoncitos.
+    const off = (hash01(sj * 2.3 + 0.9) * 2 - 1) * p.scatterAlong * p.step * S;
+
+    const along = c * p.step * S + off;
     const bow = p.curve * S * Math.pow(c / (N / 2), 2);
     const x = d[0] * along + nrm[0] * (bow + lat);
     const y = d[1] * along + nrm[1] * (bow + lat);
