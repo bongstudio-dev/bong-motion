@@ -78,8 +78,12 @@ function visibility(plane, stage, camera) {
 function compare(state, eps) {
   const stage = stageOf(state);
   const minSide = Math.min(stage.w, stage.h);
+  // Un template muy rápido o con una curva de escala empinada (trail) se mueve
+  // más en `eps` que los demás y el umbral lo leería como pop. Puede pedir un
+  // eps más fino: sigue atrapando un salto real, que es de otro orden.
+  const e = Math.min(eps, resolveTemplate(state).loopEps ?? eps);
   const a = getScene(0, state);
-  const b = getScene(1 - eps, state);
+  const b = getScene(1 - e, state);
 
   const seen = (scene) =>
     scene.planes

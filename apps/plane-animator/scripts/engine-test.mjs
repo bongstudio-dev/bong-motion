@@ -286,7 +286,6 @@ for (const id of NUEVAS) {
     `${id}: ${N} placeholders numerados sin assets`,
   );
   const nums = new Set(cards0.map((p) => p.placeholder));
-  // Los ecos del trail repiten la imagen de su grupo, y con ella el número.
   const ecos = tpl.echoCount ? tpl.echoCount(tpl.params) : 0;
   ok(
     nums.size === N - ecos,

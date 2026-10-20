@@ -125,6 +125,19 @@ export function mergeState(loaded) {
       params && typeof params === "object" && !Array.isArray(params) ? params : {},
   };
 
+  // El Trail se reescribió (riel continuo con giro y lente) y reusa nombres de
+  // params con otro significado (planeSize, step, pathAngle...). Un state
+  // guardado con los params viejos —se reconocen por `groups`— se leería con el
+  // look equivocado, así que se descartan y, si Trail es lo que estaba abierto,
+  // también el timing que lo acompañaba (6 s x 24 ciclos): vuelve el de "Foco".
+  if (out.template.params?.trail && "groups" in out.template.params.trail) {
+    const { trail: _viejo, ...resto } = out.template.params;
+    out.template = { ...out.template, params: resto };
+    if (out.template.id === "trail") {
+      out.timing = { ...out.timing, duration: 1.33, cycles: 14, stagger: 0, delay: 0, ease: [0, 0, 1, 1] };
+    }
+  }
+
   out.timing = {
     ...out.timing,
     duration: clampNum(out.timing.duration, 0.2, 120, base.timing.duration),

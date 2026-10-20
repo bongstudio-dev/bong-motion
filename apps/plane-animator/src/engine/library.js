@@ -464,52 +464,50 @@ export const LIBRARY = [
     template: "trail",
     variants: [
       {
-        // La referencia: un riel denso de imágenes chicas que se traslada y
-        // rota; el foco del centro las agranda al pasar y las devuelve al
-        // alejarse, con muchas a la vez en distintas escalas.
+        // La referencia, medida: un riel de imágenes chicas que avanza a
+        // velocidad constante (~0.75 del lado menor por segundo) mientras su
+        // eje da una vuelta entera alrededor del foco (~19 s). El foco las
+        // agranda en una curva empinada: 5-8 cards a la vez, casi sin tamaños
+        // intermedios.
         id: "trail-foco",
         name: "Foco",
         fov: 45,
         params: {
-          groups: 28, repeat: 1, planeSize: 0.1, planeRatio: "4:5", sizeVar: 0.35,
-          step: 0.055, pathAngle: 60, swing: 40, sweep: 0.18, swingCycles: 8,
-          curve: 0.08, focusX: 0, focusY: 0, focusScale: 3.8, focusRadius: 0.3,
-          focusFalloff: 1, jitter: 0.01, cornerRadius: 0,
-          fragments: 18, fragSize: 0.03, fragSpread: 0.5, fragMotion: "drift",
-          fragTravel: 0.4, fragOpacity: 1,
+          images: 44, planeSize: 0.025, planeRatio: "4:5", sizeVar: 0.4,
+          step: 0.045, jitter: 0.13, curve: 0.04, cornerRadius: 0,
+          pathAngle: -90, turns: 1, perCycle: 22,
+          focusX: 0, focusY: 0, focusScale: 10.5, focusRadius: 0.335,
+          focusSoft: 0.25, focusFalloff: 1,
         },
-        timing: timing(6, 24, EASE_LINEAR),
+        timing: timing(1.33, 14, EASE_LINEAR),
       },
       {
         // Riel horizontal fijo, foco angosto: una lupa que recorre la regla.
         id: "trail-lupa",
         name: "Lupa",
-        fov: 40,
+        fov: 45,
         params: {
-          groups: 24, repeat: 1, planeSize: 0.09, planeRatio: "4:5", sizeVar: 0.2,
-          step: 0.06, pathAngle: 0, swing: 0, sweep: 0, swingCycles: 1,
-          curve: 0, focusX: 0, focusY: 0, focusScale: 4.5, focusRadius: 0.22,
-          focusFalloff: 1.2, jitter: 0.005, cornerRadius: 0.004,
-          fragments: 0, fragSize: 0.03, fragSpread: 0.5, fragMotion: "drift",
-          fragTravel: 0.3, fragOpacity: 1,
+          images: 20, planeSize: 0.04, planeRatio: "4:5", sizeVar: 0.25,
+          step: 0.1, jitter: 0.02, curve: 0, cornerRadius: 0.01,
+          pathAngle: 0, turns: 0, perCycle: 10,
+          focusX: 0, focusY: 0, focusScale: 6, focusRadius: 0.28,
+          focusSoft: 0.4, focusFalloff: 1.2,
         },
-        timing: timing(6, 24, EASE_LINEAR),
+        timing: timing(1.33, 14, EASE_LINEAR),
       },
       {
-        // Riel curvo y ancho que barre el foco de lado a lado, con polvo en
-        // estallido.
-        id: "trail-barrido",
-        name: "Barrido",
-        fov: 50,
+        // Dos vueltas del riel, foco ancho y cuadrado: más imágenes en juego.
+        id: "trail-remolino",
+        name: "Remolino",
+        fov: 45,
         params: {
-          groups: 32, repeat: 1, planeSize: 0.085, planeRatio: "1:1", sizeVar: 0.4,
-          step: 0.05, pathAngle: 35, swing: 55, sweep: 0.3, swingCycles: 12,
-          curve: 0.3, focusX: 0, focusY: 0, focusScale: 3.4, focusRadius: 0.36,
-          focusFalloff: 0.8, jitter: 0.015, cornerRadius: 0.006,
-          fragments: 30, fragSize: 0.03, fragSpread: 0.7, fragMotion: "burst",
-          fragTravel: 0.5, fragOpacity: 0.9,
+          images: 28, planeSize: 0.035, planeRatio: "1:1", sizeVar: 0.35,
+          step: 0.08, jitter: 0.15, curve: 0.08, cornerRadius: 0,
+          pathAngle: -90, turns: 2, perCycle: 12,
+          focusX: 0, focusY: 0, focusScale: 7, focusRadius: 0.42,
+          focusSoft: 0.3, focusFalloff: 1,
         },
-        timing: timing(6, 24, EASE_LINEAR),
+        timing: timing(1.3, 14, EASE_LINEAR),
       },
     ],
   },

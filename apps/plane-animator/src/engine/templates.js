@@ -1093,239 +1093,139 @@ const hero = {
 };
 
 /* ------------------------------------------------------------------ */
-/* 9. TRAIL — riel denso de imágenes chicas con un foco que las agranda */
+/* 9. TRAIL — riel de imágenes chicas con un foco que las agranda      */
 /* ------------------------------------------------------------------ */
 
-// Salió de una referencia en video: un riel de imágenes chicas, pegadas unas a
-// otras, que se traslada sin parar y rota su orientación. En el centro hay un
-// PUNTO FOCAL que funciona como lente: las imágenes que pasan cerca crecen con
-// una curva suave (scale up) y vuelven a su tamaño cuando el riel se aleja
-// (scale down). Como el riel es denso, en el foco hay muchas imágenes a la vez
-// con escalas distintas, y como se mueve rápido las del foco cambian enseguida.
+// Salió de una referencia en video, MEDIDA cuadro a cuadro (720x900, 30 fps):
 //
-// Sin rotación propia ni movimiento en Z: lo único que le pasa a cada imagen es
-// la escala. El orden de capas es explícito (lo más grande tapa a lo chico).
+//   · Es UN solo riel. Las "motitas" del costado y las cards grandes del centro
+//     son las mismas imágenes: motita ≈ 3% del ancho, card en el foco ≈ 30-40%.
+//   · Las imágenes avanzan a velocidad constante sobre el eje del riel
+//     (≈ 0.75 del lado menor por segundo), siempre en el mismo sentido.
+//   · El EJE gira alrededor del foco a velocidad constante (≈ 18°/s, una vuelta
+//     en ~20 s). No oscila: da la vuelta.
+//   · El foco es un LENTE: la escala depende de la distancia al foco y la curva
+//     es empinada (de 23 a ~200 px en ~0.15 s de recorrido), por eso casi no hay
+//     tamaños intermedios. Dentro del radio hay entre 5 y 8 cards a la vez.
+//   · Las imágenes no rotan ni se mueven en Z: lo único que les pasa es la
+//     escala. El orden de capas es explícito (la más cercana al foco, arriba).
 //
-// Mecánica: una cinta de N = groups × repeat planos que avanza `repeat` planos
-// por ciclo (una imagen por ciclo → el contrato del loop es el de siempre). El
-// camino oscila en ángulo y se desplaza de costado con periodo `swingCycles`
-// (cycleUnit lo pide como múltiplo). Las semillas van por imagen y por eco,
-// nunca por plano, así el frame final iguala al inicial.
-//
-// Los fragmentos viven un ciclo: nacen y mueren transparentes, y cambian de
-// imagen mientras son invisibles.
+// Mecánica: un anillo de `images` planos separados `step`. En cada ciclo el
+// anillo avanza `perCycle` posiciones (con ease lineal es continuo), así que el
+// contrato del loop es el de siempre: (ciclos × perCycle) múltiplo de la
+// cantidad de assets. La rotación del eje se reparte en TODA la pieza
+// (`turns` vueltas enteras), por eso cierra con cualquier cantidad de ciclos.
+// Cuando una imagen da la vuelta al anillo (fuera de cuadro, con opacidad 0)
+// toma la imagen siguiente de la cinta.
 
 const trail = {
   id: "trail",
   name: "Trail",
   supportsFitToAsset: true,
   relativeUnits: true,
-  count: (p) => Math.round(p.groups) * Math.round(p.repeat) + Math.round(p.fragments),
-  slotsPerCycle: () => 1,
-  cycleUnit: (p) =>
-    p.swing > 0 || p.sweep > 0 ? Math.max(1, Math.round(p.swingCycles)) : 1,
-  // Los ecos repiten número de placeholder: el test de placeholders distintos
-  // descuenta estos planos.
-  echoCount: (p) => Math.round(p.groups) * (Math.round(p.repeat) - 1),
+  count: (p) => Math.max(4, Math.round(p.images)),
+  slotsPerCycle: (p) => Math.max(1, Math.round(p.perCycle)),
+  // Avanza ~14 lados menores por pieza y el lente cambia de tamaño muy rápido:
+  // en 1e-4 de la pieza ya se mueve lo que el test tolera como pop.
+  loopEps: 1e-5,
   params: {
-    groups: 28,
-    repeat: 1,
-    planeSize: 0.1,
+    images: 44,
+    planeSize: 0.025,
     planeRatio: "4:5",
-    sizeVar: 0.35,
-    step: 0.055,
-    pathAngle: 60,
-    swing: 40,
-    sweep: 0.18,
-    swingCycles: 8,
-    curve: 0.08,
+    sizeVar: 0.4,
+    step: 0.045,
+    jitter: 0.13,
+    curve: 0.04,
+    cornerRadius: 0,
+
+    pathAngle: -90,
+    turns: 1,
+    perCycle: 22,
+
     focusX: 0,
     focusY: 0,
-    focusScale: 3.8,
-    focusRadius: 0.3,
+    focusScale: 10.5,
+    focusRadius: 0.335,
+    focusSoft: 0.25,
     focusFalloff: 1,
-    jitter: 0.01,
-    cornerRadius: 0,
-    fragments: 18,
-    fragSize: 0.03,
-    fragSpread: 0.5,
-    fragMotion: "drift",
-    fragTravel: 0.4,
-    fragOpacity: 1,
   },
   schema: [
-    { group: "Riel", key: "groups", label: "Imágenes en el riel", min: 4, max: 48, step: 1 },
-    { group: "Riel", key: "repeat", label: "Ecos por imagen", min: 1, max: 4, step: 1 },
-    { group: "Riel", key: "planeSize", label: "Tamaño base", min: 0.03, max: 0.5, step: 0.005, pct: true },
+    { group: "Riel", key: "images", label: "Imágenes en el riel", min: 8, max: 48, step: 1 },
+    { group: "Riel", key: "planeSize", label: "Tamaño fuera del foco", min: 0.01, max: 0.2, step: 0.002, pct: true },
     { group: "Riel", key: "planeRatio", label: "Aspect del plano", type: "select", options: PLANE_RATIOS },
     { group: "Riel", key: "sizeVar", label: "Variación de tamaño", min: 0, max: 0.8, step: 0.01, pct: true },
-    { group: "Riel", key: "step", label: "Separación", min: 0.01, max: 0.3, step: 0.005, pct: true },
-    { group: "Riel", key: "jitter", label: "Desvío lateral", min: 0, max: 0.2, step: 0.005, pct: true },
-    { group: "Riel", key: "cornerRadius", label: "Corner radius", min: 0, max: 0.1, step: 0.002, pct: true },
+    { group: "Riel", key: "step", label: "Separación", min: 0.03, max: 0.3, step: 0.005, pct: true },
+    { group: "Riel", key: "jitter", label: "Dispersión lateral", min: 0, max: 0.3, step: 0.005, pct: true },
+    { group: "Riel", key: "curve", label: "Curvatura", min: -0.4, max: 0.4, step: 0.01, pct: true },
+    { group: "Riel", key: "cornerRadius", label: "Corner radius", min: 0, max: 0.2, step: 0.005, pct: true },
 
-    { group: "Camino", key: "pathAngle", label: "Ángulo del camino", min: -180, max: 180, step: 1, unit: "°" },
-    { group: "Camino", key: "swing", label: "Giro del camino", min: 0, max: 90, step: 1, unit: "°" },
-    { group: "Camino", key: "sweep", label: "Barrido lateral", min: 0, max: 0.6, step: 0.01, pct: true },
-    {
-      group: "Camino",
-      key: "swingCycles",
-      label: "Ciclos por vaivén",
-      min: 1,
-      max: 24,
-      step: 1,
-      when: (p) => p.swing > 0 || p.sweep > 0,
-    },
-    { group: "Camino", key: "curve", label: "Curvatura", min: -0.6, max: 0.6, step: 0.01, pct: true },
+    { group: "Movimiento", key: "perCycle", label: "Avance por ciclo", min: 1, max: 24, step: 1, unit: " imágenes" },
+    { group: "Movimiento", key: "pathAngle", label: "Ángulo inicial", min: -180, max: 180, step: 1, unit: "°" },
+    { group: "Movimiento", key: "turns", label: "Vueltas del riel", min: -4, max: 4, step: 1 },
 
-    { group: "Foco", key: "focusScale", label: "Escala en el foco", min: 1, max: 8, step: 0.1 },
+    { group: "Foco", key: "focusScale", label: "Escala en el foco", min: 1, max: 20, step: 0.1 },
     { group: "Foco", key: "focusRadius", label: "Radio del foco", min: 0.05, max: 1, step: 0.01, pct: true },
-    { group: "Foco", key: "focusFalloff", label: "Suavidad del foco", min: 0.3, max: 3, step: 0.05 },
+    { group: "Foco", key: "focusSoft", label: "Borde del foco", min: 0.02, max: 1, step: 0.01, pct: true },
+    { group: "Foco", key: "focusFalloff", label: "Curva del borde", min: 0.3, max: 3, step: 0.05 },
     { group: "Foco", key: "focusX", label: "Foco X", min: -0.5, max: 0.5, step: 0.01, pct: true },
     { group: "Foco", key: "focusY", label: "Foco Y", min: -0.5, max: 0.5, step: 0.01, pct: true },
-
-    { group: "Fragmentos", key: "fragments", label: "Cantidad", min: 0, max: 60, step: 1 },
-    { group: "Fragmentos", key: "fragSize", label: "Tamaño", min: 0.01, max: 0.15, step: 0.002, pct: true },
-    { group: "Fragmentos", key: "fragSpread", label: "Radio de dispersión", min: 0.1, max: 1.2, step: 0.01, pct: true },
-    {
-      group: "Fragmentos",
-      key: "fragMotion",
-      label: "Movimiento",
-      type: "select",
-      options: [
-        { value: "drift", label: "Deriva" },
-        { value: "burst", label: "Estallido" },
-        { value: "orbit", label: "Órbita" },
-      ],
-    },
-    { group: "Fragmentos", key: "fragTravel", label: "Recorrido", min: 0, max: 1.2, step: 0.01, pct: true },
-    { group: "Fragmentos", key: "fragOpacity", label: "Opacidad", min: 0, max: 1, step: 0.01, pct: true },
   ],
 
   place(t, i, N, p, timing, ease, geom) {
     const S = geom.SHORT;
-    const R = Math.max(1, Math.round(p.repeat));
-    const G = Math.max(2, Math.round(p.groups));
-    const Nc = G * R; // planos del riel; el resto son fragmentos
-    const per = Math.max(1, Math.round(p.swingCycles));
+    const P = Math.max(1, Math.round(p.perCycle));
+    const cycles = Math.max(1, Math.round(timing.cycles));
 
-    // El camino gira y se corre de costado con periodo `swingCycles` (en
-    // ciclos, así que el loop cierra cuando los ciclos son múltiplo).
-    const ph = (TAU * t) / per;
-    const ang = (p.pathAngle + p.swing * Math.sin(ph)) * DEG;
-    const side = p.sweep * S * Math.cos(ph);
+    // Eje del riel: gira `turns` vueltas enteras a lo largo de la pieza.
+    // Antihorario en pantalla con turns > 0 (y hacia arriba).
+    const ang = (p.pathAngle + (360 * p.turns * t) / cycles) * DEG;
     const d = [Math.cos(ang), Math.sin(ang)];
     const nrm = [-d[1], d[0]];
 
-    /* ---------------------------- fragmentos --------------------------- */
-    if (i >= Nc) {
-      const phase = hash01(i * 4.13 + 0.7);
-      const u = frac(t + phase);
-      const k = Math.floor(t + phase);
-
-      const a0 = TAU * hash01(i * 1.91 + 0.3);
-      const rad = p.fragSpread * S * (0.3 + 0.7 * Math.sqrt(hash01(i * 2.17 + 0.9)));
-      let lu = Math.cos(a0) * rad * 1.15; // a lo largo del camino
-      let lv = Math.sin(a0) * rad * 0.7; // a lo ancho
-      const trav = p.fragTravel * S;
-
-      if (p.fragMotion === "burst") {
-        const g = 0.25 + 0.75 * u;
-        lu = lu * g + Math.cos(a0) * trav * (u - 0.5) * 0.6;
-        lv = lv * g + Math.sin(a0) * trav * (u - 0.5) * 0.6;
-      } else if (p.fragMotion === "orbit") {
-        const a2 = a0 + (u - 0.5) * TAU * 0.5 * Math.min(1, p.fragTravel * 1.6);
-        lu = Math.cos(a2) * rad * 1.15;
-        lv = Math.sin(a2) * rad * 0.7;
-      } else {
-        lu += trav * (u - 0.5);
-      }
-
-      const px = d[0] * lu + nrm[0] * (lv + side) + p.focusX * S;
-      const py = d[1] * lu + nrm[1] * (lv + side) + p.focusY * S;
-
-      // Rampa larga: con muchos ciclos por pieza, una rampa corta se lee como
-      // un salto de opacidad entre el primer y el último frame del loop.
-      const edge = 0.32;
-      const env = smooth(u / edge) * smooth((1 - u) / edge);
-
-      const wh = 0.8 + 0.45 * hash01(i * 6.7 + 0.4);
-      const w = p.fragSize * S * (0.55 + 0.9 * hash01(i * 5.1 + 0.6));
-
-      // Se apagan antes de tocar el borde del cuadro: un plano a opacidad plena
-      // justo sobre el borde entra y sale del frustum por un pixel entre dos
-      // frames y el test de loop lo lee como pop.
-      const view = geom.visible(0);
-      const reach = Math.max(w, w * wh) / 2;
-      const room = Math.min(view.w / 2 - Math.abs(px), view.h / 2 - Math.abs(py)) - reach;
-      const edgeFade = smooth(room / (0.2 * S));
-
-      return {
-        pos: [px, py, 0],
-        rot: [0, 0, 0],
-        size: [w, w * wh],
-        opacity: env * edgeFade * p.fragOpacity,
-        radius: 0,
-        assetSlot: Math.ceil(G / 2) + (i - Nc) + k,
-        order: -1,
-      };
-    }
-
-    /* ------------------------------- el riel --------------------------- */
-    // El riel avanza R planos por ciclo = una imagen por ciclo.
-    const adv = steppedAdvance(t, ease, R);
+    // Anillo: c crece con el avance (las imágenes van hacia +d) y al llegar a
+    // +N/2 reaparecen en -N/2 con la imagen siguiente de la cinta.
+    const adv = steppedAdvance(t, ease, P);
     const c0 = i - adv;
-    const kk = Math.floor((c0 + Nc / 2) / Nc);
-    const c = -(c0 - Nc * kk); // posición sobre el camino; crece con el avance
-    const j = i - Nc * kk; // slot contiguo del riel
+    const kk = Math.floor((c0 + N / 2) / N);
+    const c = -(c0 - N * kk);
+    const j = i - N * kk; // posición en la cinta de assets
 
-    // Los grupos se alinean con la ventana del riel: no se parte ninguno en los
-    // extremos (que además están apagados).
-    const jj = j + (Math.floor(Nc / 2) % R);
-    const grp = Math.floor(jj / R);
-    const e = mod(jj, R);
-
-    // Semillas por imagen (sd) y por eco (e): ninguna depende del plano.
-    const sd = mod(grp, geom.M > 0 ? geom.M : N);
-    const base = geom.size(grp);
+    // Semillas por imagen de la cinta, nunca por plano: así el frame final
+    // iguala al inicial. mod M para que repitan cuando se repite el asset.
+    const sd = mod(j, geom.M > 0 ? geom.M : N);
+    const base = geom.size(j);
     const sv = 1 + p.sizeVar * (hash01(sd * 2.9 + 0.2) * 2 - 1);
+    const lat = (hash01(sd * 5.3 + 0.8) * 2 - 1) * p.jitter * S;
 
-    // Posición sobre el camino (curvo, girado y corrido de costado).
     const along = c * p.step * S;
-    const bow = p.curve * S * Math.pow(c / (Nc / 2), 2);
-    const jit = (hash01(e * 5.3 + sd * 1.7 + 0.8) * 2 - 1) * p.jitter * S;
-    const x = d[0] * along + nrm[0] * (bow + jit + side);
-    const y = d[1] * along + nrm[1] * (bow + jit + side);
+    const bow = p.curve * S * Math.pow(c / (N / 2), 2);
+    const x = d[0] * along + nrm[0] * (bow + lat);
+    const y = d[1] * along + nrm[1] * (bow + lat);
 
-    // El foco: lente de escala. Distancia euclídea al punto focal, no a lo
-    // largo del camino: por eso, cuando el riel gira o se corre de costado, las
-    // imágenes crecen al acercarse y vuelven a achicarse al alejarse.
-    const fx = p.focusX * S;
-    const fy = p.focusY * S;
-    const dist = Math.hypot(x - fx, y - fy);
-    const near = clamp(1 - dist / (p.focusRadius * S));
+    // El lente: distancia euclídea al foco, no a lo largo del riel. La escala
+    // es 1 fuera de `focusRadius`, llega a `focusScale` a `focusSoft` del borde
+    // hacia adentro, y entre medio sigue una curva suave.
+    const dist = Math.hypot(x - p.focusX * S, y - p.focusY * S);
+    const R = p.focusRadius * S;
+    const near = clamp((R - dist) / Math.max(1e-6, R * p.focusSoft));
     const bump = Math.pow(smooth(near), p.focusFalloff);
     const scale = lerp(1, p.focusScale, bump);
 
     const w = base[0] * sv * scale;
     const h = base[1] * sv * scale;
 
-    // Se apagan en los extremos de la cinta (donde "salta" de punta a punta) y
-    // antes de tocar el borde del cuadro.
-    const ends = smooth((Nc / 2 - Math.abs(c)) / Math.min(Nc / 2, 3));
-    const view = geom.visible(0);
-    const reach = Math.max(w, h) / 2;
-    const room = Math.min(view.w / 2 - Math.abs(x), view.h / 2 - Math.abs(y)) - reach;
-    const edgeFade = smooth(room / (0.12 * S));
+    // Se apaga en la costura del anillo, que tiene que caer fuera de cuadro.
+    const ends = smooth((N / 2 - Math.abs(c)) / Math.min(N / 2, 1.5));
 
     return {
       pos: [x, y, 0],
       rot: [0, 0, 0],
       size: [w, h],
-      opacity: ends * edgeFade,
-      radius: p.cornerRadius * S * scale,
-      assetSlot: grp,
-      // Lo más grande, arriba. Orden explícito, no profundidad.
-      order: 1 + Math.round(scale * 100),
+      opacity: ends,
+      radius: p.cornerRadius * Math.min(w, h),
+      assetSlot: j,
+      // Lo más cercano al foco, arriba. Orden explícito, no profundidad.
+      order: 1 + Math.round(bump * 4000 - (dist / S) * 100),
     };
   },
 };
