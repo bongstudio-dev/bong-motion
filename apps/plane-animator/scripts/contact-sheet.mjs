@@ -26,6 +26,7 @@ const HOJAS = [
   { tpl: "tunnel" },
   { tpl: "wall" },
   { tpl: "hero" },
+  { tpl: "cluster" },
   { tpl: "wall", variant: "wall-ladrillo-zoom", nombre: "ladrillo-zoom" },
 ];
 const RATIOS = ["4:5", "9:16"];

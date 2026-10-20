@@ -261,7 +261,7 @@ console.log("\n== 11. Stagger y dirección ==");
 
 // Las tres familias nuevas comparten los mismos cinco checks, así que se
 // corren desde una sola tabla en vez de copiarlos tres veces.
-const NUEVAS = ["tunnel", "wall", "hero"];
+const NUEVAS = ["tunnel", "wall", "hero", "cluster"];
 
 console.log("\n== 12. Familias nuevas: los cinco checks ==");
 for (const id of NUEVAS) {
@@ -309,7 +309,9 @@ for (const id of NUEVAS) {
     .planes.filter((p) => p.tint === undefined)
     .map((p) => p.size[0]);
   ok(
-    Math.min(...anchos) > 40 && Math.max(...anchos) < 4000,
+    // Piso en 15px: el cluster tiene fragmentos chicos a propósito. Sigue
+    // atrapando unidades relativas sin convertir (que darían < 5px).
+    Math.min(...anchos) > 15 && Math.max(...anchos) < 4000,
     `${id}: los planos miden px de verdad (${Math.round(Math.min(...anchos))}–${Math.round(Math.max(...anchos))}px)`,
   );
 

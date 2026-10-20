@@ -460,6 +460,59 @@ export const LIBRARY = [
       },
     ],
   },
+  {
+    template: "cluster",
+    variants: [
+      {
+        // La referencia: racimo de cards de distinto tamaño que se balancea en
+        // 3D, con esquirlas de las mismas imágenes a la deriva alrededor.
+        id: "cluster-nube",
+        name: "Nube",
+        fov: 45,
+        params: {
+          cards: 7, planeSize: 0.36, planeRatio: "4:5", sizeVar: 0.5,
+          scatter: 0.17, depthGap: 0.07, rotJitter: 6, sway: 14,
+          exitDistance: 0.5, exitRot: 8, fade: 0.45, cornerRadius: 0,
+          fragments: 26, fragSize: 0.045, fragSpread: 0.62,
+          fragMotion: "drift", fragTravel: 0.35, fragDir: 70,
+          fragDepth: 0.5, fragOpacity: 1,
+        },
+        timing: timing(2.4, 6, EASE_SOFT),
+      },
+      {
+        // Los fragmentos salen del centro hacia afuera: la card que se va
+        // parece romperse.
+        id: "cluster-estallido",
+        name: "Estallido",
+        fov: 50,
+        params: {
+          cards: 6, planeSize: 0.5, planeRatio: "4:5", sizeVar: 0.2,
+          scatter: 0.06, depthGap: 0.09, rotJitter: 4, sway: 8,
+          exitDistance: 0.6, exitRot: 12, fade: 0.5, cornerRadius: 0.01,
+          fragments: 40, fragSize: 0.04, fragSpread: 0.8,
+          fragMotion: "burst", fragTravel: 0.6, fragDir: 0,
+          fragDepth: 0.8, fragOpacity: 1,
+        },
+        timing: timing(2, 6),
+      },
+      {
+        // Nube más compacta con los fragmentos girando alrededor, como un
+        // satélite de detalles.
+        id: "cluster-orbita",
+        name: "Órbita",
+        fov: 40,
+        params: {
+          cards: 6, planeSize: 0.4, planeRatio: "1:1", sizeVar: 0.3,
+          scatter: 0.08, depthGap: 0.06, rotJitter: 3, sway: 20,
+          exitDistance: 0.4, exitRot: 6, fade: 0.4, cornerRadius: 0.02,
+          fragments: 20, fragSize: 0.05, fragSpread: 0.55,
+          fragMotion: "orbit", fragTravel: 0.6, fragDir: 0,
+          fragDepth: 0.6, fragOpacity: 0.9,
+        },
+        timing: timing(3, 6, EASE_SOFT),
+      },
+    ],
+  },
 ];
 
 export const VARIANTS_BY_TEMPLATE = Object.fromEntries(
