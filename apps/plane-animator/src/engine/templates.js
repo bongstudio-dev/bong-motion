@@ -1093,22 +1093,24 @@ const hero = {
 };
 
 /* ------------------------------------------------------------------ */
-/* 9. TRAIL — cinta de imágenes con ecos sobre una trayectoria         */
+/* 9. TRAIL — riel denso de imágenes chicas con un foco que las agranda */
 /* ------------------------------------------------------------------ */
 
-// Salió de una referencia en video: las imágenes viajan por una diagonal en
-// una cinta continua y cada una deja ECOS escalonados detrás (la misma imagen
-// repetida, apenas corrida sobre el camino). Sin rotación y sin mover en Z:
-// lo único que cambia con la posición es la ESCALA. El tamaño depende de la cercanía
-// al centro de la trayectoria: en los extremos son chiquitas y al pasar por el
-// medio se agrandan y quedan por encima. Alrededor flotan fragmentos mínimos
-// de las mismas imágenes, alineados con el camino.
+// Salió de una referencia en video: un riel de imágenes chicas, pegadas unas a
+// otras, que se traslada sin parar y rota su orientación. En el centro hay un
+// PUNTO FOCAL que funciona como lente: las imágenes que pasan cerca crecen con
+// una curva suave (scale up) y vuelven a su tamaño cuando el riel se aleja
+// (scale down). Como el riel es denso, en el foco hay muchas imágenes a la vez
+// con escalas distintas, y como se mueve rápido las del foco cambian enseguida.
 //
-// Mecánica: una cinta de N = groups × repeat planos. Planos consecutivos
-// comparten imagen de a `repeat` (los ecos) y la cinta avanza `repeat` planos
-// por ciclo, o sea UNA imagen por ciclo: el contrato del loop es el de siempre
-// (cierra a los M ciclos). El jitter se siembra por posición dentro del grupo y
-// por imagen —nunca por plano— para que el frame final sea igual al inicial.
+// Sin rotación propia ni movimiento en Z: lo único que le pasa a cada imagen es
+// la escala. El orden de capas es explícito (lo más grande tapa a lo chico).
+//
+// Mecánica: una cinta de N = groups × repeat planos que avanza `repeat` planos
+// por ciclo (una imagen por ciclo → el contrato del loop es el de siempre). El
+// camino oscila en ángulo y se desplaza de costado con periodo `swingCycles`
+// (cycleUnit lo pide como múltiplo). Las semillas van por imagen y por eco,
+// nunca por plano, así el frame final iguala al inicial.
 //
 // Los fragmentos viven un ciclo: nacen y mueren transparentes, y cambian de
 // imagen mientras son invisibles.
@@ -1120,50 +1122,66 @@ const trail = {
   relativeUnits: true,
   count: (p) => Math.round(p.groups) * Math.round(p.repeat) + Math.round(p.fragments),
   slotsPerCycle: () => 1,
+  cycleUnit: (p) =>
+    p.swing > 0 || p.sweep > 0 ? Math.max(1, Math.round(p.swingCycles)) : 1,
   // Los ecos repiten número de placeholder: el test de placeholders distintos
   // descuenta estos planos.
-  // El camino oscila con periodo `swingCycles`: el loop tiene que cerrar también
-  // para él, así que se pide como múltiplo de ciclos.
-  cycleUnit: (p) => (p.swing > 0 ? Math.max(1, Math.round(p.swingCycles)) : 1),
   echoCount: (p) => Math.round(p.groups) * (Math.round(p.repeat) - 1),
   params: {
-    groups: 10,
+    groups: 28,
     repeat: 1,
-    planeSize: 0.4,
+    planeSize: 0.1,
     planeRatio: "4:5",
-    sizeVar: 0.45,
-    step: 0.1,
-    pathAngle: 70,
-    swing: 30,
-    swingCycles: 2,
-    curve: 0.1,
-    edgeScale: 0.1,
-    falloff: 1.5,
-    jitter: 0.03,
+    sizeVar: 0.35,
+    step: 0.055,
+    pathAngle: 60,
+    swing: 40,
+    sweep: 0.18,
+    swingCycles: 8,
+    curve: 0.08,
+    focusX: 0,
+    focusY: 0,
+    focusScale: 3.8,
+    focusRadius: 0.3,
+    focusFalloff: 1,
+    jitter: 0.01,
     cornerRadius: 0,
-    fragments: 26,
-    fragSize: 0.04,
+    fragments: 18,
+    fragSize: 0.03,
     fragSpread: 0.5,
     fragMotion: "drift",
     fragTravel: 0.4,
     fragOpacity: 1,
   },
   schema: [
-    { group: "Cinta", key: "groups", label: "Imágenes en cinta", min: 2, max: 16, step: 1 },
-    { group: "Cinta", key: "repeat", label: "Ecos por imagen", min: 1, max: 6, step: 1 },
-    { group: "Cinta", key: "step", label: "Paso entre ecos", min: 0.01, max: 0.3, step: 0.005, pct: true },
-    { group: "Cinta", key: "pathAngle", label: "Ángulo del camino", min: -180, max: 180, step: 1, unit: "°" },
-    { group: "Cinta", key: "swing", label: "Giro del camino", min: 0, max: 90, step: 1, unit: "°" },
-    { group: "Cinta", key: "swingCycles", label: "Ciclos por giro", min: 1, max: 6, step: 1, when: (p) => p.swing > 0 },
-    { group: "Cinta", key: "curve", label: "Curvatura", min: -0.6, max: 0.6, step: 0.01, pct: true },
+    { group: "Riel", key: "groups", label: "Imágenes en el riel", min: 4, max: 48, step: 1 },
+    { group: "Riel", key: "repeat", label: "Ecos por imagen", min: 1, max: 4, step: 1 },
+    { group: "Riel", key: "planeSize", label: "Tamaño base", min: 0.03, max: 0.5, step: 0.005, pct: true },
+    { group: "Riel", key: "planeRatio", label: "Aspect del plano", type: "select", options: PLANE_RATIOS },
+    { group: "Riel", key: "sizeVar", label: "Variación de tamaño", min: 0, max: 0.8, step: 0.01, pct: true },
+    { group: "Riel", key: "step", label: "Separación", min: 0.01, max: 0.3, step: 0.005, pct: true },
+    { group: "Riel", key: "jitter", label: "Desvío lateral", min: 0, max: 0.2, step: 0.005, pct: true },
+    { group: "Riel", key: "cornerRadius", label: "Corner radius", min: 0, max: 0.1, step: 0.002, pct: true },
 
-    { group: "Cards", key: "planeSize", label: "Tamaño en el centro", min: 0.15, max: 1, step: 0.01, pct: true },
-    { group: "Cards", key: "planeRatio", label: "Aspect del plano", type: "select", options: PLANE_RATIOS },
-    { group: "Cards", key: "edgeScale", label: "Escala en los extremos", min: 0, max: 1, step: 0.01, pct: true },
-    { group: "Cards", key: "falloff", label: "Caída hacia los extremos", min: 0.5, max: 4, step: 0.05 },
-    { group: "Cards", key: "sizeVar", label: "Variación de tamaño", min: 0, max: 0.8, step: 0.01, pct: true },
-    { group: "Cards", key: "jitter", label: "Desvío lateral", min: 0, max: 0.2, step: 0.005, pct: true },
-    { group: "Cards", key: "cornerRadius", label: "Corner radius", min: 0, max: 0.1, step: 0.002, pct: true },
+    { group: "Camino", key: "pathAngle", label: "Ángulo del camino", min: -180, max: 180, step: 1, unit: "°" },
+    { group: "Camino", key: "swing", label: "Giro del camino", min: 0, max: 90, step: 1, unit: "°" },
+    { group: "Camino", key: "sweep", label: "Barrido lateral", min: 0, max: 0.6, step: 0.01, pct: true },
+    {
+      group: "Camino",
+      key: "swingCycles",
+      label: "Ciclos por vaivén",
+      min: 1,
+      max: 24,
+      step: 1,
+      when: (p) => p.swing > 0 || p.sweep > 0,
+    },
+    { group: "Camino", key: "curve", label: "Curvatura", min: -0.6, max: 0.6, step: 0.01, pct: true },
+
+    { group: "Foco", key: "focusScale", label: "Escala en el foco", min: 1, max: 8, step: 0.1 },
+    { group: "Foco", key: "focusRadius", label: "Radio del foco", min: 0.05, max: 1, step: 0.01, pct: true },
+    { group: "Foco", key: "focusFalloff", label: "Suavidad del foco", min: 0.3, max: 3, step: 0.05 },
+    { group: "Foco", key: "focusX", label: "Foco X", min: -0.5, max: 0.5, step: 0.01, pct: true },
+    { group: "Foco", key: "focusY", label: "Foco Y", min: -0.5, max: 0.5, step: 0.01, pct: true },
 
     { group: "Fragmentos", key: "fragments", label: "Cantidad", min: 0, max: 60, step: 1 },
     { group: "Fragmentos", key: "fragSize", label: "Tamaño", min: 0.01, max: 0.15, step: 0.002, pct: true },
@@ -1187,12 +1205,14 @@ const trail = {
     const S = geom.SHORT;
     const R = Math.max(1, Math.round(p.repeat));
     const G = Math.max(2, Math.round(p.groups));
-    const Nc = G * R; // planos de la cinta; el resto son fragmentos
+    const Nc = G * R; // planos del riel; el resto son fragmentos
+    const per = Math.max(1, Math.round(p.swingCycles));
 
-    // Eje del camino (y hacia arriba) y su normal.
-    // La orientación del camino oscila (periódico en `swingCycles` ciclos).
-    const ang =
-      (p.pathAngle + p.swing * Math.sin((TAU * t) / Math.max(1, Math.round(p.swingCycles)))) * DEG;
+    // El camino gira y se corre de costado con periodo `swingCycles` (en
+    // ciclos, así que el loop cierra cuando los ciclos son múltiplo).
+    const ph = (TAU * t) / per;
+    const ang = (p.pathAngle + p.swing * Math.sin(ph)) * DEG;
+    const side = p.sweep * S * Math.cos(ph);
     const d = [Math.cos(ang), Math.sin(ang)];
     const nrm = [-d[1], d[0]];
 
@@ -1202,11 +1222,9 @@ const trail = {
       const u = frac(t + phase);
       const k = Math.floor(t + phase);
 
-      // Dispersión elíptica alineada con el camino: más larga a lo largo que
-      // a lo ancho, para que el polvo acompañe a la cinta en vez de rodearla.
       const a0 = TAU * hash01(i * 1.91 + 0.3);
       const rad = p.fragSpread * S * (0.3 + 0.7 * Math.sqrt(hash01(i * 2.17 + 0.9)));
-      let lu = Math.cos(a0) * rad * 1.15; // a lo largo
+      let lu = Math.cos(a0) * rad * 1.15; // a lo largo del camino
       let lv = Math.sin(a0) * rad * 0.7; // a lo ancho
       const trav = p.fragTravel * S;
 
@@ -1219,86 +1237,95 @@ const trail = {
         lu = Math.cos(a2) * rad * 1.15;
         lv = Math.sin(a2) * rad * 0.7;
       } else {
-        lu += trav * (u - 0.5); // deriva en el sentido de la cinta
+        lu += trav * (u - 0.5);
       }
 
-      const px = d[0] * lu + nrm[0] * lv;
-      const py = d[1] * lu + nrm[1] * lv;
-      const pz = 0;
+      const px = d[0] * lu + nrm[0] * (lv + side) + p.focusX * S;
+      const py = d[1] * lu + nrm[1] * (lv + side) + p.focusY * S;
 
-      const edge = 0.2;
+      // Rampa larga: con muchos ciclos por pieza, una rampa corta se lee como
+      // un salto de opacidad entre el primer y el último frame del loop.
+      const edge = 0.32;
       const env = smooth(u / edge) * smooth((1 - u) / edge);
 
       const wh = 0.8 + 0.45 * hash01(i * 6.7 + 0.4);
       const w = p.fragSize * S * (0.55 + 0.9 * hash01(i * 5.1 + 0.6));
 
-      // Se apagan antes de tocar el borde del cuadro, medido a su profundidad:
-      // un fragmento a opacidad plena justo sobre el borde entra y sale del
-      // frustum por un pixel entre dos frames y el test de loop lo lee como pop.
-      const view = geom.visible(pz);
+      // Se apagan antes de tocar el borde del cuadro: un plano a opacidad plena
+      // justo sobre el borde entra y sale del frustum por un pixel entre dos
+      // frames y el test de loop lo lee como pop.
+      const view = geom.visible(0);
       const reach = Math.max(w, w * wh) / 2;
       const room = Math.min(view.w / 2 - Math.abs(px), view.h / 2 - Math.abs(py)) - reach;
-      const edgeFade = smooth(room / (0.07 * S));
+      const edgeFade = smooth(room / (0.2 * S));
 
       return {
-        pos: [px, py, pz],
+        pos: [px, py, 0],
         rot: [0, 0, 0],
         size: [w, w * wh],
         opacity: env * edgeFade * p.fragOpacity,
         radius: 0,
         assetSlot: Math.ceil(G / 2) + (i - Nc) + k,
-        // Detrás de la cinta, sin tocar el eje Z.
         order: -1,
       };
     }
 
-    /* ------------------------------ la cinta --------------------------- */
-    // La cinta avanza R planos por ciclo = una imagen por ciclo.
+    /* ------------------------------- el riel --------------------------- */
+    // El riel avanza R planos por ciclo = una imagen por ciclo.
     const adv = steppedAdvance(t, ease, R);
     const c0 = i - adv;
     const kk = Math.floor((c0 + Nc / 2) / Nc);
     const c = -(c0 - Nc * kk); // posición sobre el camino; crece con el avance
-    const j = i - Nc * kk; // slot contiguo de la cinta
+    const j = i - Nc * kk; // slot contiguo del riel
 
-    // Los grupos se alinean con la ventana de la cinta: no se parte ningún grupo
-    // en los extremos (que además están apagados).
+    // Los grupos se alinean con la ventana del riel: no se parte ninguno en los
+    // extremos (que además están apagados).
     const jj = j + (Math.floor(Nc / 2) % R);
-    const grp = Math.floor(jj / R); // imagen del grupo
-    const e = mod(jj, R); // lugar del eco dentro del grupo
+    const grp = Math.floor(jj / R);
+    const e = mod(jj, R);
 
-    // Semillas por imagen (sd) y por eco (e): ninguna depende del plano, así
-    // el frame final iguala al inicial.
+    // Semillas por imagen (sd) y por eco (e): ninguna depende del plano.
     const sd = mod(grp, geom.M > 0 ? geom.M : N);
-
     const base = geom.size(grp);
     const sv = 1 + p.sizeVar * (hash01(sd * 2.9 + 0.2) * 2 - 1);
 
-    // Cercanía al centro: 1 en el medio, 0 en los extremos de la cinta.
-    const kc = clamp(1 - Math.abs(c) / (Nc / 2));
-    const bell = Math.pow(smooth(kc), p.falloff);
-    const sc = lerp(p.edgeScale, 1, bell);
-    const size = [base[0] * sc * sv, base[1] * sc * sv];
-
+    // Posición sobre el camino (curvo, girado y corrido de costado).
     const along = c * p.step * S;
     const bow = p.curve * S * Math.pow(c / (Nc / 2), 2);
     const jit = (hash01(e * 5.3 + sd * 1.7 + 0.8) * 2 - 1) * p.jitter * S;
-    const x = d[0] * along + nrm[0] * (bow + jit);
-    const y = d[1] * along + nrm[1] * (bow + jit);
+    const x = d[0] * along + nrm[0] * (bow + jit + side);
+    const y = d[1] * along + nrm[1] * (bow + jit + side);
 
-    // Los extremos se apagan: es donde la cinta "salta" de punta a punta.
-    const opacity = smooth((Nc / 2 - Math.abs(c)) / Math.min(Nc / 2, 2));
+    // El foco: lente de escala. Distancia euclídea al punto focal, no a lo
+    // largo del camino: por eso, cuando el riel gira o se corre de costado, las
+    // imágenes crecen al acercarse y vuelven a achicarse al alejarse.
+    const fx = p.focusX * S;
+    const fy = p.focusY * S;
+    const dist = Math.hypot(x - fx, y - fy);
+    const near = clamp(1 - dist / (p.focusRadius * S));
+    const bump = Math.pow(smooth(near), p.focusFalloff);
+    const scale = lerp(1, p.focusScale, bump);
+
+    const w = base[0] * sv * scale;
+    const h = base[1] * sv * scale;
+
+    // Se apagan en los extremos de la cinta (donde "salta" de punta a punta) y
+    // antes de tocar el borde del cuadro.
+    const ends = smooth((Nc / 2 - Math.abs(c)) / Math.min(Nc / 2, 3));
+    const view = geom.visible(0);
+    const reach = Math.max(w, h) / 2;
+    const room = Math.min(view.w / 2 - Math.abs(x), view.h / 2 - Math.abs(y)) - reach;
+    const edgeFade = smooth(room / (0.12 * S));
 
     return {
-      // Todo en el plano z = 0: lo único que cambia con la posición es la
-      // escala. El orden de capas es explícito (el centro, lo más grande, tapa
-      // a lo chico) y no sale de la profundidad.
       pos: [x, y, 0],
       rot: [0, 0, 0],
-      size,
-      opacity,
-      radius: p.cornerRadius * S,
+      size: [w, h],
+      opacity: ends * edgeFade,
+      radius: p.cornerRadius * S * scale,
       assetSlot: grp,
-      order: 1 + Math.round(bell * 1000),
+      // Lo más grande, arriba. Orden explícito, no profundidad.
+      order: 1 + Math.round(scale * 100),
     };
   },
 };

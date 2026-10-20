@@ -464,47 +464,52 @@ export const LIBRARY = [
     template: "trail",
     variants: [
       {
-        // La referencia: un flujo continuo que sube desde abajo, el punto focal
-        // agranda las imágenes que pasan, y la orientación del camino gira.
-        id: "trail-flujo",
-        name: "Flujo",
+        // La referencia: un riel denso de imágenes chicas que se traslada y
+        // rota; el foco del centro las agranda al pasar y las devuelve al
+        // alejarse, con muchas a la vez en distintas escalas.
+        id: "trail-foco",
+        name: "Foco",
         fov: 45,
         params: {
-          groups: 10, repeat: 1, planeSize: 0.4, planeRatio: "4:5", sizeVar: 0.45,
-          step: 0.1, pathAngle: 70, swing: 30, swingCycles: 2, curve: 0.1,
-          edgeScale: 0.1, falloff: 1.5, jitter: 0.03, cornerRadius: 0,
-          fragments: 26, fragSize: 0.04, fragSpread: 0.5, fragMotion: "drift",
+          groups: 28, repeat: 1, planeSize: 0.1, planeRatio: "4:5", sizeVar: 0.35,
+          step: 0.055, pathAngle: 60, swing: 40, sweep: 0.18, swingCycles: 8,
+          curve: 0.08, focusX: 0, focusY: 0, focusScale: 3.8, focusRadius: 0.3,
+          focusFalloff: 1, jitter: 0.01, cornerRadius: 0,
+          fragments: 18, fragSize: 0.03, fragSpread: 0.5, fragMotion: "drift",
           fragTravel: 0.4, fragOpacity: 1,
         },
-        timing: timing(3.6, 6, EASE_LINEAR),
+        timing: timing(6, 24, EASE_LINEAR),
       },
       {
-        // Camino horizontal fijo y más parejo: una regla de imágenes.
-        id: "trail-regla",
-        name: "Regla",
+        // Riel horizontal fijo, foco angosto: una lupa que recorre la regla.
+        id: "trail-lupa",
+        name: "Lupa",
         fov: 40,
         params: {
-          groups: 8, repeat: 1, planeSize: 0.34, planeRatio: "4:5", sizeVar: 0.2,
-          step: 0.12, pathAngle: 0, swing: 0, swingCycles: 1, curve: 0,
-          edgeScale: 0.2, falloff: 1.8, jitter: 0.01, cornerRadius: 0.01,
-          fragments: 16, fragSize: 0.035, fragSpread: 0.45, fragMotion: "drift",
-          fragTravel: 0.3, fragOpacity: 0.9,
+          groups: 24, repeat: 1, planeSize: 0.09, planeRatio: "4:5", sizeVar: 0.2,
+          step: 0.06, pathAngle: 0, swing: 0, sweep: 0, swingCycles: 1,
+          curve: 0, focusX: 0, focusY: 0, focusScale: 4.5, focusRadius: 0.22,
+          focusFalloff: 1.2, jitter: 0.005, cornerRadius: 0.004,
+          fragments: 0, fragSize: 0.03, fragSpread: 0.5, fragMotion: "drift",
+          fragTravel: 0.3, fragOpacity: 1,
         },
-        timing: timing(3, 6, EASE_LINEAR),
+        timing: timing(6, 24, EASE_LINEAR),
       },
       {
-        // Camino curvo con ecos y el polvo saliendo en estallido.
-        id: "trail-arco",
-        name: "Arco",
+        // Riel curvo y ancho que barre el foco de lado a lado, con polvo en
+        // estallido.
+        id: "trail-barrido",
+        name: "Barrido",
         fov: 50,
         params: {
-          groups: 7, repeat: 2, planeSize: 0.38, planeRatio: "1:1", sizeVar: 0.3,
-          step: 0.09, pathAngle: 50, swing: 18, swingCycles: 1, curve: 0.32,
-          edgeScale: 0.1, falloff: 1.3, jitter: 0.02, cornerRadius: 0.012,
-          fragments: 34, fragSize: 0.038, fragSpread: 0.7, fragMotion: "burst",
-          fragTravel: 0.5, fragOpacity: 1,
+          groups: 32, repeat: 1, planeSize: 0.085, planeRatio: "1:1", sizeVar: 0.4,
+          step: 0.05, pathAngle: 35, swing: 55, sweep: 0.3, swingCycles: 12,
+          curve: 0.3, focusX: 0, focusY: 0, focusScale: 3.4, focusRadius: 0.36,
+          focusFalloff: 0.8, jitter: 0.015, cornerRadius: 0.006,
+          fragments: 30, fragSize: 0.03, fragSpread: 0.7, fragMotion: "burst",
+          fragTravel: 0.5, fragOpacity: 0.9,
         },
-        timing: timing(3.2, 6, EASE_LINEAR),
+        timing: timing(6, 24, EASE_LINEAR),
       },
     ],
   },
