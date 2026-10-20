@@ -1104,9 +1104,13 @@ const hero = {
 //     (≈ 0.75 del lado menor por segundo), siempre en el mismo sentido.
 //   · El EJE gira alrededor del foco a velocidad constante (≈ 18°/s, una vuelta
 //     en ~20 s). No oscila: da la vuelta.
-//   · El foco es un LENTE: la escala depende de la distancia al foco y la curva
-//     es empinada (de 23 a ~200 px en ~0.15 s de recorrido), por eso casi no hay
-//     tamaños intermedios. Dentro del radio hay entre 5 y 8 cards a la vez.
+//   · El foco funciona como un EMISOR: cada imagen que pasa dispara su propia
+//     animación. Entra al foco y escala hacia arriba (~0.3 s, curva suave), cruza
+//     el foco a tamaño pleno (~0.4 s, sin frenar: sigue a la velocidad del
+//     riel), llega al extremo opuesto, escala hacia abajo (~0.3 s) y se
+//     reincorpora al riel de salida. Rastreado sobre dos imágenes: ~14 px →
+//     ~280 px entre ±295 y ±120 px del foco (en 720 px de ancho). Dentro del
+//     foco hay entre 5 y 8 cards a la vez.
 //   · Las imágenes no rotan ni se mueven en Z: lo único que les pasa es la
 //     escala. El orden de capas es explícito (la más cercana al foco, arriba).
 //
@@ -1144,9 +1148,9 @@ const trail = {
 
     focusX: 0,
     focusY: 0,
-    focusScale: 10.5,
-    focusRadius: 0.335,
-    focusSoft: 0.25,
+    focusScale: 12.3,
+    lensLen: 0.41,
+    lensRamp: 0.59,
     focusFalloff: 1,
   },
   schema: [
@@ -1164,8 +1168,8 @@ const trail = {
     { group: "Movimiento", key: "turns", label: "Vueltas del riel", min: -4, max: 4, step: 1 },
 
     { group: "Foco", key: "focusScale", label: "Escala en el foco", min: 1, max: 20, step: 0.1 },
-    { group: "Foco", key: "focusRadius", label: "Radio del foco", min: 0.05, max: 1, step: 0.01, pct: true },
-    { group: "Foco", key: "focusSoft", label: "Borde del foco", min: 0.02, max: 1, step: 0.01, pct: true },
+    { group: "Foco", key: "lensLen", label: "Largo del foco", min: 0.05, max: 1, step: 0.01, pct: true },
+    { group: "Foco", key: "lensRamp", label: "Rampa de escala", min: 0.02, max: 1, step: 0.01, pct: true },
     { group: "Foco", key: "focusFalloff", label: "Curva del borde", min: 0.3, max: 3, step: 0.05 },
     { group: "Foco", key: "focusX", label: "Foco X", min: -0.5, max: 0.5, step: 0.01, pct: true },
     { group: "Foco", key: "focusY", label: "Foco Y", min: -0.5, max: 0.5, step: 0.01, pct: true },
@@ -1202,12 +1206,17 @@ const trail = {
     const x = d[0] * along + nrm[0] * (bow + lat);
     const y = d[1] * along + nrm[1] * (bow + lat);
 
-    // El lente: distancia euclídea al foco, no a lo largo del riel. La escala
-    // es 1 fuera de `focusRadius`, llega a `focusScale` a `focusSoft` del borde
-    // hacia adentro, y entre medio sigue una curva suave.
-    const dist = Math.hypot(x - p.focusX * S, y - p.focusY * S);
-    const R = p.focusRadius * S;
-    const near = clamp((R - dist) / Math.max(1e-6, R * p.focusSoft));
+    // El foco se mide A LO LARGO del riel, no en línea recta: cada imagen vive
+    // el mismo recorrido aunque su dispersión lateral la corra de costado. Es
+    // función de la posición, y como el riel avanza a velocidad constante es lo
+    // mismo que una animación de tiempo fijo. La escala es 1 fuera de
+    // `lensLen`, llega a `focusScale` a `lensRamp` del borde hacia adentro
+    // y entre medio sigue una curva suave (smoothstep): ahí vive el scale up
+    // de un lado y el scale down del otro.
+    const along0 = (x - p.focusX * S) * d[0] + (y - p.focusY * S) * d[1];
+    const dist = Math.abs(along0);
+    const R = p.lensLen * S;
+    const near = clamp((R - dist) / Math.max(1e-6, R * p.lensRamp));
     const bump = Math.pow(smooth(near), p.focusFalloff);
     const scale = lerp(1, p.focusScale, bump);
 
