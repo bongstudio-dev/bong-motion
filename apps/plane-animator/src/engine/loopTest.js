@@ -179,7 +179,7 @@ export function minCyclesFor(state) {
   const N = Math.max(1, Math.round(tpl.count(p)));
   const M = visibleAssets(state).length;
 
-  const slots = Math.abs(Math.round(tpl.slotsPerCycle?.(p, N) ?? 0));
+  const slots = Math.abs(Math.round(tpl.slotsPerCycle?.(p, N, M) ?? 0));
   // Algunos templates necesitan además cerrar su propia geometría: flip vuelve
   // al frente sólo con un número par de medias vueltas.
   const unit = Math.max(1, Math.round(tpl.cycleUnit?.(p, N) ?? 1));

@@ -475,7 +475,7 @@ export const LIBRARY = [
         params: {
           images: 44, planeSize: 0.025, planeRatio: "4:5", sizeVar: 0.4,
           step: 0.045, jitter: 0.13, scatterAlong: 1.4, crumbs: 0.4, curve: 0.04, cornerRadius: 0,
-          pathAngle: -90, turns: 1, perCycle: 22, cardRatio: 0.5,
+          pathAngle: -90, turns: 1, perCycle: 22, cardRatio: 0.5, noRepeat: true,
           focusX: 0, focusY: 0, focusScale: 12.3, lensLen: 0.41,
           lensRamp: 0.59, frontBias: 1, smallBehind: 0.12, focusFalloff: 1,
         },
@@ -489,7 +489,7 @@ export const LIBRARY = [
         params: {
           images: 20, planeSize: 0.04, planeRatio: "4:5", sizeVar: 0.25,
           step: 0.1, jitter: 0.02, scatterAlong: 0, crumbs: 0, curve: 0, cornerRadius: 0.01,
-          pathAngle: 0, turns: 0, perCycle: 10, cardRatio: 1,
+          pathAngle: 0, turns: 0, perCycle: 10, cardRatio: 1, noRepeat: true,
           focusX: 0, focusY: 0, focusScale: 6, lensLen: 0.36,
           lensRamp: 0.5, frontBias: 0, smallBehind: 0, focusFalloff: 1.2,
         },
@@ -503,7 +503,7 @@ export const LIBRARY = [
         params: {
           images: 28, planeSize: 0.035, planeRatio: "1:1", sizeVar: 0.35,
           step: 0.08, jitter: 0.15, scatterAlong: 0.8, crumbs: 0.2, curve: 0.08, cornerRadius: 0,
-          pathAngle: -90, turns: 2, perCycle: 12, cardRatio: 0.5,
+          pathAngle: -90, turns: 2, perCycle: 12, cardRatio: 0.5, noRepeat: true,
           focusX: 0, focusY: 0, focusScale: 7, lensLen: 0.46,
           lensRamp: 0.55, frontBias: 0.6, smallBehind: 0.1, focusFalloff: 1,
         },

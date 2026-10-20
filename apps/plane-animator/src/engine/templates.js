@@ -1122,38 +1122,54 @@ const hero = {
 // Cuando una imagen da la vuelta al anillo (fuera de cuadro, con opacidad 0)
 // toma la imagen siguiente de la cinta.
 
-// Orden de los assets a lo largo de la cinta del Trail. Con una cinta cíclica
-// (0, 1, 2, ... M-1, 0, 1, ...) el mismo asset vuelve exactamente cada M
-// posiciones, y con un riel denso eso lo deja repetido dentro del foco. Acá cada
-// vuelta de M imágenes es una permutación distinta, así que nunca hay dos
-// iguales en una misma vuelta, y los K = M/2 últimos de una vuelta se mandan a
-// la segunda mitad de la siguiente: las copias de un asset quedan a ~M/2
-// posiciones o más. La secuencia tiene largo L = R*M, el avance total de la
-// pieza, así que cierra el loop igual que la cinta cíclica.
+// Orden de los assets a lo largo de la cinta del Trail. Una cinta cíclica
+// (0, 1, 2, ... M-1, 0, ...) deja cada copia de un asset exactamente a M
+// posiciones de la anterior, que es lo más lejos posible, pero es siempre el
+// mismo orden. Acá cada vuelta de M imágenes se arma a partir de la anterior
+// con intercambios al azar de vecinos (nadie se corre más de una posición), así
+// que el orden cambia vuelta a vuelta y las copias quedan a M-1 posiciones o
+// más: en cualquier ventana de M-1 imágenes seguidas no hay dos iguales. La
+// secuencia es un vaivén (la segunda mitad espeja a la primera) para que la
+// costura donde la pieza vuelve a empezar también cumpla, y tiene largo R*M,
+// el avance total de la pieza, así que cierra el loop.
 const trailSeqCache = new Map();
 function trailAssetSeq(M, L) {
   const key = `${M}|${L}`;
   let seq = trailSeqCache.get(key);
   if (seq) return seq;
   const R = Math.max(1, Math.round(L / M));
-  const K = Math.floor(M / 2);
-  seq = new Array(R * M);
-  let prev = null;
-  for (let r = 0; r < R; r++) {
-    const recent = prev ? new Set(prev.slice(M - K)) : null;
-    const perm = Array.from({ length: M }, (_, a) => a)
-      .map((a) => [hash01(r * 13.7 + a * 1.31 + 0.5) + (recent?.has(a) ? 1 : 0), a])
-      .sort((x, y) => x[0] - y[0])
-      .map((e) => e[1]);
-    for (let q = 0; q < M; q++) seq[r * M + q] = perm[q];
-    prev = perm;
+  const rounds = [];
+  const half = Math.ceil(R / 2);
+  let perm = Array.from({ length: M }, (_, a) => a);
+  for (let r = 0; r < half; r++) {
+    rounds.push(perm);
+    const next = perm.slice();
+    for (let q = 0; q + 1 < M; q++) {
+      if (hash01(r * 17.3 + q * 2.71 + 0.4) < 0.5) {
+        [next[q], next[q + 1]] = [next[q + 1], next[q]];
+        q++; // pares disjuntos: nadie se corre más de una posición
+      }
+    }
+    perm = next;
   }
-  // Costura (el último con el primero, que es cuando la pieza vuelve a empezar).
-  const len = seq.length;
-  if (len > 2 && seq[0] === seq[len - 1]) [seq[0], seq[1]] = [seq[1], seq[0]];
+  for (let r = half; r < R; r++) rounds.push(rounds[R - 1 - r]);
+  seq = rounds.flat();
   if (trailSeqCache.size > 24) trailSeqCache.clear();
   trailSeqCache.set(key, seq);
   return seq;
+}
+
+// Cuántas de las P imágenes por ciclo llegan a ser card. Con `noRepeat` el
+// tope es que en el foco entren como mucho M-1 cards a la vez: así todas las
+// cards a la vista son de assets distintos (las copias de un asset quedan a
+// M-1 cards o más, más lejos que el largo del foco).
+function trailCards(p, M) {
+  const P = Math.max(1, Math.round(p.perCycle));
+  let r = p.cardRatio;
+  if (p.noRepeat && M > 1) {
+    r = Math.min(r, ((M - 1) * p.step) / Math.max(1e-6, 2 * p.lensLen));
+  }
+  return Math.max(1, Math.min(P, Math.round(P * r)));
 }
 
 const trail = {
@@ -1165,9 +1181,9 @@ const trail = {
   // Las imágenes del riel y las que llegan a ser card avanzan por separado, y
   // el loop cierra cuando AMBAS cintas dan un número entero de vueltas de assets:
   // eso es lo mismo que pedir (ciclos x gcd) múltiplo de M.
-  slotsPerCycle: (p) => {
+  slotsPerCycle: (p, _N, M = 0) => {
     const P = Math.max(1, Math.round(p.perCycle));
-    return gcd(P, Math.max(1, Math.min(P, Math.round(P * p.cardRatio))));
+    return gcd(P, trailCards(p, M));
   },
   // Avanza ~14 lados menores por pieza y el lente cambia de tamaño muy rápido:
   // en 1e-4 de la pieza ya se mueve lo que el test tolera como pop.
@@ -1188,6 +1204,7 @@ const trail = {
     turns: 1,
     perCycle: 22,
     cardRatio: 1,
+    noRepeat: true,
 
     focusX: 0,
     focusY: 0,
@@ -1213,6 +1230,7 @@ const trail = {
 
     { group: "Movimiento", key: "perCycle", label: "Avance por ciclo", min: 1, max: 24, step: 1, unit: " imágenes" },
     { group: "Movimiento", key: "cardRatio", label: "Cuántas llegan al foco", min: 0.05, max: 1, step: 0.01, pct: true },
+    { group: "Movimiento", key: "noRepeat", label: "Sin repetidas a la vista", type: "toggle" },
     { group: "Movimiento", key: "pathAngle", label: "Ángulo inicial", min: -180, max: 180, step: 1, unit: "°" },
     { group: "Movimiento", key: "turns", label: "Vueltas del riel", min: -4, max: 4, step: 1 },
 
@@ -1258,7 +1276,7 @@ const trail = {
     // (Bresenham). El resto es polvo: no escala y se apaga al cruzar el foco.
     // El índice de card avanza Q por ciclo, así que la cinta de cards cierra
     // igual que la del riel.
-    const Q = Math.max(1, Math.min(P, Math.round(P * p.cardRatio)));
+    const Q = trailCards(p, geom.M);
     const cardIdx = (jj) => Math.floor(((jj + 1) * Q) / P);
     const isCard = Q >= P || cardIdx(j) > cardIdx(j - 1);
 
