@@ -1093,72 +1093,70 @@ const hero = {
 };
 
 /* ------------------------------------------------------------------ */
-/* 9. CLUSTER — cards apiladas en nube + fragmentos flotando           */
+/* 9. TRAIL — cinta de imágenes con ecos sobre una trayectoria         */
 /* ------------------------------------------------------------------ */
 
-// Salió de una referencia en video: un racimo de cards de distinto tamaño,
-// apiladas en profundidad y levemente desparramadas, que va rotando (la de
-// adelante se va, otra entra por el fondo), con la nube entera balanceándose en
-// 3D. Alrededor flotan fragmentos mínimos de las MISMAS imágenes, como esquirlas.
+// Salió de una referencia en video: las imágenes viajan por una diagonal en
+// una cinta continua y cada una deja ECOS escalonados detrás (la misma imagen
+// repetida, apenas corrida sobre el camino). Sin rotación y sin mover en Z:
+// lo único que cambia con la posición es la ESCALA. El tamaño depende de la cercanía
+// al centro de la trayectoria: en los extremos son chiquitas y al pasar por el
+// medio se agrandan y quedan por encima. Alrededor flotan fragmentos mínimos
+// de las mismas imágenes, alineados con el camino.
 //
-// Un solo template, dos poblaciones de planos: los primeros `cards` índices son
-// las cards y el resto son fragmentos. Así el compositor no cambia: N =
-// cards + fragments y cada plano sigue siendo un plano.
+// Mecánica: una cinta de N = groups × repeat planos. Planos consecutivos
+// comparten imagen de a `repeat` (los ecos) y la cinta avanza `repeat` planos
+// por ciclo, o sea UNA imagen por ciclo: el contrato del loop es el de siempre
+// (cierra a los M ciclos). El jitter se siembra por posición dentro del grupo y
+// por imagen —nunca por plano— para que el frame final sea igual al inicial.
 //
-// Contrato del loop:
-//  · Las cards avanzan una por ciclo (mismo mecanismo que el deck, con su
-//    fade de entrada/salida que evita que falte una card en el último frame).
-//  · Cada fragmento vive UN ciclo: nace transparente, cruza y muere transparente.
-//    Cambia de imagen mientras es invisible, así que el cambio no se ve. Su fase
-//    está sembrada por índice, por eso no hay dos que nazcan juntos.
-//  · El balanceo de la nube es periódico por ciclo: vuelve solo.
+// Los fragmentos viven un ciclo: nacen y mueren transparentes, y cambian de
+// imagen mientras son invisibles.
 
-const cluster = {
-  id: "cluster",
-  name: "Cluster",
+const trail = {
+  id: "trail",
+  name: "Trail",
   supportsFitToAsset: true,
   relativeUnits: true,
-  count: (p) => Math.round(p.cards) + Math.round(p.fragments),
+  count: (p) => Math.round(p.groups) * Math.round(p.repeat) + Math.round(p.fragments),
   slotsPerCycle: () => 1,
-  // El scatter se siembra por la IMAGEN de la card (índice de asset), no por su
-  // lugar en el anillo: así el patrón vuelve cuando vuelven las imágenes y el
-  // loop cierra en M ciclos como cualquier otro template, sin pedir lcm(M, cards).
+  // Los ecos repiten número de placeholder: el test de placeholders distintos
+  // descuenta estos planos.
+  echoCount: (p) => Math.round(p.groups) * (Math.round(p.repeat) - 1),
   params: {
-    cards: 7,
+    groups: 4,
+    repeat: 3,
     planeSize: 0.36,
     planeRatio: "4:5",
-    sizeVar: 0.5,
-    scatter: 0.17,
-    depthGap: 0.07,
-    rotJitter: 6,
-    sway: 14,
-    exitDistance: 0.5,
-    exitRot: 8,
-    fade: 0.45,
-    cornerRadius: 0.0,
+    sizeVar: 0.3,
+    step: 0.095,
+    pathAngle: -38,
+    curve: 0.12,
+    edgeScale: 0.12,
+    falloff: 1.6,
+    jitter: 0.02,
+    cornerRadius: 0,
     fragments: 26,
-    fragSize: 0.045,
-    fragSpread: 0.62,
+    fragSize: 0.04,
+    fragSpread: 0.5,
     fragMotion: "drift",
-    fragTravel: 0.35,
-    fragDir: 70,
-    fragDepth: 0.5,
+    fragTravel: 0.4,
     fragOpacity: 1,
   },
   schema: [
-    { group: "Cards", key: "cards", label: "Cards", min: 3, max: 14, step: 1 },
-    { group: "Cards", key: "planeSize", label: "Tamaño base", min: 0.15, max: 1, step: 0.01, pct: true },
-    { group: "Cards", key: "planeRatio", label: "Aspect del plano", type: "select", options: PLANE_RATIOS },
-    { group: "Cards", key: "sizeVar", label: "Variación de tamaño", min: 0, max: 0.8, step: 0.01, pct: true },
-    { group: "Cards", key: "scatter", label: "Desparramo", min: 0, max: 0.5, step: 0.01, pct: true },
-    { group: "Cards", key: "depthGap", label: "Separación en Z", min: 0, max: 0.3, step: 0.005, pct: true },
-    { group: "Cards", key: "rotJitter", label: "Jitter de rotación", min: 0, max: 30, step: 0.5, unit: "°" },
-    { group: "Cards", key: "cornerRadius", label: "Corner radius", min: 0, max: 0.1, step: 0.002, pct: true },
+    { group: "Cinta", key: "groups", label: "Imágenes en cinta", min: 2, max: 10, step: 1 },
+    { group: "Cinta", key: "repeat", label: "Ecos por imagen", min: 1, max: 6, step: 1 },
+    { group: "Cinta", key: "step", label: "Paso entre ecos", min: 0.01, max: 0.3, step: 0.005, pct: true },
+    { group: "Cinta", key: "pathAngle", label: "Ángulo del camino", min: -90, max: 90, step: 1, unit: "°" },
+    { group: "Cinta", key: "curve", label: "Curvatura", min: -0.6, max: 0.6, step: 0.01, pct: true },
 
-    { group: "Movimiento", key: "sway", label: "Balanceo 3D", min: 0, max: 45, step: 1, unit: "°" },
-    { group: "Movimiento", key: "exitDistance", label: "Distancia de salida", min: 0.1, max: 1.2, step: 0.02, pct: true },
-    { group: "Movimiento", key: "exitRot", label: "Rotación de salida", min: -45, max: 45, step: 1, unit: "°" },
-    { group: "Movimiento", key: "fade", label: "Fade en profundidad", min: 0, max: 1, step: 0.01, pct: true },
+    { group: "Cards", key: "planeSize", label: "Tamaño en el centro", min: 0.15, max: 1, step: 0.01, pct: true },
+    { group: "Cards", key: "planeRatio", label: "Aspect del plano", type: "select", options: PLANE_RATIOS },
+    { group: "Cards", key: "edgeScale", label: "Escala en los extremos", min: 0, max: 1, step: 0.01, pct: true },
+    { group: "Cards", key: "falloff", label: "Caída hacia los extremos", min: 0.5, max: 4, step: 0.05 },
+    { group: "Cards", key: "sizeVar", label: "Variación de tamaño", min: 0, max: 0.8, step: 0.01, pct: true },
+    { group: "Cards", key: "jitter", label: "Desvío lateral", min: 0, max: 0.2, step: 0.005, pct: true },
+    { group: "Cards", key: "cornerRadius", label: "Corner radius", min: 0, max: 0.1, step: 0.002, pct: true },
 
     { group: "Fragmentos", key: "fragments", label: "Cantidad", min: 0, max: 60, step: 1 },
     { group: "Fragmentos", key: "fragSize", label: "Tamaño", min: 0.01, max: 0.15, step: 0.002, pct: true },
@@ -1174,92 +1172,60 @@ const cluster = {
         { value: "orbit", label: "Órbita" },
       ],
     },
-    {
-      group: "Fragmentos",
-      key: "fragTravel",
-      label: "Recorrido",
-      min: 0,
-      max: 1.2,
-      step: 0.01,
-      pct: true,
-    },
-    {
-      group: "Fragmentos",
-      key: "fragDir",
-      label: "Dirección de deriva",
-      min: -180,
-      max: 180,
-      step: 1,
-      unit: "°",
-      when: (p) => p.fragMotion === "drift",
-    },
-    { group: "Fragmentos", key: "fragDepth", label: "Profundidad", min: 0, max: 1.5, step: 0.01, pct: true },
+    { group: "Fragmentos", key: "fragTravel", label: "Recorrido", min: 0, max: 1.2, step: 0.01, pct: true },
     { group: "Fragmentos", key: "fragOpacity", label: "Opacidad", min: 0, max: 1, step: 0.01, pct: true },
   ],
 
   place(t, i, N, p, timing, ease, geom) {
     const S = geom.SHORT;
-    const C = Math.max(1, Math.round(p.cards));
+    const R = Math.max(1, Math.round(p.repeat));
+    const G = Math.max(2, Math.round(p.groups));
+    const Nc = G * R; // planos de la cinta; el resto son fragmentos
 
-    /* ---------------- balanceo de la nube (periódico por ciclo) -------- */
-    // Rota la posición alrededor del eje Y del cluster. Va por ciclo y no por
-    // pieza: así vuelve solo y no condiciona los ciclos que cierran.
-    const swayA = p.sway * DEG * Math.sin(TAU * frac(t));
-    const cs = Math.cos(swayA);
-    const sn = Math.sin(swayA);
-    const swing = (x, y, z) => [x * cs + z * sn, y, -x * sn + z * cs];
+    // Eje del camino (y hacia arriba) y su normal.
+    const ang = p.pathAngle * DEG;
+    const d = [Math.cos(ang), Math.sin(ang)];
+    const nrm = [-d[1], d[0]];
 
     /* ---------------------------- fragmentos --------------------------- */
-    if (i >= C) {
+    if (i >= Nc) {
       const phase = hash01(i * 4.13 + 0.7);
       const u = frac(t + phase);
       const k = Math.floor(t + phase);
 
-      // Dispersión elíptica sembrada por índice, más alta que ancha: el
-      // cluster es vertical y los fragmentos lo acompañan.
-      const ang = TAU * hash01(i * 1.91 + 0.3);
+      // Dispersión elíptica alineada con el camino: más larga a lo largo que
+      // a lo ancho, para que el polvo acompañe a la cinta en vez de rodearla.
+      const a0 = TAU * hash01(i * 1.91 + 0.3);
       const rad = p.fragSpread * S * (0.3 + 0.7 * Math.sqrt(hash01(i * 2.17 + 0.9)));
-      const bx = Math.cos(ang) * rad * 0.8;
-      const by = Math.sin(ang) * rad * 1.1;
-
-      let x = bx;
-      let y = by;
+      let lu = Math.cos(a0) * rad * 1.15; // a lo largo
+      let lv = Math.sin(a0) * rad * 0.7; // a lo ancho
       const trav = p.fragTravel * S;
+
       if (p.fragMotion === "burst") {
-        // Salen del centro hacia afuera y se apagan antes de llegar al borde.
         const g = 0.25 + 0.75 * u;
-        x = bx * g;
-        y = by * g;
-        x += Math.cos(ang) * trav * (u - 0.5) * 0.6;
-        y += Math.sin(ang) * trav * (u - 0.5) * 0.6;
+        lu = lu * g + Math.cos(a0) * trav * (u - 0.5) * 0.6;
+        lv = lv * g + Math.sin(a0) * trav * (u - 0.5) * 0.6;
       } else if (p.fragMotion === "orbit") {
-        // Giran alrededor del cluster una fracción de vuelta por ciclo. Cada
-        // uno gira para el mismo lado; el recorrido manda cuánto.
-        const a2 = ang + (u - 0.5) * TAU * 0.5 * Math.min(1, p.fragTravel * 1.6);
-        x = Math.cos(a2) * rad * 0.8;
-        y = Math.sin(a2) * rad * 1.1;
+        const a2 = a0 + (u - 0.5) * TAU * 0.5 * Math.min(1, p.fragTravel * 1.6);
+        lu = Math.cos(a2) * rad * 1.15;
+        lv = Math.sin(a2) * rad * 0.7;
       } else {
-        const d = p.fragDir * DEG;
-        x += Math.cos(d) * trav * (u - 0.5);
-        y += Math.sin(d) * trav * (u - 0.5);
+        lu += trav * (u - 0.5); // deriva en el sentido de la cinta
       }
 
-      const zf = (hash01(i * 3.31 + 0.2) - 0.35) * p.fragDepth * S;
-      const [px, py, pz] = swing(x, y, zf);
+      const px = d[0] * lu + nrm[0] * lv;
+      const py = d[1] * lu + nrm[1] * lv;
+      const pz = 0;
 
-      // Nacen y mueren transparentes: es lo que cierra el loop y lo que tapa
-      // el cambio de imagen en el borde del ciclo.
       const edge = 0.2;
       const env = smooth(u / edge) * smooth((1 - u) / edge);
 
       const wh = 0.8 + 0.45 * hash01(i * 6.7 + 0.4);
       const w = p.fragSize * S * (0.55 + 0.9 * hash01(i * 5.1 + 0.6));
-      const spin = (hash01(i * 7.3 + 0.1) - 0.5) * 50 * DEG;
 
-      // Se apagan antes de tocar el borde del cuadro, medido a SU profundidad.
-      // No es sólo estético: un fragmento a opacidad plena justo sobre el borde
-      // entra y sale del frustum por un pixel entre dos frames, y el test de
-      // loop lo lee como un pop.
+      // Se apagan antes de tocar el borde del cuadro, medido a su profundidad:
+      // un fragmento a opacidad plena justo sobre el borde entra y sale del
+      // frustum por un pixel entre dos frames y el test de loop lo lee como pop.
       const view = geom.visible(pz);
       const reach = Math.max(w, w * wh) / 2;
       const room = Math.min(view.w / 2 - Math.abs(px), view.h / 2 - Math.abs(py)) - reach;
@@ -1267,59 +1233,70 @@ const cluster = {
 
       return {
         pos: [px, py, pz],
-        rot: [0, -swayA * 0.6, spin * (u - 0.5)],
+        rot: [0, 0, 0],
         size: [w, w * wh],
         opacity: env * edgeFade * p.fragOpacity,
         radius: 0,
-        // Un fragmento por índice y un slot más por ciclo: la misma regla de
-        // avance que las cards, para que el contrato de slots valga para todos.
-        assetSlot: i + k,
+        assetSlot: G + (i - Nc) + k,
+        // Detrás de la cinta, sin tocar el eje Z.
+        order: -1,
       };
     }
 
-    /* ------------------------------- cards ----------------------------- */
-    const adv = steppedAdvance(t, ease, 1);
-    const kk = Math.floor((i - adv + 1 - 1e-9) / C);
-    const s = i - adv - C * kk;
-    const j = i - C * kk;
+    /* ------------------------------ la cinta --------------------------- */
+    // La cinta avanza R planos por ciclo = una imagen por ciclo.
+    const adv = steppedAdvance(t, ease, R);
+    const c0 = i - adv;
+    const kk = Math.floor((c0 + Nc / 2) / Nc);
+    const c = -(c0 - Nc * kk); // posición sobre el camino; crece con el avance
+    const j = i - Nc * kk; // slot contiguo de la cinta
 
-    const out = Math.max(0, -s); // 0..1 saliendo
-    const depth = Math.max(0, s); // 0 = frente
+    // Los grupos se alinean con la ventana de la cinta: no se parte ningún grupo
+    // en los extremos (que además están apagados).
+    const jj = j + (Math.floor(Nc / 2) % R);
+    const grp = Math.floor(jj / R); // imagen del grupo
+    const e = mod(jj, R); // lugar del eco dentro del grupo
 
-    // Tamaño y scatter: la card conserva su carácter mientras avanza por la pila.
-    // Sembrado por `sd` (índice de imagen; sin assets, de placeholder).
-    const sd = mod(j, geom.M > 0 ? geom.M : N);
-    const base = geom.size(j);
+    // Semillas por imagen (sd) y por eco (e): ninguna depende del plano, así
+    // el frame final iguala al inicial.
+    const sd = mod(grp, geom.M > 0 ? geom.M : N);
+
+    const base = geom.size(grp);
     const sv = 1 + p.sizeVar * (hash01(sd * 2.9 + 0.2) * 2 - 1);
-    const size = [base[0] * sv, base[1] * sv];
 
-    const sx = (hash01(sd * 3.7 + 0.5) * 2 - 1) * p.scatter * S;
-    const sy = (hash01(sd * 5.3 + 0.8) * 2 - 1) * p.scatter * S * 1.2;
-    const jitter = (hash01(sd * 3.71 + 0.5) * 2 - 1) * p.rotJitter;
+    // Cercanía al centro: 1 en el medio, 0 en los extremos de la cinta.
+    const kc = clamp(1 - Math.abs(c) / (Nc / 2));
+    const bell = Math.pow(smooth(kc), p.falloff);
+    const sc = lerp(p.edgeScale, 1, bell);
+    const size = [base[0] * sc * sv, base[1] * sc * sv];
 
-    const z = out > 0 ? out * p.exitDistance * S : -depth * p.depthGap * S;
-    // El desparramo se abre un poco al salir: la card que se va se despega.
-    const spread = 1 + out * 0.6;
-    const [px, py, pz] = swing(sx * spread, sy * spread, z);
+    const along = c * p.step * S;
+    const bow = p.curve * S * Math.pow(c / (Nc / 2), 2);
+    const jit = (hash01(e * 5.3 + sd * 1.7 + 0.8) * 2 - 1) * p.jitter * S;
+    const x = d[0] * along + nrm[0] * (bow + jit);
+    const y = d[1] * along + nrm[1] * (bow + jit);
 
-    const enter = smooth(C - 1 - depth);
-    const opacity =
-      (1 - out) * enter * (1 - p.fade * smooth(C > 1 ? depth / (C - 1) : 0));
+    // Los extremos se apagan: es donde la cinta "salta" de punta a punta.
+    const opacity = smooth((Nc / 2 - Math.abs(c)) / Math.min(Nc / 2, 2));
 
     return {
-      pos: [px, py, pz],
-      rot: [0, -swayA * 0.6, (jitter + out * p.exitRot) * DEG],
+      // Todo en el plano z = 0: lo único que cambia con la posición es la
+      // escala. El orden de capas es explícito (el centro, lo más grande, tapa
+      // a lo chico) y no sale de la profundidad.
+      pos: [x, y, 0],
+      rot: [0, 0, 0],
       size,
       opacity,
       radius: p.cornerRadius * S,
-      assetSlot: j,
+      assetSlot: grp,
+      order: 1 + Math.round(bell * 1000),
     };
   },
 };
 
 /* ------------------------------------------------------------------ */
 
-export const TEMPLATE_LIST = [carousel, deck, parallax, orbit, flip, tunnel, wall, hero, cluster];
+export const TEMPLATE_LIST = [carousel, deck, parallax, orbit, flip, tunnel, wall, hero, trail];
 
 export const TEMPLATES = Object.fromEntries(
   TEMPLATE_LIST.map((tpl) => [tpl.id, tpl]),

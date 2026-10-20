@@ -461,55 +461,47 @@ export const LIBRARY = [
     ],
   },
   {
-    template: "cluster",
+    template: "trail",
     variants: [
       {
-        // La referencia: racimo de cards de distinto tamaño que se balancea en
-        // 3D, con esquirlas de las mismas imágenes a la deriva alrededor.
-        id: "cluster-nube",
-        name: "Nube",
+        // La referencia: cinta diagonal de imágenes con ecos escalonados que
+        // crecen al pasar por el centro, y polvo de fragmentos alrededor.
+        id: "trail-diagonal",
+        name: "Diagonal",
         fov: 45,
         params: {
-          cards: 7, planeSize: 0.36, planeRatio: "4:5", sizeVar: 0.5,
-          scatter: 0.17, depthGap: 0.07, rotJitter: 6, sway: 14,
-          exitDistance: 0.5, exitRot: 8, fade: 0.45, cornerRadius: 0,
-          fragments: 26, fragSize: 0.045, fragSpread: 0.62,
-          fragMotion: "drift", fragTravel: 0.35, fragDir: 70,
-          fragDepth: 0.5, fragOpacity: 1,
+          groups: 4, repeat: 3, planeSize: 0.36, planeRatio: "4:5", sizeVar: 0.3,
+          step: 0.095, pathAngle: -38, curve: 0.12, edgeScale: 0.12, falloff: 1.6, jitter: 0.02, cornerRadius: 0,
+          fragments: 26, fragSize: 0.04, fragSpread: 0.5, fragMotion: "drift",
+          fragTravel: 0.4, fragOpacity: 1,
         },
-        timing: timing(2.4, 6, EASE_SOFT),
+        timing: timing(2.4, 5, EASE_SOFT),
       },
       {
-        // Los fragmentos salen del centro hacia afuera: la card que se va
-        // parece romperse.
-        id: "cluster-estallido",
-        name: "Estallido",
-        fov: 50,
-        params: {
-          cards: 6, planeSize: 0.5, planeRatio: "4:5", sizeVar: 0.2,
-          scatter: 0.06, depthGap: 0.09, rotJitter: 4, sway: 8,
-          exitDistance: 0.6, exitRot: 12, fade: 0.5, cornerRadius: 0.01,
-          fragments: 40, fragSize: 0.04, fragSpread: 0.8,
-          fragMotion: "burst", fragTravel: 0.6, fragDir: 0,
-          fragDepth: 0.8, fragOpacity: 1,
-        },
-        timing: timing(2, 6),
-      },
-      {
-        // Nube más compacta con los fragmentos girando alrededor, como un
-        // satélite de detalles.
-        id: "cluster-orbita",
-        name: "Órbita",
+        // Camino horizontal y recto, más ecos: una regla de imágenes.
+        id: "trail-regla",
+        name: "Regla",
         fov: 40,
         params: {
-          cards: 6, planeSize: 0.4, planeRatio: "1:1", sizeVar: 0.3,
-          scatter: 0.08, depthGap: 0.06, rotJitter: 3, sway: 20,
-          exitDistance: 0.4, exitRot: 6, fade: 0.4, cornerRadius: 0.02,
-          fragments: 20, fragSize: 0.05, fragSpread: 0.55,
-          fragMotion: "orbit", fragTravel: 0.6, fragDir: 0,
-          fragDepth: 0.6, fragOpacity: 0.9,
+          groups: 5, repeat: 4, planeSize: 0.34, planeRatio: "4:5", sizeVar: 0.15,
+          step: 0.07, pathAngle: 0, curve: 0, edgeScale: 0.2, falloff: 1.8, jitter: 0.01, cornerRadius: 0.01,
+          fragments: 16, fragSize: 0.035, fragSpread: 0.45, fragMotion: "drift",
+          fragTravel: 0.3, fragOpacity: 0.9,
         },
-        timing: timing(3, 6, EASE_SOFT),
+        timing: timing(2.2, 5, EASE_LINEAR),
+      },
+      {
+        // Camino en arco, con el polvo saliendo en estallido.
+        id: "trail-arco",
+        name: "Arco",
+        fov: 50,
+        params: {
+          groups: 6, repeat: 3, planeSize: 0.38, planeRatio: "1:1", sizeVar: 0.25,
+          step: 0.08, pathAngle: -20, curve: 0.34, edgeScale: 0.1, falloff: 1.2, jitter: 0.02, cornerRadius: 0.012,
+          fragments: 34, fragSize: 0.038, fragSpread: 0.7, fragMotion: "burst",
+          fragTravel: 0.5, fragOpacity: 1,
+        },
+        timing: timing(2.6, 6, EASE_SOFT),
       },
     ],
   },

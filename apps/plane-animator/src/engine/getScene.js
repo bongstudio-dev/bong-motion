@@ -267,7 +267,8 @@ export function getScene(t01, state, opts = {}) {
       doubleSided: backSlot != null || !!out.mirrorBack,
       // Más lejos primero: three dibuja los transparentes en renderOrder
       // ASCENDENTE, así que el orden es +z, no -z como sugería el brief.
-      renderOrder: Math.round(out.pos[2]),
+      // `order` explícito (opcional) para templates que apilan sin mover en Z.
+      renderOrder: out.order ?? Math.round(out.pos[2]),
       // BRIEF §13: la puerta a color/texto queda abierta desde el día uno.
       fill: { type: "image" },
     });

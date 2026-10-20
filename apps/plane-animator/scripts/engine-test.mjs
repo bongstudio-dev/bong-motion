@@ -261,7 +261,7 @@ console.log("\n== 11. Stagger y dirección ==");
 
 // Las tres familias nuevas comparten los mismos cinco checks, así que se
 // corren desde una sola tabla en vez de copiarlos tres veces.
-const NUEVAS = ["tunnel", "wall", "hero", "cluster"];
+const NUEVAS = ["tunnel", "wall", "hero", "trail"];
 
 console.log("\n== 12. Familias nuevas: los cinco checks ==");
 for (const id of NUEVAS) {
@@ -286,7 +286,13 @@ for (const id of NUEVAS) {
     `${id}: ${N} placeholders numerados sin assets`,
   );
   const nums = new Set(cards0.map((p) => p.placeholder));
-  ok(nums.size === N, `${id}: los ${N} placeholders tienen números distintos`);
+  // Los ecos del trail repiten la imagen de su grupo, y con ella el número.
+  const ecos = tpl.echoCount ? tpl.echoCount(tpl.params) : 0;
+  ok(
+    nums.size === N - ecos,
+    `${id}: los ${N - ecos} placeholders únicos tienen números distintos` +
+      (ecos ? ` (${ecos} son ecos)` : ""),
+  );
 
   // 4. Cambiar el ratio no cambia la composición, sólo el marco. Es el mismo
   //    criterio del test 9: el lado menor siempre es 1080 y los planos se miden
