@@ -1151,6 +1151,8 @@ const trail = {
     focusScale: 12.3,
     lensLen: 0.41,
     lensRamp: 0.59,
+    frontBias: 1,
+    layerMix: 0,
     focusFalloff: 1,
   },
   schema: [
@@ -1170,6 +1172,8 @@ const trail = {
     { group: "Foco", key: "focusScale", label: "Escala en el foco", min: 1, max: 20, step: 0.1 },
     { group: "Foco", key: "lensLen", label: "Largo del foco", min: 0.05, max: 1, step: 0.01, pct: true },
     { group: "Foco", key: "lensRamp", label: "Rampa de escala", min: 0.02, max: 1, step: 0.01, pct: true },
+    { group: "Foco", key: "frontBias", label: "Al frente las que animan", min: 0, max: 1, step: 0.01, pct: true },
+    { group: "Foco", key: "layerMix", label: "Capa fija por imagen", min: 0, max: 1, step: 0.01, pct: true },
     { group: "Foco", key: "focusFalloff", label: "Curva del borde", min: 0.3, max: 3, step: 0.05 },
     { group: "Foco", key: "focusX", label: "Foco X", min: -0.5, max: 0.5, step: 0.01, pct: true },
     { group: "Foco", key: "focusY", label: "Foco Y", min: -0.5, max: 0.5, step: 0.01, pct: true },
@@ -1220,6 +1224,11 @@ const trail = {
     const bump = Math.pow(smooth(near), p.focusFalloff);
     const scale = lerp(1, p.focusScale, bump);
 
+    const rMid = R * (1 - p.lensRamp / 2); // mitad de la rampa
+    // Prioridad de capa (más alto, más arriba), en lados menores.
+    const posPri = -lerp(dist, Math.abs(dist - rMid), p.frontBias) / S;
+    const layerPri = -(1 - hash01(sd * 3.7 + 0.1)) * 0.5;
+
     const w = base[0] * sv * scale;
     const h = base[1] * sv * scale;
 
@@ -1233,8 +1242,13 @@ const trail = {
       opacity: ends,
       radius: p.cornerRadius * Math.min(w, h),
       assetSlot: j,
-      // Lo más cercano al foco, arriba. Orden explícito, no profundidad.
-      order: 1 + Math.round(bump * 4000 - (dist / S) * 100),
+      // Orden explícito, no profundidad. Con frontBias 0 manda la cercanía al
+      // centro del foco; con 1 manda la cercanía a la mitad de las rampas, o
+      // sea que las imágenes que están animando (scale up y scale down) pasan
+      // al frente de las que ya están a tamaño pleno. `layerMix` mezcla un
+      // rango fijo por imagen (como capas de una composición): en la referencia
+      // hay imágenes que siempre quedan arriba de otras.
+      order: 1000000 + Math.round(lerp(posPri, layerPri, p.layerMix) * 10000),
     };
   },
 };
