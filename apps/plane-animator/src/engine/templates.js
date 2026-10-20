@@ -1301,10 +1301,29 @@ const trail = {
     // referencia el 26% de lo que cruza el riel mide menos de 8 px.
     const crumb = hash01(sj * 7.1 + 0.3) < p.crumbs ? 0.2 + 0.2 * hash01(sj * 3.3 + 0.6) : 1;
     const sv = (1 + p.sizeVar * (hash01(sj * 2.9 + 0.2) * 2 - 1)) * crumb;
-    const lat = (hash01(sj * 5.3 + 0.8) * 2 - 1) * p.jitter * S;
+    // Las cards NO se reparten al azar puro: con azar, dos cards seguidas
+    // pueden caer casi en el mismo lugar y viajar juntas como gemelas.
+    //  · Lateral: secuencia de "razón áurea" sobre la cinta de cards (cada card
+    //    cae a ~0.62 del rango de la anterior, y cualquier tanda corta queda bien
+    //    repartida). Se calcula módulo el total de cards de la pieza, así cierra.
+    //  · A lo largo: el desvío se acota a ~1/3 del hueco entre cards, así dos
+    //    cards seguidas nunca se pisan ni se cruzan.
+    // El polvo sí queda al azar: ahí los montoncitos son parte de la referencia.
+    const rnd = hash01(sj * 5.3 + 0.8) * 2 - 1;
+    let lat = rnd * p.jitter * S;
+    let offMax = p.scatterAlong;
+    if (isCard) {
+      const kc = Q < P ? cardIdx(j) : j;
+      const T = Math.max(1, Q < P ? cycles * Q : A);
+      let ga = Math.round(0.618034 * T);
+      while (ga > 0 && gcd(ga, T) !== 1) ga++;
+      const u = (mod(mod(kc, T) * ga, T) + 0.5) / T;
+      lat = (u * 2 - 1) * p.jitter * S;
+      offMax = Math.min(p.scatterAlong, (0.35 * P) / Q);
+    }
     // Espaciado irregular: en la referencia la separación entre imágenes del
     // riel varía como en una distribución al azar (CV ~0.9), con montoncitos.
-    const off = (hash01(sj * 2.3 + 0.9) * 2 - 1) * p.scatterAlong * p.step * S;
+    const off = (hash01(sj * 2.3 + 0.9) * 2 - 1) * offMax * p.step * S;
 
     const along = c * p.step * S + off;
     const bow = p.curve * S * Math.pow(c / (N / 2), 2);
