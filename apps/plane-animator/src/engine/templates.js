@@ -1155,6 +1155,7 @@ const trail = {
     lensRamp: 0.59,
     frontBias: 1,
     layerMix: 0,
+    smallBehind: 0.12,
     focusFalloff: 1,
   },
   schema: [
@@ -1178,6 +1179,7 @@ const trail = {
     { group: "Foco", key: "lensRamp", label: "Rampa de escala", min: 0.02, max: 1, step: 0.01, pct: true },
     { group: "Foco", key: "frontBias", label: "Al frente las que animan", min: 0, max: 1, step: 0.01, pct: true },
     { group: "Foco", key: "layerMix", label: "Capa fija por imagen", min: 0, max: 1, step: 0.01, pct: true },
+    { group: "Foco", key: "smallBehind", label: "Chicas atrás en el foco", min: 0, max: 0.4, step: 0.005, pct: true },
     { group: "Foco", key: "focusFalloff", label: "Curva del borde", min: 0.3, max: 3, step: 0.05 },
     { group: "Foco", key: "focusX", label: "Foco X", min: -0.5, max: 0.5, step: 0.01, pct: true },
     { group: "Foco", key: "focusY", label: "Foco Y", min: -0.5, max: 0.5, step: 0.01, pct: true },
@@ -1246,6 +1248,11 @@ const trail = {
 
     const w = base[0] * sv * scale;
     const h = base[1] * sv * scale;
+    // Una imagen que dentro del foco quedó chica (una migaja que creció poco,
+    // o una que ya está bajando) no tiene que quedar arriba de las grandes:
+    // pasa detrás de todo hasta que crece o se va. `smallBehind` es el ancho
+    // por debajo del cual pasa atrás, en lados menores; 0 lo apaga.
+    const small = p.smallBehind > 0 && dist < R && w < p.smallBehind * S;
 
     // Se apaga en la costura del anillo, que tiene que caer fuera de cuadro.
     const ends = smooth((N / 2 - Math.abs(c)) / Math.min(N / 2, 1.5));
@@ -1263,7 +1270,10 @@ const trail = {
       // al frente de las que ya están a tamaño pleno. `layerMix` mezcla un
       // rango fijo por imagen (como capas de una composición): en la referencia
       // hay imágenes que siempre quedan arriba de otras.
-      order: 1000000 + Math.round(lerp(posPri, layerPri, p.layerMix) * 10000),
+      order:
+        1000000 +
+        Math.round(lerp(posPri, layerPri, p.layerMix) * 10000) -
+        (small ? 2000000 : 0),
     };
   },
 };
